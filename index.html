@@ -203,7 +203,7 @@ function loadChannel(ch, index = currentChannelIndex) {
     clearTimeout(displayTimeout);
     displayTimeout = setTimeout(() => channelDisplay.classList.remove('show'), 7000);
 
-    const isBackgroundAudio = (index >= 30 && index <= 52);
+    const isBackgroundAudio = (ch.type === 'audio');
 
     if(ch.type === 'hls') {
         videoTarget.innerHTML = `<video id="v" ${isBackgroundAudio ? '' : 'controls'} autoplay crossorigin="anonymous"></video>`;
