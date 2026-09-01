@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -150,9 +151,6 @@
             pointer-events: none;
         }
 
-        /*
-         * Informacja o aktualnym stanie HLS.
-         */
         #stream-status {
             position: absolute;
             left: 20px;
@@ -286,7 +284,6 @@ const channels = [
 
     {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},
 
-
     {name: "Radio Kiss Kiss TV", url: "https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8", type: "hls"},
 
     {name: "Radiofreccia HD", url: "https://streamcdnb1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8", type: "hls"},
@@ -306,11 +303,6 @@ const channels = [
 
     {name: "Now 70's", url: "https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8", type: "hls"},
 
-    /*
-     * NOW Rock
-     *
-     * Podstawowy adres Rakuten:
-     */
     {
         name: "NOW Rock",
         url: "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8",
@@ -318,21 +310,6 @@ const channels = [
     },
 
     {name: "DELUXE MUSIC", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8", type: "hls"},
-
-    /*
-     * DELUXE DANCE
-     *
-     * WAŻNE:
-     *
-     * Ten kanał dostaje kilka potencjalnych wariantów.
-     *
-     * 1. Oryginalny adres
-     * 2. playlist.m3u8
-     * 3. playlist720p.m3u8
-     *
-     * Możesz później dopisać własne alternatywy w polu
-     * fallbackUrls.
-     */
 
     {
         name: "DELUXE DANCE",
@@ -410,7 +387,7 @@ const channels = [
 
     {name: "Africanews English", url: "https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8", type: "hls"},
 
-    {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls"},
+    {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls", backgroundAudio: true},
 
     {name: "RADIO ZET", url: "https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx", type: "audio", backgroundAudio: true},
 
@@ -446,10 +423,17 @@ const channels = [
    ELEMENTY
    ============================================================ */
 
-const channelsUl = document.getElementById('channels-ul');
-const videoTarget = document.getElementById('video-target');
-const channelDisplay = document.getElementById('channel-display');
-const streamStatus = document.getElementById('stream-status');
+const channelsUl =
+    document.getElementById('channels-ul');
+
+const videoTarget =
+    document.getElementById('video-target');
+
+const channelDisplay =
+    document.getElementById('channel-display');
+
+const streamStatus =
+    document.getElementById('stream-status');
 
 
 /* ============================================================
@@ -478,6 +462,15 @@ let loadingChannelToken = 0;
    WEB AUDIO
    ============================================================ */
 
+/*
+ * Web Audio pozostawiony w kodzie,
+ * ale ZEWNĘTRZNE STACJE RADIOWE NIE SĄ
+ * już przez niego przepuszczane.
+ *
+ * To eliminuje problemy z CORS,
+ * które mogą powodować ciszę.
+ */
+
 let audioCtx = null;
 let audioSourceNode = null;
 let gainNode = null;
@@ -490,24 +483,12 @@ let compressorNode = null;
 
 const HLS_CONFIG = {
 
-    /*
-     * Ile czasu dajemy playlistcie na rozpoczęcie pracy.
-     */
     startupTimeout: 9000,
 
-    /*
-     * Ile razy próbujemy ponownie ten sam URL.
-     */
     retriesPerUrl: 2,
 
-    /*
-     * Opóźnienie pomiędzy retry.
-     */
     retryDelay: 1200,
 
-    /*
-     * Po ilu błędach przechodzimy na następny URL.
-     */
     maxFatalErrorsPerUrl: 2
 };
 
@@ -516,24 +497,40 @@ const HLS_CONFIG = {
    STATUS
    ============================================================ */
 
-function showStreamStatus(text, type = '') {
+function showStreamStatus(
+    text,
+    type = ''
+) {
 
-    streamStatus.textContent = text;
+    streamStatus.textContent =
+        text;
 
-    streamStatus.classList.remove('show', 'error', 'ok');
+    streamStatus.classList.remove(
+        'show',
+        'error',
+        'ok'
+    );
 
     if (type) {
-        streamStatus.classList.add(type);
+
+        streamStatus.classList.add(
+            type
+        );
     }
 
-    streamStatus.classList.add('show');
+    streamStatus.classList.add(
+        'show'
+    );
 }
 
 
 function hideStreamStatus() {
 
-    streamStatus.classList.remove('show', 'error', 'ok');
-
+    streamStatus.classList.remove(
+        'show',
+        'error',
+        'ok'
+    );
 }
 
 
@@ -543,43 +540,71 @@ function hideStreamStatus() {
 
 function destroyCurrentPlayer() {
 
-    clearTimeout(hlsFailTimer);
+    clearTimeout(
+        hlsFailTimer
+    );
 
     if (currentHls) {
 
         try {
+
             currentHls.destroy();
+
         } catch (e) {
-            console.warn("HLS destroy error:", e);
+
+            console.warn(
+                "HLS destroy error:",
+                e
+            );
         }
 
         currentHls = null;
     }
 
+
     if (currentDash) {
 
         try {
+
             currentDash.reset();
+
         } catch (e) {
-            console.warn("DASH reset error:", e);
+
+            console.warn(
+                "DASH reset error:",
+                e
+            );
         }
 
         currentDash = null;
     }
 
+
     if (ytPlayer) {
 
         try {
+
             ytPlayer.destroy();
+
         } catch (e) {}
 
         ytPlayer = null;
     }
 
+
+    /*
+     * Jeżeli gdzieś wcześniej został utworzony
+     * WebAudio source, odłączamy go.
+     *
+     * Nie dotyczy to obecnych stacji radiowych.
+     */
+
     if (audioSourceNode) {
 
         try {
+
             audioSourceNode.disconnect();
+
         } catch (e) {}
 
         audioSourceNode = null;
@@ -600,103 +625,109 @@ function initAudioContext() {
             window.webkitAudioContext;
 
         if (!AudioContext) {
+
             return false;
         }
 
-        audioCtx = new AudioContext();
+        audioCtx =
+            new AudioContext();
+
 
         compressorNode =
             audioCtx.createDynamicsCompressor();
+
 
         compressorNode.threshold.setValueAtTime(
             -12,
             audioCtx.currentTime
         );
 
+
         compressorNode.knee.setValueAtTime(
             3,
             audioCtx.currentTime
         );
+
 
         compressorNode.ratio.setValueAtTime(
             12,
             audioCtx.currentTime
         );
 
+
         compressorNode.attack.setValueAtTime(
             0.003,
             audioCtx.currentTime
         );
+
 
         compressorNode.release.setValueAtTime(
             0.25,
             audioCtx.currentTime
         );
 
-        gainNode = audioCtx.createGain();
+
+        gainNode =
+            audioCtx.createGain();
+
 
         gainNode.gain.setValueAtTime(
             0.2,
             audioCtx.currentTime
         );
 
-        compressorNode.connect(gainNode);
 
-        gainNode.connect(audioCtx.destination);
+        compressorNode.connect(
+            gainNode
+        );
+
+
+        gainNode.connect(
+            audioCtx.destination
+        );
     }
 
-    if (audioCtx.state === 'suspended') {
 
-        audioCtx.resume().catch(() => {});
+    if (
+        audioCtx.state ===
+        'suspended'
+    ) {
+
+        audioCtx.resume().catch(
+            () => {}
+        );
     }
+
 
     return true;
 }
 
 
 /*
- * WAŻNA ZMIANA:
+ * WAŻNE:
  *
- * WebAudio może wymagać CORS.
+ * Funkcja została celowo wyłączona dla
+ * zewnętrznych streamów.
  *
- * Dlatego nie pozwalamy, żeby błąd WebAudio
- * zatrzymał odtwarzanie HLS.
+ * createMediaElementSource() wymaga odpowiedniej
+ * polityki CORS po stronie serwera.
+ *
+ * Przy radiu mogło to powodować:
+ *
+ * - brak dźwięku,
+ * - ciszę po rozpoczęciu,
+ * - SecurityError,
+ * - problemy po zmianie stacji.
  */
+
 function connectMediaElement(element) {
 
-    try {
+    console.warn(
+        "WebAudio pominięte dla zewnętrznego streamu:",
+        element
+    );
 
-        if (!initAudioContext()) {
-            return;
-        }
-
-        if (audioSourceNode) {
-
-            try {
-                audioSourceNode.disconnect();
-            } catch (e) {}
-
-            audioSourceNode = null;
-        }
-
-        audioSourceNode =
-            audioCtx.createMediaElementSource(element);
-
-        audioSourceNode.connect(compressorNode);
-
-    } catch (e) {
-
-        /*
-         * Jeżeli źródło nie posiada CORS,
-         * WebAudio może tutaj zgłosić błąd.
-         *
-         * STREAM NADAL MOŻE DZIAŁAĆ NORMALNIE.
-         */
-        console.warn(
-            "WebAudio/CORS - pozostawiam normalne odtwarzanie:",
-            e
-        );
-    }
+    return false;
 }
 
 
@@ -708,49 +739,67 @@ function buildHlsCandidates(ch) {
 
     const urls = [];
 
+
     /*
-     * Najpierw podstawowy URL.
+     * Podstawowy URL.
      */
+
     if (ch.url) {
-        urls.push(ch.url.trim());
+
+        urls.push(
+            ch.url.trim()
+        );
     }
+
 
     /*
      * Własne fallbackUrls.
      */
-    if (Array.isArray(ch.fallbackUrls)) {
 
-        ch.fallbackUrls.forEach(url => {
+    if (
+        Array.isArray(
+            ch.fallbackUrls
+        )
+    ) {
 
-            if (url && typeof url === 'string') {
+        ch.fallbackUrls.forEach(
+            url => {
 
-                urls.push(url.trim());
+                if (
+                    url &&
+                    typeof url === 'string'
+                ) {
+
+                    urls.push(
+                        url.trim()
+                    );
+                }
             }
-        });
+        );
     }
 
+
     /*
-     * AUTOMATYCZNE WARIANTY.
-     *
-     * Dla:
-     *
-     * /64733/64733_264_live.m3u8
-     *
-     * próbujemy również:
-     *
-     * /64733/playlist.m3u8
-     * /64733/playlist720p.m3u8
+     * Automatyczne warianty.
      */
+
     try {
 
-        const parsed = new URL(ch.url);
+        const parsed =
+            new URL(ch.url);
 
-        const path = parsed.pathname;
+        const path =
+            parsed.pathname;
+
 
         if (
             path.endsWith('.m3u8') &&
-            !path.endsWith('/playlist.m3u8') &&
-            !path.endsWith('/playlist720p.m3u8')
+            !path.endsWith(
+                '/playlist.m3u8'
+            ) &&
+            !path.endsWith(
+                '/playlist720p.m3u8'
+            )
         ) {
 
             const directory =
@@ -759,14 +808,17 @@ function buildHlsCandidates(ch) {
                     path.lastIndexOf('/') + 1
                 );
 
+
             const origin =
                 parsed.origin;
+
 
             urls.push(
                 origin +
                 directory +
                 'playlist.m3u8'
             );
+
 
             urls.push(
                 origin +
@@ -783,12 +835,12 @@ function buildHlsCandidates(ch) {
         );
     }
 
-    /*
-     * Usuwamy duplikaty.
-     */
-    return [...new Set(
-        urls.filter(Boolean)
-    )];
+
+    return [
+        ...new Set(
+            urls.filter(Boolean)
+        )
+    ];
 }
 
 
@@ -798,10 +850,15 @@ function buildHlsCandidates(ch) {
 
 function isHlsUrl(url) {
 
-    if (!url) return false;
+    if (!url) {
+
+        return false;
+    }
 
     return (
-        url.toLowerCase().includes('.m3u8')
+        url
+            .toLowerCase()
+            .includes('.m3u8')
     );
 }
 
@@ -810,36 +867,43 @@ function isHlsUrl(url) {
    CORS / FETCH TEST
    ============================================================ */
 
-/*
- * UWAGA:
- *
- * Ten test nie może "naprawić" CORS.
- *
- * Ma tylko wykryć, czy przeglądarka może
- * pobrać playlistę przez fetch.
- *
- * Jeżeli fetch zakończy się błędem CORS,
- * przechodzimy dalej do następnego wariantu.
- */
-async function testCors(url, token) {
+async function testCors(
+    url,
+    token
+) {
 
-    if (token !== loadingChannelToken) {
+    if (
+        token !==
+        loadingChannelToken
+    ) {
+
         return {
             ok: false,
             cancelled: true
         };
     }
 
+
+    let controller = null;
+    let timeout = null;
+
+
     try {
 
-        const controller =
+        controller =
             new AbortController();
 
-        const timeout =
+
+        timeout =
             setTimeout(
-                () => controller.abort(),
+                () => {
+
+                    controller.abort();
+
+                },
                 4500
             );
+
 
         const response =
             await fetch(
@@ -848,32 +912,46 @@ async function testCors(url, token) {
                     method: 'GET',
                     mode: 'cors',
                     cache: 'no-store',
-                    signal: controller.signal
+                    signal:
+                        controller.signal
                 }
             );
 
-        clearTimeout(timeout);
+
+        clearTimeout(
+            timeout
+        );
+
 
         if (!response.ok) {
 
             return {
                 ok: false,
-                status: response.status,
+                status:
+                    response.status,
                 cors: true
             };
         }
 
-        /*
-         * Czytamy niewielki fragment.
-         */
+
         await response.text();
+
 
         return {
             ok: true,
             cors: true
         };
 
+
     } catch (e) {
+
+        if (timeout) {
+
+            clearTimeout(
+                timeout
+            );
+        }
+
 
         return {
             ok: false,
@@ -890,322 +968,427 @@ async function testCors(url, token) {
 
 function tryHlsUrl(
     url,
-    video,
+    media,
     token,
     candidateIndex
 ) {
 
-    return new Promise((resolve, reject) => {
+    return new Promise(
+        (resolve, reject) => {
 
-        if (token !== loadingChannelToken) {
-
-            reject(
-                new Error("cancelled")
-            );
-
-            return;
-        }
-
-        if (!window.Hls || !Hls.isSupported()) {
-
-            reject(
-                new Error("HLS.js not supported")
-            );
-
-            return;
-        }
-
-        showStreamStatus(
-            `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
-        );
-
-        let resolved = false;
-        let fatalErrors = 0;
-
-        clearTimeout(hlsFailTimer);
-
-        const hls =
-            new Hls({
-
-                enableWorker: true,
-
-                lowLatencyMode: false,
-
-                backBufferLength: 30,
-
-                maxBufferLength: 30,
-
-                maxMaxBufferLength: 60,
-
-                manifestLoadingMaxRetry: 1,
-
-                manifestLoadingRetryDelay: 1000,
-
-                levelLoadingMaxRetry: 1,
-
-                levelLoadingRetryDelay: 1000,
-
-                fragLoadingMaxRetry: 2,
-
-                fragLoadingRetryDelay: 1000,
-
-                /*
-                 * Nie wymuszamy credentials.
-                 */
-                xhrSetup: function(xhr) {
-
-                    try {
-                        xhr.withCredentials = false;
-                    } catch (e) {}
-                }
-            });
-
-        currentHls = hls;
-
-        function cleanup() {
-
-            clearTimeout(hlsFailTimer);
-
-            hls.off(
-                Hls.Events.MANIFEST_PARSED,
-                onManifest
-            );
-
-            hls.off(
-                Hls.Events.ERROR,
-                onError
-            );
-        }
-
-
-        function success() {
-
-            if (resolved) return;
-
-            resolved = true;
-
-            cleanup();
-
-            showStreamStatus(
-                "STREAM DZIAŁA",
-                "ok"
-            );
-
-            /*
-             * Po 3 sekundach chowamy status.
-             */
-            setTimeout(() => {
-
-                if (token === loadingChannelToken) {
-                    hideStreamStatus();
-                }
-
-            }, 3000);
-
-            resolve(hls);
-        }
-
-
-        function failure(error) {
-
-            if (resolved) return;
-
-            resolved = true;
-
-            cleanup();
-
-            try {
-                hls.destroy();
-            } catch (e) {}
-
-            if (currentHls === hls) {
-                currentHls = null;
-            }
-
-            reject(error);
-        }
-
-
-        function onManifest() {
-
-            if (token !== loadingChannelToken) {
-
-                failure(
-                    new Error("cancelled")
-                );
-
-                return;
-            }
-
-            /*
-             * Manifest został pobrany.
-             *
-             * Teraz próbujemy uruchomić video.
-             */
-            video.play()
-                .then(() => {
-
-                    success();
-
-                })
-                .catch(() => {
-
-                    /*
-                     * Autoplay może być zablokowany.
-                     * Sam manifest jest jednak poprawny.
-                     */
-                    success();
-                });
-        }
-
-
-        function onError(event, data) {
-
-            if (token !== loadingChannelToken) {
-
-                failure(
-                    new Error("cancelled")
-                );
-
-                return;
-            }
-
-            console.warn(
-                "HLS:",
-                url,
-                data
-            );
-
-            if (!data.fatal) {
-                return;
-            }
-
-            fatalErrors++;
-
-            /*
-             * Błąd CORS / manifestu.
-             */
             if (
-                data.type === Hls.ErrorTypes.NETWORK_ERROR
+                token !==
+                loadingChannelToken
             ) {
 
-                showStreamStatus(
-                    `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
+                reject(
+                    new Error(
+                        "cancelled"
+                    )
                 );
 
+                return;
+            }
+
+
+            if (
+                !window.Hls ||
+                !Hls.isSupported()
+            ) {
+
+                reject(
+                    new Error(
+                        "HLS.js not supported"
+                    )
+                );
+
+                return;
+            }
+
+
+            showStreamStatus(
+                `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
+            );
+
+
+            let resolved = false;
+
+            let fatalErrors = 0;
+
+
+            clearTimeout(
+                hlsFailTimer
+            );
+
+
+            const hls =
+                new Hls({
+
+                    enableWorker: true,
+
+                    lowLatencyMode: false,
+
+                    backBufferLength: 30,
+
+                    maxBufferLength: 30,
+
+                    maxMaxBufferLength: 60,
+
+                    manifestLoadingMaxRetry: 1,
+
+                    manifestLoadingRetryDelay: 1000,
+
+                    levelLoadingMaxRetry: 1,
+
+                    levelLoadingRetryDelay: 1000,
+
+                    fragLoadingMaxRetry: 2,
+
+                    fragLoadingRetryDelay: 1000,
+
+                    xhrSetup: function(xhr) {
+
+                        try {
+
+                            xhr.withCredentials =
+                                false;
+
+                        } catch (e) {}
+                    }
+                });
+
+
+            currentHls =
+                hls;
+
+
+            function cleanup() {
+
+                clearTimeout(
+                    hlsFailTimer
+                );
+
+
+                hls.off(
+                    Hls.Events.MANIFEST_PARSED,
+                    onManifest
+                );
+
+
+                hls.off(
+                    Hls.Events.ERROR,
+                    onError
+                );
+            }
+
+
+            function success() {
+
+                if (resolved) {
+
+                    return;
+                }
+
+
+                resolved = true;
+
+
+                cleanup();
+
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    3000
+                );
+
+
+                resolve(hls);
+            }
+
+
+            function failure(error) {
+
+                if (resolved) {
+
+                    return;
+                }
+
+
+                resolved = true;
+
+
+                cleanup();
+
+
+                try {
+
+                    hls.destroy();
+
+                } catch (e) {}
+
+
                 if (
-                    fatalErrors >=
-                    HLS_CONFIG.maxFatalErrorsPerUrl
+                    currentHls === hls
+                ) {
+
+                    currentHls = null;
+                }
+
+
+                reject(error);
+            }
+
+
+            function onManifest() {
+
+                if (
+                    token !==
+                    loadingChannelToken
                 ) {
 
                     failure(
                         new Error(
-                            "NETWORK_ERROR"
+                            "cancelled"
                         )
                     );
 
-                } else {
-
-                    setTimeout(() => {
-
-                        if (
-                            !resolved &&
-                            token === loadingChannelToken
-                        ) {
-
-                            try {
-                                hls.startLoad();
-                            } catch (e) {}
-                        }
-
-                    }, HLS_CONFIG.retryDelay);
+                    return;
                 }
 
-                return;
+
+                /*
+                 * Manifest jest poprawny.
+                 *
+                 * Teraz uruchamiamy media.
+                 */
+
+                media.play()
+                    .then(
+                        () => {
+
+                            success();
+
+                        }
+                    )
+                    .catch(
+                        () => {
+
+                            /*
+                             * Autoplay może być
+                             * zablokowany.
+                             *
+                             * Sam stream jest jednak
+                             * poprawnie załadowany.
+                             */
+
+                            success();
+                        }
+                    );
             }
 
 
-            /*
-             * Błąd kodeka / media.
-             */
-            if (
-                data.type === Hls.ErrorTypes.MEDIA_ERROR
+            function onError(
+                event,
+                data
             ) {
 
-                showStreamStatus(
-                    `Błąd media — próba naprawy`
-                );
-
-                try {
-
-                    hls.recoverMediaError();
-
-                } catch (e) {
+                if (
+                    token !==
+                    loadingChannelToken
+                ) {
 
                     failure(
                         new Error(
-                            "MEDIA_ERROR"
+                            "cancelled"
                         )
                     );
+
+                    return;
                 }
 
-                return;
+
+                console.warn(
+                    "HLS:",
+                    url,
+                    data
+                );
+
+
+                if (
+                    !data.fatal
+                ) {
+
+                    return;
+                }
+
+
+                fatalErrors++;
+
+
+                /*
+                 * Błąd sieci / manifestu.
+                 */
+
+                if (
+                    data.type ===
+                    Hls.ErrorTypes.NETWORK_ERROR
+                ) {
+
+                    showStreamStatus(
+                        `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
+                    );
+
+
+                    if (
+                        fatalErrors >=
+                        HLS_CONFIG.maxFatalErrorsPerUrl
+                    ) {
+
+                        failure(
+                            new Error(
+                                "NETWORK_ERROR"
+                            )
+                        );
+
+                    } else {
+
+                        setTimeout(
+                            () => {
+
+                                if (
+                                    !resolved &&
+                                    token ===
+                                    loadingChannelToken
+                                ) {
+
+                                    try {
+
+                                        hls.startLoad();
+
+                                    } catch (e) {}
+                                }
+
+                            },
+                            HLS_CONFIG.retryDelay
+                        );
+                    }
+
+
+                    return;
+                }
+
+
+                /*
+                 * Błąd kodeka / media.
+                 */
+
+                if (
+                    data.type ===
+                    Hls.ErrorTypes.MEDIA_ERROR
+                ) {
+
+                    showStreamStatus(
+                        "Błąd media — próba naprawy"
+                    );
+
+
+                    try {
+
+                        hls.recoverMediaError();
+
+                    } catch (e) {
+
+                        failure(
+                            new Error(
+                                "MEDIA_ERROR"
+                            )
+                        );
+                    }
+
+
+                    return;
+                }
+
+
+                /*
+                 * Inny fatalny błąd.
+                 */
+
+                failure(
+                    new Error(
+                        data.details ||
+                        "HLS_FATAL_ERROR"
+                    )
+                );
             }
 
 
-            /*
-             * Każdy inny fatalny błąd.
-             */
-            failure(
-                new Error(
-                    data.details ||
-                    "HLS_FATAL_ERROR"
-                )
+            hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                onManifest
             );
+
+
+            hls.on(
+                Hls.Events.ERROR,
+                onError
+            );
+
+
+            /*
+             * Timeout.
+             */
+
+            hlsFailTimer =
+                setTimeout(
+                    () => {
+
+                        if (!resolved) {
+
+                            failure(
+                                new Error(
+                                    "HLS_TIMEOUT"
+                                )
+                            );
+                        }
+
+                    },
+                    HLS_CONFIG.startupTimeout
+                );
+
+
+            try {
+
+                hls.loadSource(
+                    url
+                );
+
+                hls.attachMedia(
+                    media
+                );
+
+            } catch (e) {
+
+                failure(e);
+            }
         }
-
-
-        hls.on(
-            Hls.Events.MANIFEST_PARSED,
-            onManifest
-        );
-
-        hls.on(
-            Hls.Events.ERROR,
-            onError
-        );
-
-
-        /*
-         * Timeout zabezpieczający.
-         */
-        hlsFailTimer =
-            setTimeout(() => {
-
-                if (!resolved) {
-
-                    failure(
-                        new Error(
-                            "HLS_TIMEOUT"
-                        )
-                    );
-                }
-
-            }, HLS_CONFIG.startupTimeout);
-
-
-        try {
-
-            hls.loadSource(url);
-
-            hls.attachMedia(video);
-
-        } catch (e) {
-
-            failure(e);
-        }
-
-    });
+    );
 }
 
 
@@ -1215,7 +1398,7 @@ function tryHlsUrl(
 
 async function loadHlsWithFallback(
     ch,
-    video,
+    media,
     token
 ) {
 
@@ -1236,56 +1419,97 @@ async function loadHlsWithFallback(
     /*
      * Safari / iOS:
      *
-     * Jeżeli natywny HLS jest dostępny,
-     * możemy spróbować bez hls.js.
+     * Natomiast dla radia HLS używamy
+     * bezpośrednio elementu audio.
      */
+
     if (
-        video.canPlayType(
+        media.canPlayType(
             'application/vnd.apple.mpegurl'
         )
     ) {
 
         for (
             let i = 0;
-            i < currentHlsUrls.length;
+            i <
+            currentHlsUrls.length;
             i++
         ) {
 
             if (
-                token !== loadingChannelToken
+                token !==
+                loadingChannelToken
             ) {
+
                 return;
             }
 
+
             const url =
                 currentHlsUrls[i];
+
 
             showStreamStatus(
                 `Natywny HLS: wariant ${i + 1}/${currentHlsUrls.length}`
             );
 
-            video.src = url;
+
+            /*
+             * Czyścimy poprzedni HLS.
+             */
 
             try {
 
-                await video.play();
+                media.pause();
+
+            } catch (e) {}
+
+
+            media.removeAttribute(
+                'src'
+            );
+
+
+            try {
+
+                media.load();
+
+            } catch (e) {}
+
+
+            media.src =
+                url;
+
+
+            try {
+
+                await media.play();
+
 
                 showStreamStatus(
                     "STREAM DZIAŁA",
                     "ok"
                 );
 
-                setTimeout(() => {
 
-                    if (
-                        token === loadingChannelToken
-                    ) {
-                        hideStreamStatus();
-                    }
+                setTimeout(
+                    () => {
 
-                }, 3000);
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    3000
+                );
+
 
                 return;
+
 
             } catch (e) {
 
@@ -1295,10 +1519,16 @@ async function loadHlsWithFallback(
                     e
                 );
 
-                video.removeAttribute('src');
+
+                media.removeAttribute(
+                    'src'
+                );
+
 
                 try {
-                    video.load();
+
+                    media.load();
+
                 } catch (x) {}
             }
         }
@@ -1307,8 +1537,10 @@ async function loadHlsWithFallback(
 
     /*
      * Chrome / Edge / Firefox:
+     *
      * HLS.js.
      */
+
     if (
         window.Hls &&
         Hls.isSupported()
@@ -1316,35 +1548,39 @@ async function loadHlsWithFallback(
 
         for (
             let i = 0;
-            i < currentHlsUrls.length;
+            i <
+            currentHlsUrls.length;
             i++
         ) {
 
             if (
-                token !== loadingChannelToken
+                token !==
+                loadingChannelToken
             ) {
+
                 return;
             }
 
-            currentHlsIndex = i;
+
+            currentHlsIndex =
+                i;
+
 
             const url =
                 currentHlsUrls[i];
 
+
             /*
-             * Najpierw test CORS.
+             * Test CORS jest tylko informacyjny.
              *
-             * Jeżeli test przejdzie:
-             * próbujemy HLS.js.
-             *
-             * Jeżeli CORS nie przejdzie:
-             * i tak próbujemy HLS.js, ponieważ
-             * niektóre serwery zachowują się
-             * inaczej dla HEAD/fetch i dla HLS.
+             * Nawet jeżeli fetch nie przejdzie,
+             * nadal próbujemy HLS.js.
              */
+
             showStreamStatus(
                 `Sprawdzanie HLS ${i + 1}/${currentHlsUrls.length}...`
             );
+
 
             const corsResult =
                 await testCors(
@@ -1352,13 +1588,19 @@ async function loadHlsWithFallback(
                     token
                 );
 
+
             if (
-                token !== loadingChannelToken
+                token !==
+                loadingChannelToken
             ) {
+
                 return;
             }
 
-            if (!corsResult.ok) {
+
+            if (
+                !corsResult.ok
+            ) {
 
                 console.warn(
                     "Możliwy CORS:",
@@ -1366,9 +1608,11 @@ async function loadHlsWithFallback(
                     corsResult
                 );
 
+
                 showStreamStatus(
                     `CORS / brak dostępu — próbuję wariant ${i + 1}`
                 );
+
             } else {
 
                 showStreamStatus(
@@ -1380,19 +1624,23 @@ async function loadHlsWithFallback(
             /*
              * Próba HLS.
              */
+
             try {
 
                 await tryHlsUrl(
                     url,
-                    video,
+                    media,
                     token,
                     i
                 );
 
+
                 /*
                  * Sukces.
                  */
+
                 return;
+
 
             } catch (e) {
 
@@ -1402,30 +1650,36 @@ async function loadHlsWithFallback(
                     e
                 );
 
+
                 /*
                  * Czyścimy HLS.
                  */
+
                 if (currentHls) {
 
                     try {
+
                         currentHls.destroy();
+
                     } catch (x) {}
 
                     currentHls = null;
                 }
 
+
                 /*
-                 * Czyścimy video.
+                 * Czyścimy element media.
                  */
+
                 try {
 
-                    video.pause();
+                    media.pause();
 
-                    video.removeAttribute(
+                    media.removeAttribute(
                         'src'
                     );
 
-                    video.load();
+                    media.load();
 
                 } catch (x) {}
             }
@@ -1436,10 +1690,12 @@ async function loadHlsWithFallback(
     /*
      * Nic nie zadziałało.
      */
+
     showStreamStatus(
         "Brak działającego wariantu HLS",
         "error"
     );
+
 
     console.error(
         "Żaden wariant HLS nie działa:",
@@ -1452,25 +1708,39 @@ async function loadHlsWithFallback(
    LISTA KANAŁÓW
    ============================================================ */
 
-channels.forEach((ch, i) => {
+channels.forEach(
+    (ch, i) => {
 
-    const li =
-        document.createElement('li');
+        const li =
+            document.createElement(
+                'li'
+            );
 
-    li.className =
-        'channel-item';
 
-    li.dataset.index =
-        i;
+        li.className =
+            'channel-item';
 
-    li.innerHTML =
-        `<span class="channel-number">${i + 1}</span>${ch.name}`;
 
-    li.onclick = () =>
-        loadChannel(ch, i);
+        li.dataset.index =
+            i;
 
-    channelsUl.appendChild(li);
-});
+
+        li.innerHTML =
+            `<span class="channel-number">${i + 1}</span>${ch.name}`;
+
+
+        li.onclick = () =>
+            loadChannel(
+                ch,
+                i
+            );
+
+
+        channelsUl.appendChild(
+            li
+        );
+    }
+);
 
 
 /* ============================================================
@@ -1485,14 +1755,17 @@ function loadChannel(
     /*
      * Token zabezpiecza przed sytuacją:
      *
-     * kliknięto kanał A
-     * -> A zaczyna ładować
-     * -> kliknięto B
-     * -> A kończy ładowanie po czasie
+     * kanał A zaczyna ładować
+     * ->
+     * klikamy kanał B
+     * ->
+     * A kończy ładowanie
      *
-     * Dzięki tokenowi A nie nadpisze B.
+     * A nie nadpisze wtedy B.
      */
+
     loadingChannelToken++;
+
 
     const token =
         loadingChannelToken;
@@ -1505,13 +1778,19 @@ function loadChannel(
     destroyCurrentPlayer();
 
 
-    videoTarget.innerHTML = "";
+    videoTarget.innerHTML =
+        "";
 
 
     document
-        .querySelectorAll('.channel-item')
-        .forEach(el =>
-            el.classList.remove('active')
+        .querySelectorAll(
+            '.channel-item'
+        )
+        .forEach(
+            el =>
+                el.classList.remove(
+                    'active'
+                )
         );
 
 
@@ -1520,28 +1799,40 @@ function loadChannel(
             `.channel-item[data-index="${index}"]`
         );
 
+
     if (activeItem) {
-        activeItem.classList.add('active');
+
+        activeItem.classList.add(
+            'active'
+        );
     }
 
 
     channelDisplay.textContent =
         ch.name;
 
+
     channelDisplay.classList.add(
         'show'
     );
 
-    clearTimeout(displayTimeout);
+
+    clearTimeout(
+        displayTimeout
+    );
+
 
     displayTimeout =
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            channelDisplay.classList.remove(
-                'show'
-            );
+                channelDisplay.classList.remove(
+                    'show'
+                );
 
-        }, 7000);
+            },
+            7000
+        );
 
 
     const isBackgroundAudio =
@@ -1552,58 +1843,102 @@ function loadChannel(
        HLS
        ======================================================== */
 
-    if (ch.type === 'hls') {
+    if (
+        ch.type === 'hls'
+    ) {
 
         /*
-         * CELowo NIE dodajemy tutaj:
+         * WAŻNA ZMIANA:
          *
-         * crossorigin="anonymous"
+         * HLS z backgroundAudio:
          *
-         * ponieważ to właśnie może blokować
-         * streamy bez odpowiednich nagłówków CORS.
+         * <audio>
+         *
+         * Pozostałe:
+         *
+         * <video>
          */
-        videoTarget.innerHTML =
-            `<video id="v"
-                ${isBackgroundAudio ? '' : 'controls'}
-                autoplay
-                playsinline>
-            </video>`;
+
+        if (isBackgroundAudio) {
+
+            videoTarget.innerHTML =
+                `<audio
+                    id="v"
+                    autoplay
+                    playsinline
+                    preload="auto">
+                </audio>`;
+
+        } else {
+
+            videoTarget.innerHTML =
+                `<video
+                    id="v"
+                    controls
+                    autoplay
+                    playsinline>
+                </video>`;
+        }
 
 
         const v =
-            document.getElementById('v');
+            document.getElementById(
+                'v'
+            );
 
 
         if (isBackgroundAudio) {
-            v.style.display = 'none';
+
+            /*
+             * Element jest aktywny,
+             * tylko niewidoczny.
+             */
+
+            v.style.display =
+                'none';
         }
 
 
         /*
-         * Nie podłączamy WebAudio automatycznie
-         * przed rozpoczęciem odtwarzania.
+         * NIE podłączamy HLS do WebAudio.
+         *
+         * To jest kluczowa zmiana.
          */
-        v.onplay = () => {
 
-            /*
-             * Próba WebAudio jest opcjonalna.
-             *
-             * Jeżeli CORS nie pozwoli,
-             * stream nadal pozostanie odtwarzany.
-             */
-            if (isBackgroundAudio) {
-                connectMediaElement(v);
-            }
-        };
+        v.onerror =
+            () => {
+
+                console.warn(
+                    "HLS element error:",
+                    v.error
+                );
+            };
 
 
-        v.onerror = () => {
+        v.onplaying =
+            () => {
 
-            console.warn(
-                "Video element error:",
-                v.error
-            );
-        };
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
+                );
+            };
 
 
         loadHlsWithFallback(
@@ -1611,6 +1946,7 @@ function loadChannel(
             v,
             token
         );
+
 
         return;
     }
@@ -1620,22 +1956,29 @@ function loadChannel(
        DASH
        ======================================================== */
 
-    if (ch.type === 'dash') {
+    if (
+        ch.type === 'dash'
+    ) {
 
         videoTarget.innerHTML =
-            `<video id="v"
-                ${isBackgroundAudio ? '' : 'controls'}
+            `<video
+                id="v"
+                controls
                 autoplay
                 playsinline>
             </video>`;
 
 
         const v =
-            document.getElementById('v');
+            document.getElementById(
+                'v'
+            );
 
 
         if (isBackgroundAudio) {
-            v.style.display = 'none';
+
+            v.style.display =
+                'none';
         }
 
 
@@ -1652,12 +1995,41 @@ function loadChannel(
         );
 
 
-        v.onplay = () => {
+        v.onplaying =
+            () => {
 
-            if (isBackgroundAudio) {
-                connectMediaElement(v);
-            }
-        };
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
+                );
+            };
+
+
+        v.onerror =
+            () => {
+
+                console.warn(
+                    "DASH element error:",
+                    v.error
+                );
+            };
+
 
         return;
     }
@@ -1667,7 +2039,9 @@ function loadChannel(
        YOUTUBE
        ======================================================== */
 
-    if (ch.type === 'youtube') {
+    if (
+        ch.type === 'youtube'
+    ) {
 
         videoTarget.innerHTML =
             `<div id="yt-div"></div>`;
@@ -1677,7 +2051,8 @@ function loadChannel(
             new YT.Player(
                 'yt-div',
                 {
-                    videoId: ch.url,
+                    videoId:
+                        ch.url,
 
                     playerVars: {
                         autoplay: 1,
@@ -1685,6 +2060,7 @@ function loadChannel(
                     }
                 }
             );
+
 
         return;
     }
@@ -1706,6 +2082,7 @@ function loadChannel(
                 sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
             </iframe>`;
 
+
         return;
     }
 
@@ -1714,26 +2091,40 @@ function loadChannel(
        AUDIO
        ======================================================== */
 
-    if (ch.type === 'audio') {
+    if (
+        ch.type === 'audio'
+    ) {
 
         /*
-         * Tak samo jak przy HLS:
+         * NAJWAŻNIEJSZA ZMIANA:
          *
-         * brak crossorigin="anonymous"
+         * Zewnętrzne radio jest odtwarzane
+         * bezpośrednio przez <audio>.
          *
-         * żeby nie wymuszać CORS.
+         * NIE MA:
+         *
+         * crossorigin="anonymous"
+         *
+         * createMediaElementSource()
+         *
+         * compressora WebAudio
+         *
+         * Dzięki temu CORS streamu nie może
+         * wyciszyć odtwarzania.
          */
+
         videoTarget.innerHTML =
             `<audio
-                ${isBackgroundAudio ? '' : 'controls'}
+                id="radio-audio"
                 autoplay
-                playsinline>
+                playsinline
+                preload="none">
             </audio>`;
 
 
         const a =
-            videoTarget.querySelector(
-                'audio'
+            document.getElementById(
+                'radio-audio'
             );
 
 
@@ -1741,33 +2132,117 @@ function loadChannel(
             ch.url;
 
 
-        if (isBackgroundAudio) {
-            a.style.display = 'none';
+        if (
+            isBackgroundAudio
+        ) {
+
+            a.style.display =
+                'none';
+
+        } else {
+
+            a.controls =
+                true;
         }
 
 
-        a.onplay = () => {
+        /*
+         * Informacja o rozpoczęciu.
+         */
 
-            if (isBackgroundAudio) {
-                connectMediaElement(a);
-            }
-        };
+        a.onplaying =
+            () => {
+
+                showStreamStatus(
+                    "RADIO DZIAŁA",
+                    "ok"
+                );
 
 
-        a.onerror = () => {
+                setTimeout(
+                    () => {
 
-            console.warn(
-                "Audio error:",
-                a.error
-            );
-        };
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
+                );
+            };
 
 
         /*
-         * Niektóre przeglądarki wymagają
-         * rozpoczęcia odtwarzania po interakcji.
+         * Błąd radia.
          */
-        a.play().catch(() => {});
+
+        a.onerror =
+            () => {
+
+                console.warn(
+                    "Radio audio error:",
+                    a.error,
+                    ch.url
+                );
+
+
+                showStreamStatus(
+                    "Błąd odtwarzania radia",
+                    "error"
+                );
+            };
+
+
+        /*
+         * Stany pośrednie.
+         */
+
+        a.onwaiting =
+            () => {
+
+                showStreamStatus(
+                    "Ładowanie radia..."
+                );
+            };
+
+
+        a.onstalled =
+            () => {
+
+                console.warn(
+                    "Radio stream stalled:",
+                    ch.url
+                );
+            };
+
+
+        /*
+         * Próba uruchomienia.
+         *
+         * Jeśli przeglądarka zablokuje autoplay,
+         * stream pozostaje przypisany do elementu.
+         */
+
+        a.play()
+            .catch(
+                err => {
+
+                    console.warn(
+                        "Autoplay radia zablokowany:",
+                        err
+                    );
+
+
+                    showStreamStatus(
+                        "Radio oczekuje na uruchomienie"
+                    );
+                }
+            );
+
 
         return;
     }
@@ -1781,11 +2256,16 @@ function loadChannel(
 function nextChannel() {
 
     currentChannelIndex =
-        (currentChannelIndex + 1) %
+        (
+            currentChannelIndex + 1
+        ) %
         channels.length;
 
+
     loadChannel(
-        channels[currentChannelIndex],
+        channels[
+            currentChannelIndex
+        ],
         currentChannelIndex
     );
 }
@@ -1798,12 +2278,17 @@ function nextChannel() {
 function previousChannel() {
 
     currentChannelIndex =
-        (currentChannelIndex - 1 +
-            channels.length) %
+        (
+            currentChannelIndex - 1 +
+            channels.length
+        ) %
         channels.length;
 
+
     loadChannel(
-        channels[currentChannelIndex],
+        channels[
+            currentChannelIndex
+        ],
         currentChannelIndex
     );
 }
@@ -1815,12 +2300,15 @@ function previousChannel() {
 
 function toggleFullscreen() {
 
-    if (!document.fullscreenElement) {
+    if (
+        !document.fullscreenElement
+    ) {
 
         const container =
             document.getElementById(
                 'player-container'
             );
+
 
         if (
             container.requestFullscreen
@@ -1828,14 +2316,18 @@ function toggleFullscreen() {
 
             container
                 .requestFullscreen()
-                .catch(() => {});
+                .catch(
+                    () => {}
+                );
         }
 
     } else {
 
         document
             .exitFullscreen()
-            .catch(() => {});
+            .catch(
+                () => {}
+            );
     }
 }
 
@@ -1851,20 +2343,28 @@ function resetFade() {
             'fullscreen-btn'
         );
 
+
     btn.classList.remove(
         'fade-out'
     );
 
-    clearTimeout(fadeTimeout);
+
+    clearTimeout(
+        fadeTimeout
+    );
+
 
     fadeTimeout =
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            btn.classList.add(
-                'fade-out'
-            );
+                btn.classList.add(
+                    'fade-out'
+                );
 
-        }, 3000);
+            },
+            3000
+        );
 }
 
 
@@ -1888,7 +2388,8 @@ loadChannel(
 
 document.addEventListener(
     "contextmenu",
-    e => e.preventDefault()
+    e =>
+        e.preventDefault()
 );
 
 
@@ -1900,18 +2401,25 @@ document.addEventListener(
          * Środkowy przycisk:
          * następny kanał.
          */
-        if (e.button === 1) {
+
+        if (
+            e.button === 1
+        ) {
 
             e.preventDefault();
 
             nextChannel();
         }
 
+
         /*
          * Prawy przycisk:
          * poprzedni kanał.
          */
-        else if (e.button === 2) {
+
+        else if (
+            e.button === 2
+        ) {
 
             e.preventDefault();
 
@@ -1929,17 +2437,89 @@ document.addEventListener(
     "keydown",
     function(e) {
 
-        if (e.key === "ArrowRight") {
+        if (
+            e.key === "ArrowRight"
+        ) {
+
             nextChannel();
         }
 
-        if (e.key === "ArrowLeft") {
+
+        if (
+            e.key === "ArrowLeft"
+        ) {
+
             previousChannel();
         }
 
-        if (e.key === "f" || e.key === "F") {
+
+        if (
+            e.key === "f" ||
+            e.key === "F"
+        ) {
+
             toggleFullscreen();
         }
+    }
+);
+
+
+/* ============================================================
+   URUCHOMIENIE RADIA PO PIERWSZEJ INTERAKCJI
+   ============================================================ */
+
+/*
+ * Niektóre przeglądarki blokują autoplay.
+ *
+ * Po pierwszym kliknięciu / dotknięciu próbujemy
+ * ponownie uruchomić aktualne radio.
+ */
+
+document.addEventListener(
+    "click",
+    function() {
+
+        const audio =
+            document.querySelector(
+                "#radio-audio"
+            );
+
+
+        if (audio) {
+
+            audio.play()
+                .catch(
+                    () => {}
+                );
+        }
+    }
+);
+
+
+/*
+ * Również dla urządzeń dotykowych.
+ */
+
+document.addEventListener(
+    "touchstart",
+    function() {
+
+        const audio =
+            document.querySelector(
+                "#radio-audio"
+            );
+
+
+        if (audio) {
+
+            audio.play()
+                .catch(
+                    () => {}
+                );
+        }
+    },
+    {
+        passive: true
     }
 );
 
