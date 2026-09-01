@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -6,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Odtwarzacz Streamów</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dashjs@5.1.1/dist/modern/umd/dash.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
@@ -204,11 +203,12 @@
 
 <script>
 
-/* ============================================================
-   KANAŁY
-   ============================================================ */
-
 const channels = [
+
+
+
+    
+    
 
     {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
@@ -226,8 +226,8 @@ const channels = [
     {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8", type: "hls"},
     {name: "Grjngo Westerny", url: "https://b6c7c7d1020a4588982ca7c2625f85d1.mediatailor.us-east-1.amazonaws.com/v1/master/0fb304b2320b25f067414d481a779b77db81760d/RakutenTV-eu_GrjngoWesterny/playlist.m3u8", type: "hls"},
     {name: "RED CARPET", url: "https://fast-rakuten.okast.tv/fa2e8c4385712f9a9076eaf728c751de/channels/1a6ecfaa-40c6-41b8-8634-595c424f856e/21f67fd1-4d21-43ba-8ad8-3afac9982c25/master.m3u8", type: "hls"},
-    {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},
-    {name: "Royalworld", url: "https://ac76260b1102416c93f3d20958bfeb4b.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-pl_Royalworld/playlist.m3u8", type: "hls"},
+    {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},    
+    {name: "Royalworld", url: "https://ac76260b1102416c93f3d20958bfeb4b.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-pl_Royalworld/playlist.m3u8", type: "hls"},    
     {name: "Sports First TV", url: "https://d4ddgdmj1cvnm.cloudfront.net/scheduler/scheduleMaster/409.m3u8", type: "hls"},
     {name: "wedo BIG stories", url: "https://amg00735-videosolutionsa-wedobigdocs-ono-0urlz.amagi.tv/playlist/amg00735-videosolutionsa-wedobigdocs-ono/playlist.m3u8", type: "hls"},
     {name: "VIASAT EXPLORE", url: "https://da9c49fa.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLXBsX1ZpYXNhdEV4cGxvcmVfSExT/playlist.m3u8", type: "hls"},
@@ -242,23 +242,24 @@ const channels = [
     {name: "CGTN Documentary", url: "https://english-livebkali.cgtn.com/live/doccgtn.m3u8", type: "hls"},
     {name: "CGTN", url: "https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8", type: "hls"},
     {name: "Arirang TV World", url: "https://amdlive-ch01-ctnd-com.akamaized.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8", type: "hls"},
-    {name: "Arirang TV World", url: "https://amdlive.ctnd.com.edgesuite.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8", type: "hls"},
+    {name: "Arirang TV World", url: "https://amdlive.ctnd.com.edgesuite.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8", type: "hls"},                        
     {name: "NHK World-Japan", url: "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8", type: "hls"},
     {name: "DW English", url: "https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8", type: "hls"},
     {name: "France 24", url: "https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master_5000.m3u8", type: "hls"},
-    {name: "ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"},
+    {name: "ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"}, 
     {name: "Silk Way", url: "https://ikomg-static-content.akamaized.net/players/kazakh/index.html", type: "iframe"},
-    {name: "GB News HD", url: "https://live-gbnews.simplestreamcdn.com/live5/gbnews/bitrate1.isml/manifest.m3u8", type: "hls"},
+    {name: "GB News HD", url: "https://live-gbnews.simplestreamcdn.com/live5/gbnews/bitrate1.isml/manifest.m3u8", type: "hls"},    
     {name: "EURONEWS", url: "pykpO5kQJ98", type: "youtube"},
     {name: "Africanews English", url: "https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8", type: "hls"},
     {name: "TVP World", url: "https://dash2.antik.sk/live/test_tvp_world/playlist.m3u8", type: "hls"},
     {name: "Al Jazeera English", url: "https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8", type: "hls"},
     {name: "TRT World", url: "https://dash2.antik.sk/live/test_trt_world_atktv/playlist.m3u8", type: "hls"},
-    {name: "BBC News HD", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/mobile_wifi_main_hd_abr_v2.m3u8", type: "hls"},
+    {name: "BBC News HD", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/mobile_wifi_main_hd_abr_v2.m3u8", type: "hls"},    
     {name: "ABC News", url: "https://abc-news-dmd-streams-1.akamaized.net/out/v1/701126012d044971b3fa89406a440133/index.m3u8", type: "hls"},
-    {name: "WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},
+    {name: "WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},        
     {name: "TV5MONDE Europe", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/TV5/default/index.m3u8", type: "hls"},
     {name: "wedotv Movies", url: "https://watch4movies-samsunguk.amagi.tv/playlist.m3u8", type: "hls"},
+
 
     {name: "4FUN TV", url: "https://stream.4fun.tv:8888/hls/4f_high/index.m3u8", type: "hls"},
     {name: "Kiss TV Romania", url: "https://tv.broadcasting.ro/kisstv/a629c031-2170-4ee9-a36d-87a891aa3131.m3u8", type: "hls"},
@@ -270,12 +271,14 @@ const channels = [
     {name: "NOW Rock", url: "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8", type: "hls"},
     {name: "DELUXE MUSIC", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8", type: "hls"},
     {name: "Rock TV Romania", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb.m3u8", type: "hls"},
-    {name: "V2Beat", url: "http://de1se01.v2beat.live/playlist.m3u8", type: "hls"},
+    {name: "V2Beat", url: "http://de1se01.v2beat.live/playlist.m3u8", type: "hls"},    
     {name: "Radiofreccia HD", url: "https://streamcdnb1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8", type: "hls"},
     {name: "RTL 102.5 Caliente", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/playlist_video.m3u8", type: "hls"},
+    //{name: "Radio Norba TV", url: "https://stream12.xdevel.com/video0s975885-2349/stream/playlist_dvr.m3u8", type: "hls"},
     {name: "Radio Norba TV", url: "https://router.xdevel.com/video0s975885-462/stream/playlist_dvr.m3u8", type: "hls"},
     {name: "Radio ZETA TV", url: "https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S9346184/XEx1LqlYbNic/playlist_video.m3u8", type: "hls"},
-    {name: "RTL 102.5", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist_video.m3u8", type: "hls"},
+    {name: "RTL 102.5", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist_video.m3u8", type: "hls"},    
+    {name: "DELUXE DANCE", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8", type: "hls"},
     {
         name: "DELUXE DANCE",
         url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8",
@@ -285,6 +288,8 @@ const channels = [
             "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8"
         ]
     },
+
+    
 
     {name: "TVP 1", url: "https://dlhd.st/watch/stream-560.php", type: "iframe-dlhd"},
     {name: "TVP 2", url: "https://dlhd.st/watch/stream-561.php", type: "iframe-dlhd"},
@@ -300,16 +305,17 @@ const channels = [
     {name: "POLSAT FILM", url: "https://dlhd.st/watch/stream-564.php", type: "iframe-dlhd"},
     {name: "MOTOWIZJA", url: "https://dlhd.st/watch/stream-563.php", type: "iframe-dlhd"},
     {name: "WP TV", url: "https://pilot.wp.pl/tv/#telewizja-wp-hd", type: "iframe"},
-    {name: "CZWÓRKA PR WIDEO", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
+    {name: "CZWÓRKA PR WIDEO", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},    
     {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w1277744280_b5128000.m3u8", type: "hls"},
     {name: "TVJ", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w431631781.m3u8", type: "hls"},
     {name: "Telewizja Zabrze", url: "EVOt6OyHU9g", type: "youtube"},
     {name: "TV DLA CIEBIE", url: "https://6034e09794f07.streamlock.net/tv/dlaCiebieTv/playlist.m3u8", type: "hls"},
     {name: "SFERA TV", url: "https://stream.sferatv.pl/sferatvlive/live.m3u8", type: "hls"},
     {name: "TV RELAX", url: "https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8.m3u8", type: "hls"},
-    {name: "IMPERIUM", url: "https://str10.imperiummedia.pl/TVIMPERIUM/tracks-v1a1/mono.m3u8", type: "hls"},
+    {name: "IMPERIUM", url: "https://str10.imperiummedia.pl/TVIMPERIUM/tracks-v1a1/mono.m3u8", type: "hls"},    
     {name: "REMONTY TV", url: "https://prx-y5cf8.4vod.tv/playout/repl-abr67/index.m3u8", type: "hls"},
 
+    
     {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "RADIO ZET", url: "https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx", type: "audio", backgroundAudio: true},
     {name: "RMF FM", url: "https://rs9-krk2.rmfstream.pl/rmf_fm", type: "audio", backgroundAudio: true},
@@ -329,60 +335,81 @@ const channels = [
 ];
 
 
+
+
+    
+
 /* ============================================================
    ELEMENTY
    ============================================================ */
 
-const channelsUl = document.getElementById('channels-ul');
-const videoTarget = document.getElementById('video-target');
-const channelDisplay = document.getElementById('channel-display');
-const streamStatus = document.getElementById('stream-status');
+const channelsUl =
+    document.getElementById('channels-ul');
+
+const videoTarget =
+    document.getElementById('video-target');
+
+const channelDisplay =
+    document.getElementById('channel-display');
+
+const streamStatus =
+    document.getElementById('stream-status');
 
 
 /* ============================================================
-   ZMIENNE
+   ZMIENNE ODTWARZACZA
    ============================================================ */
 
 let currentHls = null;
 let currentDash = null;
 let ytPlayer = null;
 
-let fadeTimeout = null;
-let displayTimeout = null;
-let statusTimeout = null;
+let fadeTimeout;
+let displayTimeout;
 
 let currentChannelIndex = 0;
 
 let currentHlsUrls = [];
 let currentHlsIndex = 0;
 
-let loadingChannelToken = 0;
+let hlsAttempt = 0;
+let hlsFailTimer = null;
 
-let ytApiReady = false;
-let pendingYoutubeChannel = null;
+let loadingChannelToken = 0;
 
 
 /* ============================================================
-   YOUTUBE API
+   WEB AUDIO
    ============================================================ */
 
-window.onYouTubeIframeAPIReady = function() {
+/*
+ * Web Audio pozostawiony w kodzie,
+ * ale ZEWNĘTRZNE STACJE RADIOWE NIE SĄ
+ * już przez niego przepuszczane.
+ *
+ * To eliminuje problemy z CORS,
+ * które mogą powodować ciszę.
+ */
 
-    ytApiReady = true;
+let audioCtx = null;
+let audioSourceNode = null;
+let gainNode = null;
+let compressorNode = null;
 
-    if (pendingYoutubeChannel) {
 
-        const pending =
-            pendingYoutubeChannel;
+/* ============================================================
+   KONFIGURACJA AUTOMATYCZNEGO HLS
+   ============================================================ */
 
-        pendingYoutubeChannel = null;
+const HLS_CONFIG = {
 
-        createYoutubePlayer(
-            pending.id,
-            pending.videoId,
-            pending.token
-        );
-    }
+    startupTimeout: 9000,
+
+    retriesPerUrl: 2,
+
+    retryDelay: 1200,
+
+    maxFatalErrorsPerUrl: 2
 };
 
 
@@ -395,9 +422,8 @@ function showStreamStatus(
     type = ''
 ) {
 
-    clearTimeout(statusTimeout);
-
-    streamStatus.textContent = text;
+    streamStatus.textContent =
+        text;
 
     streamStatus.classList.remove(
         'show',
@@ -407,16 +433,18 @@ function showStreamStatus(
 
     if (type) {
 
-        streamStatus.classList.add(type);
+        streamStatus.classList.add(
+            type
+        );
     }
 
-    streamStatus.classList.add('show');
+    streamStatus.classList.add(
+        'show'
+    );
 }
 
 
 function hideStreamStatus() {
-
-    clearTimeout(statusTimeout);
 
     streamStatus.classList.remove(
         'show',
@@ -426,60 +454,29 @@ function hideStreamStatus() {
 }
 
 
-function hideStatusLater(
-    token,
-    delay = 2500
-) {
-
-    clearTimeout(statusTimeout);
-
-    statusTimeout =
-        setTimeout(
-            () => {
-
-                if (
-                    token ===
-                    loadingChannelToken
-                ) {
-
-                    hideStreamStatus();
-                }
-
-            },
-            delay
-        );
-}
-
-
 /* ============================================================
-   CZYSZCZENIE
+   CZYSZCZENIE ODTWARZACZA
    ============================================================ */
 
 function destroyCurrentPlayer() {
 
-    loadingChannelToken++;
-
-    clearTimeout(statusTimeout);
+    clearTimeout(
+        hlsFailTimer
+    );
 
     if (currentHls) {
 
         try {
 
-            currentHls.stopLoad();
-
-        } catch (e) {}
-
-        try {
-
-            currentHls.detachMedia();
-
-        } catch (e) {}
-
-        try {
-
             currentHls.destroy();
 
-        } catch (e) {}
+        } catch (e) {
+
+            console.warn(
+                "HLS destroy error:",
+                e
+            );
+        }
 
         currentHls = null;
     }
@@ -489,27 +486,21 @@ function destroyCurrentPlayer() {
 
         try {
 
-            currentDash.pause();
-
-        } catch (e) {}
-
-        try {
-
             currentDash.reset();
 
-        } catch (e) {}
+        } catch (e) {
+
+            console.warn(
+                "DASH reset error:",
+                e
+            );
+        }
 
         currentDash = null;
     }
 
 
     if (ytPlayer) {
-
-        try {
-
-            ytPlayer.stopVideo();
-
-        } catch (e) {}
 
         try {
 
@@ -521,38 +512,147 @@ function destroyCurrentPlayer() {
     }
 
 
-    const mediaElements =
-        videoTarget.querySelectorAll(
-            'video, audio'
-        );
+    /*
+     * Jeżeli gdzieś wcześniej został utworzony
+     * WebAudio source, odłączamy go.
+     *
+     * Nie dotyczy to obecnych stacji radiowych.
+     */
 
+    if (audioSourceNode) {
 
-    mediaElements.forEach(
-        media => {
+        try {
 
-            try {
+            audioSourceNode.disconnect();
 
-                media.pause();
+        } catch (e) {}
 
-            } catch (e) {}
-
-            try {
-
-                media.removeAttribute('src');
-
-                media.load();
-
-            } catch (e) {}
-        }
-    );
-
-
-    pendingYoutubeChannel = null;
+        audioSourceNode = null;
+    }
 }
 
 
 /* ============================================================
-   HLS CANDIDATES
+   WEB AUDIO
+   ============================================================ */
+
+function initAudioContext() {
+
+    if (!audioCtx) {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContext) {
+
+            return false;
+        }
+
+        audioCtx =
+            new AudioContext();
+
+
+        compressorNode =
+            audioCtx.createDynamicsCompressor();
+
+
+        compressorNode.threshold.setValueAtTime(
+            -12,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.knee.setValueAtTime(
+            3,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.ratio.setValueAtTime(
+            12,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.attack.setValueAtTime(
+            0.003,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.release.setValueAtTime(
+            0.25,
+            audioCtx.currentTime
+        );
+
+
+        gainNode =
+            audioCtx.createGain();
+
+
+        gainNode.gain.setValueAtTime(
+            0.2,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.connect(
+            gainNode
+        );
+
+
+        gainNode.connect(
+            audioCtx.destination
+        );
+    }
+
+
+    if (
+        audioCtx.state ===
+        'suspended'
+    ) {
+
+        audioCtx.resume().catch(
+            () => {}
+        );
+    }
+
+
+    return true;
+}
+
+
+/*
+ * WAŻNE:
+ *
+ * Funkcja została celowo wyłączona dla
+ * zewnętrznych streamów.
+ *
+ * createMediaElementSource() wymaga odpowiedniej
+ * polityki CORS po stronie serwera.
+ *
+ * Przy radiu mogło to powodować:
+ *
+ * - brak dźwięku,
+ * - ciszę po rozpoczęciu,
+ * - SecurityError,
+ * - problemy po zmianie stacji.
+ */
+
+function connectMediaElement(element) {
+
+    console.warn(
+        "WebAudio pominięte dla zewnętrznego streamu:",
+        element
+    );
+
+    return false;
+}
+
+
+/* ============================================================
+   BUDOWANIE LISTY HLS
    ============================================================ */
 
 function buildHlsCandidates(ch) {
@@ -560,16 +660,21 @@ function buildHlsCandidates(ch) {
     const urls = [];
 
 
-    if (
-        ch.url &&
-        typeof ch.url === 'string'
-    ) {
+    /*
+     * Podstawowy URL.
+     */
+
+    if (ch.url) {
 
         urls.push(
             ch.url.trim()
         );
     }
 
+
+    /*
+     * Własne fallbackUrls.
+     */
 
     if (
         Array.isArray(
@@ -595,12 +700,60 @@ function buildHlsCandidates(ch) {
 
 
     /*
-     * Nie generujemy już ślepo
-     * playlist.m3u8 / playlist720p.m3u8
-     *
-     * ponieważ wiele serwerów HLS ma
-     * zupełnie inną strukturę URL.
+     * Automatyczne warianty.
      */
+
+    try {
+
+        const parsed =
+            new URL(ch.url);
+
+        const path =
+            parsed.pathname;
+
+
+        if (
+            path.endsWith('.m3u8') &&
+            !path.endsWith(
+                '/playlist.m3u8'
+            ) &&
+            !path.endsWith(
+                '/playlist720p.m3u8'
+            )
+        ) {
+
+            const directory =
+                path.substring(
+                    0,
+                    path.lastIndexOf('/') + 1
+                );
+
+
+            const origin =
+                parsed.origin;
+
+
+            urls.push(
+                origin +
+                directory +
+                'playlist.m3u8'
+            );
+
+
+            urls.push(
+                origin +
+                directory +
+                'playlist720p.m3u8'
+            );
+        }
+
+    } catch (e) {
+
+        console.warn(
+            "Nie można wygenerować wariantów HLS:",
+            e
+        );
+    }
 
 
     return [
@@ -612,7 +765,125 @@ function buildHlsCandidates(ch) {
 
 
 /* ============================================================
-   HLS
+   SPRAWDZENIE CZY URL WYGLĄDA NA HLS
+   ============================================================ */
+
+function isHlsUrl(url) {
+
+    if (!url) {
+
+        return false;
+    }
+
+    return (
+        url
+            .toLowerCase()
+            .includes('.m3u8')
+    );
+}
+
+
+/* ============================================================
+   CORS / FETCH TEST
+   ============================================================ */
+
+async function testCors(
+    url,
+    token
+) {
+
+    if (
+        token !==
+        loadingChannelToken
+    ) {
+
+        return {
+            ok: false,
+            cancelled: true
+        };
+    }
+
+
+    let controller = null;
+    let timeout = null;
+
+
+    try {
+
+        controller =
+            new AbortController();
+
+
+        timeout =
+            setTimeout(
+                () => {
+
+                    controller.abort();
+
+                },
+                4500
+            );
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-store',
+                    signal:
+                        controller.signal
+                }
+            );
+
+
+        clearTimeout(
+            timeout
+        );
+
+
+        if (!response.ok) {
+
+            return {
+                ok: false,
+                status:
+                    response.status,
+                cors: true
+            };
+        }
+
+
+        await response.text();
+
+
+        return {
+            ok: true,
+            cors: true
+        };
+
+
+    } catch (e) {
+
+        if (timeout) {
+
+            clearTimeout(
+                timeout
+            );
+        }
+
+
+        return {
+            ok: false,
+            cors: false,
+            error: e
+        };
+    }
+}
+
+
+/* ============================================================
+   PRÓBA HLS
    ============================================================ */
 
 function tryHlsUrl(
@@ -631,7 +902,9 @@ function tryHlsUrl(
             ) {
 
                 reject(
-                    new Error('cancelled')
+                    new Error(
+                        "cancelled"
+                    )
                 );
 
                 return;
@@ -645,7 +918,7 @@ function tryHlsUrl(
 
                 reject(
                     new Error(
-                        'HLS.js not supported'
+                        "HLS.js not supported"
                     )
                 );
 
@@ -658,9 +931,14 @@ function tryHlsUrl(
             );
 
 
-            let finished = false;
+            let resolved = false;
+
             let fatalErrors = 0;
-            let timeout = null;
+
+
+            clearTimeout(
+                hlsFailTimer
+            );
 
 
             const hls =
@@ -676,19 +954,17 @@ function tryHlsUrl(
 
                     maxMaxBufferLength: 60,
 
-                    manifestLoadingMaxRetry: 2,
+                    manifestLoadingMaxRetry: 1,
 
                     manifestLoadingRetryDelay: 1000,
 
-                    levelLoadingMaxRetry: 2,
+                    levelLoadingMaxRetry: 1,
 
                     levelLoadingRetryDelay: 1000,
 
-                    fragLoadingMaxRetry: 3,
+                    fragLoadingMaxRetry: 2,
 
                     fragLoadingRetryDelay: 1000,
-
-                    startFragPrefetch: true,
 
                     xhrSetup: function(xhr) {
 
@@ -702,17 +978,22 @@ function tryHlsUrl(
                 });
 
 
-            currentHls = hls;
+            currentHls =
+                hls;
 
 
             function cleanup() {
 
-                clearTimeout(timeout);
+                clearTimeout(
+                    hlsFailTimer
+                );
+
 
                 hls.off(
                     Hls.Events.MANIFEST_PARSED,
                     onManifest
                 );
+
 
                 hls.off(
                     Hls.Events.ERROR,
@@ -723,23 +1004,39 @@ function tryHlsUrl(
 
             function success() {
 
-                if (finished) {
+                if (resolved) {
+
                     return;
                 }
 
-                finished = true;
+
+                resolved = true;
+
 
                 cleanup();
+
 
                 showStreamStatus(
                     "STREAM DZIAŁA",
                     "ok"
                 );
 
-                hideStatusLater(
-                    token,
-                    2500
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    3000
                 );
+
 
                 resolve(hls);
             }
@@ -747,31 +1044,32 @@ function tryHlsUrl(
 
             function failure(error) {
 
-                if (finished) {
+                if (resolved) {
+
                     return;
                 }
 
-                finished = true;
+
+                resolved = true;
+
 
                 cleanup();
 
-                try {
-                    hls.stopLoad();
-                } catch (e) {}
 
                 try {
-                    hls.detachMedia();
-                } catch (e) {}
 
-                try {
                     hls.destroy();
+
                 } catch (e) {}
+
 
                 if (
                     currentHls === hls
                 ) {
+
                     currentHls = null;
                 }
+
 
                 reject(error);
             }
@@ -786,7 +1084,7 @@ function tryHlsUrl(
 
                     failure(
                         new Error(
-                            'cancelled'
+                            "cancelled"
                         )
                     );
 
@@ -795,8 +1093,9 @@ function tryHlsUrl(
 
 
                 /*
-                 * Manifest został odczytany.
-                 * Próbujemy rozpocząć odtwarzanie.
+                 * Manifest jest poprawny.
+                 *
+                 * Teraz uruchamiamy media.
                  */
 
                 media.play()
@@ -808,24 +1107,15 @@ function tryHlsUrl(
                         }
                     )
                     .catch(
-                        error => {
+                        () => {
 
                             /*
                              * Autoplay może być
-                             * zablokowany przez przeglądarkę.
+                             * zablokowany.
                              *
-                             * Nie traktujemy tego jako
-                             * awarii streamu.
+                             * Sam stream jest jednak
+                             * poprawnie załadowany.
                              */
-
-                            console.warn(
-                                'Autoplay zablokowany:',
-                                error
-                            );
-
-                            showStreamStatus(
-                                'Kliknij ekran, aby uruchomić stream'
-                            );
 
                             success();
                         }
@@ -845,7 +1135,7 @@ function tryHlsUrl(
 
                     failure(
                         new Error(
-                            'cancelled'
+                            "cancelled"
                         )
                     );
 
@@ -854,7 +1144,7 @@ function tryHlsUrl(
 
 
                 console.warn(
-                    'HLS error:',
+                    "HLS:",
                     url,
                     data
                 );
@@ -872,7 +1162,7 @@ function tryHlsUrl(
 
 
                 /*
-                 * Błąd sieci.
+                 * Błąd sieci / manifestu.
                  */
 
                 if (
@@ -881,19 +1171,28 @@ function tryHlsUrl(
                 ) {
 
                     showStreamStatus(
-                        `Problem sieci — ponawiam ${fatalErrors}/2`
+                        `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
                     );
 
 
                     if (
-                        fatalErrors < 2
+                        fatalErrors >=
+                        HLS_CONFIG.maxFatalErrorsPerUrl
                     ) {
+
+                        failure(
+                            new Error(
+                                "NETWORK_ERROR"
+                            )
+                        );
+
+                    } else {
 
                         setTimeout(
                             () => {
 
                                 if (
-                                    !finished &&
+                                    !resolved &&
                                     token ===
                                     loadingChannelToken
                                 ) {
@@ -903,19 +1202,10 @@ function tryHlsUrl(
                                         hls.startLoad();
 
                                     } catch (e) {}
-
                                 }
 
                             },
-                            1200
-                        );
-
-                    } else {
-
-                        failure(
-                            new Error(
-                                'NETWORK_ERROR'
-                            )
+                            HLS_CONFIG.retryDelay
                         );
                     }
 
@@ -925,7 +1215,7 @@ function tryHlsUrl(
 
 
                 /*
-                 * Błąd dekodowania.
+                 * Błąd kodeka / media.
                  */
 
                 if (
@@ -934,32 +1224,19 @@ function tryHlsUrl(
                 ) {
 
                     showStreamStatus(
-                        'Naprawianie błędu media...'
+                        "Błąd media — próba naprawy"
                     );
 
 
-                    if (
-                        fatalErrors <= 2
-                    ) {
+                    try {
 
-                        try {
+                        hls.recoverMediaError();
 
-                            hls.recoverMediaError();
-
-                        } catch (e) {
-
-                            failure(
-                                new Error(
-                                    'MEDIA_ERROR'
-                                )
-                            );
-                        }
-
-                    } else {
+                    } catch (e) {
 
                         failure(
                             new Error(
-                                'MEDIA_ERROR'
+                                "MEDIA_ERROR"
                             )
                         );
                     }
@@ -970,13 +1247,13 @@ function tryHlsUrl(
 
 
                 /*
-                 * Pozostałe błędy fatalne.
+                 * Inny fatalny błąd.
                  */
 
                 failure(
                     new Error(
                         data.details ||
-                        'HLS_FATAL_ERROR'
+                        "HLS_FATAL_ERROR"
                     )
                 );
             }
@@ -994,41 +1271,36 @@ function tryHlsUrl(
             );
 
 
-            timeout =
+            /*
+             * Timeout.
+             */
+
+            hlsFailTimer =
                 setTimeout(
                     () => {
 
-                        if (
-                            !finished
-                        ) {
+                        if (!resolved) {
 
                             failure(
                                 new Error(
-                                    'HLS_TIMEOUT'
+                                    "HLS_TIMEOUT"
                                 )
                             );
                         }
 
                     },
-                    10000
+                    HLS_CONFIG.startupTimeout
                 );
 
 
             try {
 
-                /*
-                 * WAŻNE:
-                 *
-                 * Najpierw attachMedia,
-                 * dopiero później loadSource.
-                 */
+                hls.loadSource(
+                    url
+                );
 
                 hls.attachMedia(
                     media
-                );
-
-                hls.loadSource(
-                    url
                 );
 
             } catch (e) {
@@ -1041,7 +1313,7 @@ function tryHlsUrl(
 
 
 /* ============================================================
-   HLS Z FALLBACKAMI
+   GŁÓWNA FUNKCJA HLS Z FALLBACKAMI
    ============================================================ */
 
 async function loadHlsWithFallback(
@@ -1053,33 +1325,22 @@ async function loadHlsWithFallback(
     currentHlsUrls =
         buildHlsCandidates(ch);
 
-
     currentHlsIndex = 0;
 
-
-    if (
-        currentHlsUrls.length === 0
-    ) {
-
-        showStreamStatus(
-            'Brak adresu HLS',
-            'error'
-        );
-
-        return;
-    }
+    hlsAttempt = 0;
 
 
     console.log(
-        'HLS candidates:',
+        "HLS candidates:",
         currentHlsUrls
     );
 
 
     /*
-     * NATYWNY HLS
+     * Safari / iOS:
      *
-     * Safari / iOS.
+     * Natomiast dla radia HLS używamy
+     * bezpośrednio elementu audio.
      */
 
     if (
@@ -1090,7 +1351,8 @@ async function loadHlsWithFallback(
 
         for (
             let i = 0;
-            i < currentHlsUrls.length;
+            i <
+            currentHlsUrls.length;
             i++
         ) {
 
@@ -1107,13 +1369,14 @@ async function loadHlsWithFallback(
                 currentHlsUrls[i];
 
 
-            currentHlsIndex = i;
-
-
             showStreamStatus(
-                `Natywny HLS ${i + 1}/${currentHlsUrls.length}...`
+                `Natywny HLS: wariant ${i + 1}/${currentHlsUrls.length}`
             );
 
+
+            /*
+             * Czyścimy poprzedni HLS.
+             */
 
             try {
 
@@ -1122,18 +1385,20 @@ async function loadHlsWithFallback(
             } catch (e) {}
 
 
-            try {
+            media.removeAttribute(
+                'src'
+            );
 
-                media.removeAttribute(
-                    'src'
-                );
+
+            try {
 
                 media.load();
 
             } catch (e) {}
 
 
-            media.src = url;
+            media.src =
+                url;
 
 
             try {
@@ -1142,53 +1407,58 @@ async function loadHlsWithFallback(
 
 
                 showStreamStatus(
-                    'STREAM DZIAŁA',
-                    'ok'
+                    "STREAM DZIAŁA",
+                    "ok"
                 );
 
-                hideStatusLater(
-                    token,
-                    2500
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    3000
                 );
+
 
                 return;
 
-            } catch (error) {
+
+            } catch (e) {
 
                 console.warn(
-                    'Natywny HLS nie działa:',
+                    "Natywny HLS nie działa:",
                     url,
-                    error
+                    e
                 );
 
 
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
+                media.removeAttribute(
+                    'src'
+                );
 
 
                 try {
 
-                    media.pause();
-
-                    media.removeAttribute(
-                        'src'
-                    );
-
                     media.load();
 
-                } catch (e) {}
+                } catch (x) {}
             }
         }
     }
 
 
     /*
-     * HLS.JS
+     * Chrome / Edge / Firefox:
+     *
+     * HLS.js.
      */
 
     if (
@@ -1198,7 +1468,8 @@ async function loadHlsWithFallback(
 
         for (
             let i = 0;
-            i < currentHlsUrls.length;
+            i <
+            currentHlsUrls.length;
             i++
         ) {
 
@@ -1211,12 +1482,68 @@ async function loadHlsWithFallback(
             }
 
 
-            currentHlsIndex = i;
+            currentHlsIndex =
+                i;
 
 
             const url =
                 currentHlsUrls[i];
 
+
+            /*
+             * Test CORS jest tylko informacyjny.
+             *
+             * Nawet jeżeli fetch nie przejdzie,
+             * nadal próbujemy HLS.js.
+             */
+
+            showStreamStatus(
+                `Sprawdzanie HLS ${i + 1}/${currentHlsUrls.length}...`
+            );
+
+
+            const corsResult =
+                await testCors(
+                    url,
+                    token
+                );
+
+
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+
+                return;
+            }
+
+
+            if (
+                !corsResult.ok
+            ) {
+
+                console.warn(
+                    "Możliwy CORS:",
+                    url,
+                    corsResult
+                );
+
+
+                showStreamStatus(
+                    `CORS / brak dostępu — próbuję wariant ${i + 1}`
+                );
+
+            } else {
+
+                showStreamStatus(
+                    `CORS OK — wariant ${i + 1}`
+                );
+            }
+
+
+            /*
+             * Próba HLS.
+             */
 
             try {
 
@@ -1228,35 +1555,41 @@ async function loadHlsWithFallback(
                 );
 
 
+                /*
+                 * Sukces.
+                 */
+
                 return;
 
-            } catch (error) {
+
+            } catch (e) {
 
                 console.warn(
-                    'HLS fallback:',
+                    "Wariant HLS nie działa:",
                     url,
-                    error
+                    e
                 );
 
 
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
+                /*
+                 * Czyścimy HLS.
+                 */
 
                 if (currentHls) {
 
                     try {
+
                         currentHls.destroy();
-                    } catch (e) {}
+
+                    } catch (x) {}
 
                     currentHls = null;
                 }
 
+
+                /*
+                 * Czyścimy element media.
+                 */
 
                 try {
 
@@ -1268,183 +1601,26 @@ async function loadHlsWithFallback(
 
                     media.load();
 
-                } catch (e) {}
-
-
-                if (
-                    i <
-                    currentHlsUrls.length - 1
-                ) {
-
-                    showStreamStatus(
-                        `Próba kolejnego wariantu HLS...`
-                    );
-
-                    await new Promise(
-                        resolve =>
-                            setTimeout(
-                                resolve,
-                                500
-                            )
-                    );
-                }
+                } catch (x) {}
             }
         }
     }
 
 
-    if (
-        token ===
-        loadingChannelToken
-    ) {
+    /*
+     * Nic nie zadziałało.
+     */
 
-        showStreamStatus(
-            'Brak działającego wariantu HLS',
-            'error'
-        );
-
-        console.error(
-            'Żaden wariant HLS nie działa:',
-            currentHlsUrls
-        );
-    }
-}
+    showStreamStatus(
+        "Brak działającego wariantu HLS",
+        "error"
+    );
 
 
-/* ============================================================
-   YOUTUBE
-   ============================================================ */
-
-function createYoutubePlayer(
-    elementId,
-    videoId,
-    token
-) {
-
-    if (
-        token !==
-        loadingChannelToken
-    ) {
-
-        return;
-    }
-
-
-    if (
-        !window.YT ||
-        !YT.Player
-    ) {
-
-        pendingYoutubeChannel = {
-            id: elementId,
-            videoId: videoId,
-            token: token
-        };
-
-        showStreamStatus(
-            'Ładowanie YouTube...'
-        );
-
-        return;
-    }
-
-
-    ytPlayer =
-        new YT.Player(
-            elementId,
-            {
-                videoId: videoId,
-
-                playerVars: {
-                    autoplay: 1,
-                    playsinline: 1,
-                    controls: 1,
-                    rel: 0,
-                    modestbranding: 1
-                },
-
-                events: {
-
-                    onReady:
-                        function(event) {
-
-                            if (
-                                token !==
-                                loadingChannelToken
-                            ) {
-
-                                try {
-                                    event.target.destroy();
-                                } catch (e) {}
-
-                                return;
-                            }
-
-
-                            try {
-
-                                event.target.playVideo();
-
-                            } catch (e) {}
-
-                        },
-
-                    onStateChange:
-                        function(event) {
-
-                            if (
-                                token !==
-                                loadingChannelToken
-                            ) {
-
-                                return;
-                            }
-
-
-                            if (
-                                event.data ===
-                                YT.PlayerState.PLAYING
-                            ) {
-
-                                showStreamStatus(
-                                    'STREAM DZIAŁA',
-                                    'ok'
-                                );
-
-                                hideStatusLater(
-                                    token,
-                                    2500
-                                );
-                            }
-
-
-                            if (
-                                event.data ===
-                                YT.PlayerState.BUFFERING
-                            ) {
-
-                                showStreamStatus(
-                                    'Buforowanie...'
-                                );
-                            }
-                        },
-
-                    onError:
-                        function(event) {
-
-                            console.warn(
-                                'YouTube error:',
-                                event.data
-                            );
-
-                            showStreamStatus(
-                                'Błąd YouTube',
-                                'error'
-                            );
-                        }
-                }
-            }
-        );
+    console.error(
+        "Żaden wariant HLS nie działa:",
+        currentHlsUrls
+    );
 }
 
 
@@ -1473,12 +1649,11 @@ channels.forEach(
             `<span class="channel-number">${i + 1}</span>${ch.name}`;
 
 
-        li.onclick =
-            () =>
-                loadChannel(
-                    ch,
-                    i
-                );
+        li.onclick = () =>
+            loadChannel(
+                ch,
+                i
+            );
 
 
         channelsUl.appendChild(
@@ -1498,10 +1673,19 @@ function loadChannel(
 ) {
 
     /*
-     * Każde przełączenie dostaje nowy token.
+     * Token zabezpiecza przed sytuacją:
+     *
+     * kanał A zaczyna ładować
+     * ->
+     * klikamy kanał B
+     * ->
+     * A kończy ładowanie
+     *
+     * A nie nadpisze wtedy B.
      */
 
     loadingChannelToken++;
+
 
     const token =
         loadingChannelToken;
@@ -1514,24 +1698,9 @@ function loadChannel(
     destroyCurrentPlayer();
 
 
-    /*
-     * destroyCurrentPlayer zwiększa token,
-     * dlatego ustawiamy właściwy token jeszcze raz.
-     */
-
-    loadingChannelToken++;
-
-    const currentToken =
-        loadingChannelToken;
-
-
     videoTarget.innerHTML =
-        '';
+        "";
 
-
-    /*
-     * Aktywny kanał.
-     */
 
     document
         .querySelectorAll(
@@ -1558,10 +1727,6 @@ function loadChannel(
         );
     }
 
-
-    /*
-     * Nazwa kanału.
-     */
 
     channelDisplay.textContent =
         ch.name;
@@ -1602,30 +1767,37 @@ function loadChannel(
         ch.type === 'hls'
     ) {
 
+        /*
+         * WAŻNA ZMIANA:
+         *
+         * HLS z backgroundAudio:
+         *
+         * <audio>
+         *
+         * Pozostałe:
+         *
+         * <video>
+         */
+
         if (isBackgroundAudio) {
 
             videoTarget.innerHTML =
-                `
-                <audio
+                `<audio
                     id="v"
                     autoplay
                     playsinline
                     preload="auto">
-                </audio>
-                `;
+                </audio>`;
 
         } else {
 
             videoTarget.innerHTML =
-                `
-                <video
+                `<video
                     id="v"
                     controls
                     autoplay
-                    playsinline
-                    preload="auto">
-                </video>
-                `;
+                    playsinline>
+                </video>`;
         }
 
 
@@ -1637,56 +1809,54 @@ function loadChannel(
 
         if (isBackgroundAudio) {
 
+            /*
+             * Element jest aktywny,
+             * tylko niewidoczny.
+             */
+
             v.style.display =
                 'none';
         }
 
 
-        v.onplaying =
-            () => {
-
-                if (
-                    currentToken !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                showStreamStatus(
-                    'STREAM DZIAŁA',
-                    'ok'
-                );
-
-                hideStatusLater(
-                    currentToken,
-                    2500
-                );
-            };
-
-
-        v.onwaiting =
-            () => {
-
-                if (
-                    currentToken ===
-                    loadingChannelToken
-                ) {
-
-                    showStreamStatus(
-                        'Buforowanie...'
-                    );
-                }
-            };
-
+        /*
+         * NIE podłączamy HLS do WebAudio.
+         *
+         * To jest kluczowa zmiana.
+         */
 
         v.onerror =
             () => {
 
                 console.warn(
-                    'HLS element error:',
+                    "HLS element error:",
                     v.error
+                );
+            };
+
+
+        v.onplaying =
+            () => {
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
                 );
             };
 
@@ -1694,7 +1864,7 @@ function loadChannel(
         loadHlsWithFallback(
             ch,
             v,
-            currentToken
+            token
         );
 
 
@@ -1711,15 +1881,12 @@ function loadChannel(
     ) {
 
         videoTarget.innerHTML =
-            `
-            <video
+            `<video
                 id="v"
                 controls
                 autoplay
-                playsinline
-                preload="auto">
-            </video>
-            `;
+                playsinline>
+            </video>`;
 
 
         const v =
@@ -1735,19 +1902,6 @@ function loadChannel(
         }
 
 
-        if (
-            !window.dashjs
-        ) {
-
-            showStreamStatus(
-                'DASH.js nie został załadowany',
-                'error'
-            );
-
-            return;
-        }
-
-
         currentDash =
             dashjs
                 .MediaPlayer()
@@ -1757,46 +1911,33 @@ function loadChannel(
         currentDash.initialize(
             v,
             ch.url,
-            false
+            true
         );
 
 
         v.onplaying =
             () => {
 
-                if (
-                    currentToken !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
                 showStreamStatus(
-                    'STREAM DZIAŁA',
-                    'ok'
+                    "STREAM DZIAŁA",
+                    "ok"
                 );
 
-                hideStatusLater(
-                    currentToken,
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
                     2500
                 );
-            };
-
-
-        v.onwaiting =
-            () => {
-
-                if (
-                    currentToken ===
-                    loadingChannelToken
-                ) {
-
-                    showStreamStatus(
-                        'Buforowanie...'
-                    );
-                }
             };
 
 
@@ -1804,46 +1945,10 @@ function loadChannel(
             () => {
 
                 console.warn(
-                    'DASH error:',
+                    "DASH element error:",
                     v.error
                 );
-
-                showStreamStatus(
-                    'Błąd DASH',
-                    'error'
-                );
             };
-
-
-        /*
-         * DASH może wymagać ręcznego play().
-         */
-
-        setTimeout(
-            () => {
-
-                if (
-                    currentToken !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                v.play()
-                    .catch(
-                        () => {
-
-                            showStreamStatus(
-                                'Kliknij ekran, aby uruchomić stream'
-                            );
-                        }
-                    );
-
-            },
-            300
-        );
 
 
         return;
@@ -1858,49 +1963,23 @@ function loadChannel(
         ch.type === 'youtube'
     ) {
 
-        const youtubeId =
-            `yt-${Date.now()}-${Math.random()
-                .toString(36)
-                .substring(2, 8)}`;
-
-
         videoTarget.innerHTML =
-            `
-            <div
-                id="${youtubeId}"
-                style="width:100%;height:100%;">
-            </div>
-            `;
+            `<div id="yt-div"></div>`;
 
 
-        if (
-            ytApiReady &&
-            window.YT &&
-            YT.Player
-        ) {
+        ytPlayer =
+            new YT.Player(
+                'yt-div',
+                {
+                    videoId:
+                        ch.url,
 
-            createYoutubePlayer(
-                youtubeId,
-                ch.url,
-                currentToken
+                    playerVars: {
+                        autoplay: 1,
+                        playsinline: 1
+                    }
+                }
             );
-
-        } else {
-
-            pendingYoutubeChannel = {
-
-                id: youtubeId,
-
-                videoId: ch.url,
-
-                token: currentToken
-            };
-
-
-            showStreamStatus(
-                'Ładowanie YouTube...'
-            );
-        }
 
 
         return;
@@ -1917,15 +1996,11 @@ function loadChannel(
     ) {
 
         videoTarget.innerHTML =
-            `
-            <iframe
-                src="${escapeHtmlAttribute(ch.url)}"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowfullscreen
-                referrerpolicy="no-referrer-when-downgrade"
+            `<iframe
+                src="${ch.url}"
+                allow="autoplay; fullscreen"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
-            </iframe>
-            `;
+            </iframe>`;
 
 
         return;
@@ -1940,15 +2015,31 @@ function loadChannel(
         ch.type === 'audio'
     ) {
 
+        /*
+         * NAJWAŻNIEJSZA ZMIANA:
+         *
+         * Zewnętrzne radio jest odtwarzane
+         * bezpośrednio przez <audio>.
+         *
+         * NIE MA:
+         *
+         * crossorigin="anonymous"
+         *
+         * createMediaElementSource()
+         *
+         * compressora WebAudio
+         *
+         * Dzięki temu CORS streamu nie może
+         * wyciszyć odtwarzania.
+         */
+
         videoTarget.innerHTML =
-            `
-            <audio
+            `<audio
                 id="radio-audio"
                 autoplay
                 playsinline
                 preload="none">
-            </audio>
-            `;
+            </audio>`;
 
 
         const a =
@@ -1975,42 +2066,67 @@ function loadChannel(
         }
 
 
+        /*
+         * Informacja o rozpoczęciu.
+         */
+
         a.onplaying =
             () => {
 
-                if (
-                    currentToken !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
                 showStreamStatus(
-                    'RADIO DZIAŁA',
-                    'ok'
+                    "RADIO DZIAŁA",
+                    "ok"
                 );
 
-                hideStatusLater(
-                    currentToken,
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
                     2500
                 );
             };
 
 
+        /*
+         * Błąd radia.
+         */
+
+        a.onerror =
+            () => {
+
+                console.warn(
+                    "Radio audio error:",
+                    a.error,
+                    ch.url
+                );
+
+
+                showStreamStatus(
+                    "Błąd odtwarzania radia",
+                    "error"
+                );
+            };
+
+
+        /*
+         * Stany pośrednie.
+         */
+
         a.onwaiting =
             () => {
 
-                if (
-                    currentToken ===
-                    loadingChannelToken
-                ) {
-
-                    showStreamStatus(
-                        'Ładowanie radia...'
-                    );
-                }
+                showStreamStatus(
+                    "Ładowanie radia..."
+                );
             };
 
 
@@ -2018,109 +2134,38 @@ function loadChannel(
             () => {
 
                 console.warn(
-                    'Radio stalled:',
+                    "Radio stream stalled:",
                     ch.url
                 );
             };
 
 
-        a.onerror =
-            () => {
-
-                console.warn(
-                    'Radio error:',
-                    a.error,
-                    ch.url
-                );
-
-
-                if (
-                    currentToken ===
-                    loadingChannelToken
-                ) {
-
-                    showStreamStatus(
-                        'Błąd odtwarzania radia',
-                        'error'
-                    );
-                }
-            };
-
+        /*
+         * Próba uruchomienia.
+         *
+         * Jeśli przeglądarka zablokuje autoplay,
+         * stream pozostaje przypisany do elementu.
+         */
 
         a.play()
-            .then(
-                () => {
-
-                    if (
-                        currentToken ===
-                        loadingChannelToken
-                    ) {
-
-                        showStreamStatus(
-                            'RADIO DZIAŁA',
-                            'ok'
-                        );
-
-                        hideStatusLater(
-                            currentToken,
-                            2500
-                        );
-                    }
-
-                }
-            )
             .catch(
-                error => {
+                err => {
 
                     console.warn(
-                        'Autoplay radia zablokowany:',
-                        error
+                        "Autoplay radia zablokowany:",
+                        err
                     );
 
 
-                    if (
-                        currentToken ===
-                        loadingChannelToken
-                    ) {
-
-                        showStreamStatus(
-                            'Kliknij ekran, aby uruchomić radio'
-                        );
-                    }
+                    showStreamStatus(
+                        "Radio oczekuje na uruchomienie"
+                    );
                 }
             );
 
 
         return;
     }
-}
-
-
-/* ============================================================
-   ESCAPE HTML ATTRIBUTE
-   ============================================================ */
-
-function escapeHtmlAttribute(
-    value
-) {
-
-    return String(value)
-        .replace(
-            /&/g,
-            '&amp;'
-        )
-        .replace(
-            /"/g,
-            '&quot;'
-        )
-        .replace(
-            /</g,
-            '&lt;'
-        )
-        .replace(
-            />/g,
-            '&gt;'
-        );
 }
 
 
@@ -2198,22 +2243,17 @@ function toggleFullscreen() {
 
     } else {
 
-        if (
-            document.exitFullscreen
-        ) {
-
-            document
-                .exitFullscreen()
-                .catch(
-                    () => {}
-                );
-        }
+        document
+            .exitFullscreen()
+            .catch(
+                () => {}
+            );
     }
 }
 
 
 /* ============================================================
-   FADE
+   FADE PRZYCISKU
    ============================================================ */
 
 function resetFade() {
@@ -2248,25 +2288,13 @@ function resetFade() {
 }
 
 
-document.addEventListener(
-    'mousemove',
-    resetFade
-);
-
-document.addEventListener(
-    'touchstart',
-    resetFade,
-    {
-        passive: true
-    }
-);
+document.onmousemove =
+    resetFade;
 
 
 /* ============================================================
    START
    ============================================================ */
-
-resetFade();
 
 loadChannel(
     channels[0],
@@ -2279,14 +2307,14 @@ loadChannel(
    ============================================================ */
 
 document.addEventListener(
-    'contextmenu',
+    "contextmenu",
     e =>
         e.preventDefault()
 );
 
 
 document.addEventListener(
-    'mousedown',
+    "mousedown",
     function(e) {
 
         /*
@@ -2326,32 +2354,28 @@ document.addEventListener(
    ============================================================ */
 
 document.addEventListener(
-    'keydown',
+    "keydown",
     function(e) {
 
         if (
-            e.key === 'ArrowRight'
+            e.key === "ArrowRight"
         ) {
 
             nextChannel();
-
-            return;
         }
 
 
         if (
-            e.key === 'ArrowLeft'
+            e.key === "ArrowLeft"
         ) {
 
             previousChannel();
-
-            return;
         }
 
 
         if (
-            e.key === 'f' ||
-            e.key === 'F'
+            e.key === "f" ||
+            e.key === "F"
         ) {
 
             toggleFullscreen();
@@ -2361,68 +2385,58 @@ document.addEventListener(
 
 
 /* ============================================================
-   URUCHOMIENIE AUDIO PO INTERAKCJI
+   URUCHOMIENIE RADIA PO PIERWSZEJ INTERAKCJI
    ============================================================ */
 
-async function resumeCurrentAudio() {
-
-    const audio =
-        document.querySelector(
-            '#radio-audio, audio#v'
-        );
-
-
-    if (!audio) {
-        return;
-    }
-
-
-    try {
-
-        await audio.play();
-
-    } catch (e) {
-
-        console.warn(
-            'Nie można uruchomić audio:',
-            e
-        );
-    }
-}
-
+/*
+ * Niektóre przeglądarki blokują autoplay.
+ *
+ * Po pierwszym kliknięciu / dotknięciu próbujemy
+ * ponownie uruchomić aktualne radio.
+ */
 
 document.addEventListener(
-    'click',
+    "click",
     function() {
 
-        resumeCurrentAudio();
+        const audio =
+            document.querySelector(
+                "#radio-audio"
+            );
 
-    },
-    {
-        passive: true
+
+        if (audio) {
+
+            audio.play()
+                .catch(
+                    () => {}
+                );
+        }
     }
 );
 
 
-document.addEventListener(
-    'touchstart',
-    function() {
-
-        resumeCurrentAudio();
-
-    },
-    {
-        passive: true
-    }
-);
-
+/*
+ * Również dla urządzeń dotykowych.
+ */
 
 document.addEventListener(
-    'keydown',
+    "touchstart",
     function() {
 
-        resumeCurrentAudio();
+        const audio =
+            document.querySelector(
+                "#radio-audio"
+            );
 
+
+        if (audio) {
+
+            audio.play()
+                .catch(
+                    () => {}
+                );
+        }
     },
     {
         passive: true
