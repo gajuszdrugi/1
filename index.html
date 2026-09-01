@@ -17,8 +17,7 @@
             padding: 0;
         }
 
-        body,
-        html {
+        body, html {
             width: 100%;
             height: 100%;
             background-color: #000;
@@ -37,8 +36,7 @@
             overflow: hidden;
         }
 
-        video,
-        audio {
+        video, audio {
             width: 100%;
             height: 100%;
             border: none;
@@ -71,7 +69,7 @@
             top: 0;
             width: 300px;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0,0,0,0.95);
             transition: left 0.3s;
             z-index: 10000;
             overflow-y: auto;
@@ -120,7 +118,7 @@
             left: 20px;
             top: 20px;
             padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0,0,0,0.7);
             color: white;
             border-radius: 5px;
             z-index: 9998;
@@ -139,7 +137,7 @@
             right: 20px;
             bottom: calc(20px + 57px);
             padding: 12px 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0,0,0,0.7);
             border: 1px solid #fff;
             color: white;
             border-radius: 5px;
@@ -152,6 +150,36 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        /*
+         * Informacja o aktualnym stanie HLS.
+         */
+        #stream-status {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            z-index: 9998;
+            padding: 8px 14px;
+            background: rgba(0,0,0,0.75);
+            border-radius: 5px;
+            font-size: 13px;
+            color: #ddd;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        #stream-status.show {
+            opacity: 1;
+        }
+
+        #stream-status.error {
+            color: #ff7777;
+        }
+
+        #stream-status.ok {
+            color: #8cff8c;
+        }
     </style>
 </head>
 
@@ -160,6 +188,8 @@
 <div id="player-container">
 
     <div id="channel-display"></div>
+
+    <div id="stream-status"></div>
 
     <div id="trigger-zone"></div>
 
@@ -175,29 +205,20 @@
 
 </div>
 
-
 <script>
-
-/* ============================================================
-   KANAŁY
-   ============================================================ */
 
 const channels = [
 
     {name: "MELORADIO", url: "https://r.dcs.redcdn.pl/sc/o2/Eurozet/live/meloradio.livx?audio=5", type: "audio", backgroundAudio: true},
 
     {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-
     {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-
     {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-
     {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
 
     {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio", backgroundAudio: true},
 
     {name: "TVP 1", url: "https://dlhd.st/watch/stream-560.php", type: "iframe-dlhd"},
-
     {name: "TVP 2", url: "https://dlhd.st/watch/stream-561.php", type: "iframe-dlhd"},
 
     {name: "POLONIA", url: "https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8", type: "hls"},
@@ -209,13 +230,11 @@ const channels = [
     {name: "CZWÓRKA PR WIDEO", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
 
     {name: "POLSAT", url: "https://dlhd.st/watch/stream-562.php", type: "iframe-dlhd"},
-
     {name: "TVN", url: "https://dlhd.st/watch/stream-565.php", type: "iframe-dlhd"},
 
     {name: "TVP Info", url: "https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8", type: "hls"},
 
     {name: "TVN24", url: "https://dlhd.st/watch/stream-444.php", type: "iframe-dlhd"},
-
     {name: "POLSAT NEWS", url: "https://dlhd.st/watch/stream-443.php", type: "iframe-dlhd"},
 
     {name: "wPolsce 24", url: "https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8", type: "hls"},
@@ -227,18 +246,12 @@ const channels = [
     {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8", type: "hls"},
 
     {name: "TVP SPORT", url: "https://dlhd.st/watch/stream-128.php", type: "iframe-dlhd"},
-
     {name: "EUROSPORT 1", url: "https://dlhd.st/watch/stream-57.php", type: "iframe-dlhd"},
-
     {name: "EUROSPORT 2", url: "https://dlhd.st/watch/stream-58.php", type: "iframe-dlhd"},
 
-
     {name: "LUBELSKA TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
-
     {name: "TV KUJAWY", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-
     {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w1277744280_b5128000.m3u8", type: "hls"},
-
     {name: "TVJ", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w431631781.m3u8", type: "hls"},
 
     {name: "Telewizja Zabrze", url: "EVOt6OyHU9g", type: "youtube"},
@@ -253,18 +266,13 @@ const channels = [
 
     {name: "IMPERIUM", url: "https://str10.imperiummedia.pl/TVIMPERIUM/tracks-v1a1/mono.m3u8", type: "hls"},
 
-
     {name: "EURONEWS", url: "pykpO5kQJ98", type: "youtube"},
 
     {name: "TVP World", url: "https://dash2.antik.sk/live/test_tvp_world/playlist.m3u8", type: "hls"},
 
-
     {name: "CANAL+ PREMIUM", url: "https://dlhd.st/watch/stream-566.php", type: "iframe-dlhd"},
-
     {name: "HBO", url: "https://dlhd.st/watch/stream-569.php", type: "iframe-dlhd"},
-
     {name: "POLSAT FILM", url: "https://dlhd.st/watch/stream-564.php", type: "iframe-dlhd"},
-
     {name: "MOTOWIZJA", url: "https://dlhd.st/watch/stream-563.php", type: "iframe-dlhd"},
 
     {name: "REMONTY TV", url: "https://prx-y5cf8.4vod.tv/playout/repl-abr67/index.m3u8", type: "hls"},
@@ -287,7 +295,6 @@ const channels = [
     {name: "RTL 102.5 Caliente", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/playlist_video.m3u8", type: "hls"},
 
     {name: "Radio Norba TV", url: "https://stream12.xdevel.com/video0s975885-2349/stream/playlist_dvr.m3u8", type: "hls"},
-
     {name: "Radio Norba TV", url: "https://router.xdevel.com/video0s975885-462/stream/playlist_dvr.m3u8", type: "hls"},
 
     {name: "Radio ZETA TV", url: "https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S9346184/XEx1LqlYbNic/playlist_video.m3u8", type: "hls"},
@@ -296,35 +303,56 @@ const channels = [
 
     {name: "City TV", url: "https://tv.city.bg/play/tshls/citytv/3.m3u8", type: "hls"},
 
-
     {name: "Now 80´s", url: "https://lightning-now80s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now80s-rakuten/CDN/playlist.m3u8", type: "hls"},
 
     {name: "Now 70's", url: "https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8", type: "hls"},
 
-
     /*
-     * NOW ROCK
+     * NOW Rock
      *
-     * Główny adres + potencjalny wariant 720p.
-     *
-     * Dodatkowe źródło Rakuten można dopisać do urls.
+     * Podstawowy adres Rakuten:
      */
     {
         name: "NOW Rock",
-        type: "hls",
-
-        urls: [
-            "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8",
-            "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist720p.m3u8"
-        ]
+        url: "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8",
+        type: "hls"
     },
-
 
     {name: "DELUXE MUSIC", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8", type: "hls"},
 
-    {name: "DELUXE DANCE by Kontor", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8", type: "hls"},
+    /*
+     * DELUXE DANCE
+     *
+     * WAŻNE:
+     *
+     * Ten kanał dostaje kilka potencjalnych wariantów.
+     *
+     * 1. Oryginalny adres
+     * 2. playlist.m3u8
+     * 3. playlist720p.m3u8
+     *
+     * Możesz później dopisać własne alternatywy w polu
+     * fallbackUrls.
+     */
+    {
+        name: "DELUXE DANCE by Kontor",
+        url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8",
+        type: "hls",
+        fallbackUrls: [
+            "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist.m3u8",
+            "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8"
+        ]
+    },
 
-    {name: "Deluxe Dance Music", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8", type: "hls"},
+    {
+        name: "Deluxe Dance Music",
+        url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8",
+        type: "hls",
+        fallbackUrls: [
+            "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist.m3u8",
+            "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8"
+        ]
+    },
 
     {name: "Rock TV Romania", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb.m3u8", type: "hls"},
 
@@ -392,9 +420,7 @@ const channels = [
 
     {name: "Africanews English", url: "https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8", type: "hls"},
 
-
     {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls"},
-
 
     {name: "RADIO ZET", url: "https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx", type: "audio", backgroundAudio: true},
 
@@ -430,49 +456,36 @@ const channels = [
    ELEMENTY
    ============================================================ */
 
-const channelsUl = document.getElementById("channels-ul");
-const videoTarget = document.getElementById("video-target");
-const channelDisplay = document.getElementById("channel-display");
+const channelsUl = document.getElementById('channels-ul');
+const videoTarget = document.getElementById('video-target');
+const channelDisplay = document.getElementById('channel-display');
+const streamStatus = document.getElementById('stream-status');
 
 
 /* ============================================================
-   GLOBALNE ZMIENNE
+   ZMIENNE ODTWARZACZA
    ============================================================ */
 
 let currentHls = null;
 let currentDash = null;
 let ytPlayer = null;
 
-let fadeTimeout = null;
-let displayTimeout = null;
+let fadeTimeout;
+let displayTimeout;
 
 let currentChannelIndex = 0;
 
+let currentHlsUrls = [];
+let currentHlsIndex = 0;
 
-/*
- * Numer wersji aktualnego odtwarzania.
- *
- * Dzięki temu stary HLS nie może po kilku sekundach
- * przełączyć nam nowo wybranego kanału.
- */
-let playerSessionId = 0;
+let hlsAttempt = 0;
+let hlsFailTimer = null;
 
-
-/*
- * HLS fallback.
- */
-let hlsCandidates = [];
-let hlsCandidateIndex = 0;
-
-let hlsRetryTimer = null;
-let hlsWatchdogTimer = null;
-
-let hlsStarted = false;
-let hlsSwitching = false;
+let loadingChannelToken = 0;
 
 
 /* ============================================================
-   WEB AUDIO API
+   WEB AUDIO
    ============================================================ */
 
 let audioCtx = null;
@@ -480,6 +493,113 @@ let audioSourceNode = null;
 let gainNode = null;
 let compressorNode = null;
 
+
+/* ============================================================
+   KONFIGURACJA AUTOMATYCZNEGO HLS
+   ============================================================ */
+
+const HLS_CONFIG = {
+
+    /*
+     * Ile czasu dajemy playlistcie na rozpoczęcie pracy.
+     */
+    startupTimeout: 9000,
+
+    /*
+     * Ile razy próbujemy ponownie ten sam URL.
+     */
+    retriesPerUrl: 2,
+
+    /*
+     * Opóźnienie pomiędzy retry.
+     */
+    retryDelay: 1200,
+
+    /*
+     * Po ilu błędach przechodzimy na następny URL.
+     */
+    maxFatalErrorsPerUrl: 2
+};
+
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+
+function showStreamStatus(text, type = '') {
+
+    streamStatus.textContent = text;
+
+    streamStatus.classList.remove('show', 'error', 'ok');
+
+    if (type) {
+        streamStatus.classList.add(type);
+    }
+
+    streamStatus.classList.add('show');
+}
+
+
+function hideStreamStatus() {
+
+    streamStatus.classList.remove('show', 'error', 'ok');
+
+}
+
+
+/* ============================================================
+   CZYSZCZENIE ODTWARZACZA
+   ============================================================ */
+
+function destroyCurrentPlayer() {
+
+    clearTimeout(hlsFailTimer);
+
+    if (currentHls) {
+
+        try {
+            currentHls.destroy();
+        } catch (e) {
+            console.warn("HLS destroy error:", e);
+        }
+
+        currentHls = null;
+    }
+
+    if (currentDash) {
+
+        try {
+            currentDash.reset();
+        } catch (e) {
+            console.warn("DASH reset error:", e);
+        }
+
+        currentDash = null;
+    }
+
+    if (ytPlayer) {
+
+        try {
+            ytPlayer.destroy();
+        } catch (e) {}
+
+        ytPlayer = null;
+    }
+
+    if (audioSourceNode) {
+
+        try {
+            audioSourceNode.disconnect();
+        } catch (e) {}
+
+        audioSourceNode = null;
+    }
+}
+
+
+/* ============================================================
+   WEB AUDIO
+   ============================================================ */
 
 function initAudioContext() {
 
@@ -490,16 +610,11 @@ function initAudioContext() {
             window.webkitAudioContext;
 
         if (!AudioContext) {
-            console.warn("Web Audio API niedostępne.");
-            return;
+            return false;
         }
 
         audioCtx = new AudioContext();
 
-
-        /*
-         * Kompresor zapobiegający clippingowi.
-         */
         compressorNode =
             audioCtx.createDynamicsCompressor();
 
@@ -528,10 +643,6 @@ function initAudioContext() {
             audioCtx.currentTime
         );
 
-
-        /*
-         * Głośność.
-         */
         gainNode = audioCtx.createGain();
 
         gainNode.gain.setValueAtTime(
@@ -539,36 +650,36 @@ function initAudioContext() {
             audioCtx.currentTime
         );
 
-
-        /*
-         * Źródło -> kompresor -> gain -> głośniki.
-         */
         compressorNode.connect(gainNode);
+
         gainNode.connect(audioCtx.destination);
     }
 
+    if (audioCtx.state === 'suspended') {
 
-    if (audioCtx && audioCtx.state === "suspended") {
         audioCtx.resume().catch(() => {});
     }
+
+    return true;
 }
 
 
+/*
+ * WAŻNA ZMIANA:
+ *
+ * WebAudio może wymagać CORS.
+ *
+ * Dlatego nie pozwalamy, żeby błąd WebAudio
+ * zatrzymał odtwarzanie HLS.
+ */
 function connectMediaElement(element) {
 
     try {
 
-        initAudioContext();
-
-        if (!audioCtx) {
+        if (!initAudioContext()) {
             return;
         }
 
-
-        /*
-         * Jednego elementu MediaElement nie można podłączyć
-         * wielokrotnie przez createMediaElementSource().
-         */
         if (audioSourceNode) {
 
             try {
@@ -578,7 +689,6 @@ function connectMediaElement(element) {
             audioSourceNode = null;
         }
 
-
         audioSourceNode =
             audioCtx.createMediaElementSource(element);
 
@@ -587,13 +697,764 @@ function connectMediaElement(element) {
     } catch (e) {
 
         /*
-         * To nie powinno zatrzymywać odtwarzania.
+         * Jeżeli źródło nie posiada CORS,
+         * WebAudio może tutaj zgłosić błąd.
+         *
+         * STREAM NADAL MOŻE DZIAŁAĆ NORMALNIE.
          */
         console.warn(
-            "Web Audio API error:",
+            "WebAudio/CORS - pozostawiam normalne odtwarzanie:",
             e
         );
     }
+}
+
+
+/* ============================================================
+   BUDOWANIE LISTY HLS
+   ============================================================ */
+
+function buildHlsCandidates(ch) {
+
+    const urls = [];
+
+    /*
+     * Najpierw podstawowy URL.
+     */
+    if (ch.url) {
+        urls.push(ch.url.trim());
+    }
+
+    /*
+     * Własne fallbackUrls.
+     */
+    if (Array.isArray(ch.fallbackUrls)) {
+
+        ch.fallbackUrls.forEach(url => {
+
+            if (url && typeof url === 'string') {
+
+                urls.push(url.trim());
+            }
+        });
+    }
+
+    /*
+     * AUTOMATYCZNE WARIANTY.
+     *
+     * Dla:
+     *
+     * /64733/64733_264_live.m3u8
+     *
+     * próbujemy również:
+     *
+     * /64733/playlist.m3u8
+     * /64733/playlist720p.m3u8
+     */
+    try {
+
+        const parsed = new URL(ch.url);
+
+        const path = parsed.pathname;
+
+        if (
+            path.endsWith('.m3u8') &&
+            !path.endsWith('/playlist.m3u8') &&
+            !path.endsWith('/playlist720p.m3u8')
+        ) {
+
+            const directory =
+                path.substring(
+                    0,
+                    path.lastIndexOf('/') + 1
+                );
+
+            const origin =
+                parsed.origin;
+
+            urls.push(
+                origin +
+                directory +
+                'playlist.m3u8'
+            );
+
+            urls.push(
+                origin +
+                directory +
+                'playlist720p.m3u8'
+            );
+        }
+
+    } catch (e) {
+
+        console.warn(
+            "Nie można wygenerować wariantów HLS:",
+            e
+        );
+    }
+
+    /*
+     * Usuwamy duplikaty.
+     */
+    return [...new Set(
+        urls.filter(Boolean)
+    )];
+}
+
+
+/* ============================================================
+   SPRAWDZENIE CZY URL WYGLĄDA NA HLS
+   ============================================================ */
+
+function isHlsUrl(url) {
+
+    if (!url) return false;
+
+    return (
+        url.toLowerCase().includes('.m3u8')
+    );
+}
+
+
+/* ============================================================
+   CORS / FETCH TEST
+   ============================================================ */
+
+/*
+ * UWAGA:
+ *
+ * Ten test nie może "naprawić" CORS.
+ *
+ * Ma tylko wykryć, czy przeglądarka może
+ * pobrać playlistę przez fetch.
+ *
+ * Jeżeli fetch zakończy się błędem CORS,
+ * przechodzimy dalej do następnego wariantu.
+ */
+async function testCors(url, token) {
+
+    if (token !== loadingChannelToken) {
+        return {
+            ok: false,
+            cancelled: true
+        };
+    }
+
+    try {
+
+        const controller =
+            new AbortController();
+
+        const timeout =
+            setTimeout(
+                () => controller.abort(),
+                4500
+            );
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-store',
+                    signal: controller.signal
+                }
+            );
+
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+
+            return {
+                ok: false,
+                status: response.status,
+                cors: true
+            };
+        }
+
+        /*
+         * Czytamy niewielki fragment.
+         */
+        await response.text();
+
+        return {
+            ok: true,
+            cors: true
+        };
+
+    } catch (e) {
+
+        return {
+            ok: false,
+            cors: false,
+            error: e
+        };
+    }
+}
+
+
+/* ============================================================
+   PRÓBA HLS
+   ============================================================ */
+
+function tryHlsUrl(
+    url,
+    video,
+    token,
+    candidateIndex
+) {
+
+    return new Promise((resolve, reject) => {
+
+        if (token !== loadingChannelToken) {
+
+            reject(
+                new Error("cancelled")
+            );
+
+            return;
+        }
+
+        if (!window.Hls || !Hls.isSupported()) {
+
+            reject(
+                new Error("HLS.js not supported")
+            );
+
+            return;
+        }
+
+        showStreamStatus(
+            `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
+        );
+
+        let resolved = false;
+        let fatalErrors = 0;
+
+        clearTimeout(hlsFailTimer);
+
+        const hls =
+            new Hls({
+
+                enableWorker: true,
+
+                lowLatencyMode: false,
+
+                backBufferLength: 30,
+
+                maxBufferLength: 30,
+
+                maxMaxBufferLength: 60,
+
+                manifestLoadingMaxRetry: 1,
+
+                manifestLoadingRetryDelay: 1000,
+
+                levelLoadingMaxRetry: 1,
+
+                levelLoadingRetryDelay: 1000,
+
+                fragLoadingMaxRetry: 2,
+
+                fragLoadingRetryDelay: 1000,
+
+                /*
+                 * Nie wymuszamy credentials.
+                 */
+                xhrSetup: function(xhr) {
+
+                    try {
+                        xhr.withCredentials = false;
+                    } catch (e) {}
+                }
+            });
+
+        currentHls = hls;
+
+        function cleanup() {
+
+            clearTimeout(hlsFailTimer);
+
+            hls.off(
+                Hls.Events.MANIFEST_PARSED,
+                onManifest
+            );
+
+            hls.off(
+                Hls.Events.ERROR,
+                onError
+            );
+        }
+
+
+        function success() {
+
+            if (resolved) return;
+
+            resolved = true;
+
+            cleanup();
+
+            showStreamStatus(
+                "STREAM DZIAŁA",
+                "ok"
+            );
+
+            /*
+             * Po 3 sekundach chowamy status.
+             */
+            setTimeout(() => {
+
+                if (token === loadingChannelToken) {
+                    hideStreamStatus();
+                }
+
+            }, 3000);
+
+            resolve(hls);
+        }
+
+
+        function failure(error) {
+
+            if (resolved) return;
+
+            resolved = true;
+
+            cleanup();
+
+            try {
+                hls.destroy();
+            } catch (e) {}
+
+            if (currentHls === hls) {
+                currentHls = null;
+            }
+
+            reject(error);
+        }
+
+
+        function onManifest() {
+
+            if (token !== loadingChannelToken) {
+
+                failure(
+                    new Error("cancelled")
+                );
+
+                return;
+            }
+
+            /*
+             * Manifest został pobrany.
+             *
+             * Teraz próbujemy uruchomić video.
+             */
+            video.play()
+                .then(() => {
+
+                    success();
+
+                })
+                .catch(() => {
+
+                    /*
+                     * Autoplay może być zablokowany.
+                     * Sam manifest jest jednak poprawny.
+                     */
+                    success();
+                });
+        }
+
+
+        function onError(event, data) {
+
+            if (token !== loadingChannelToken) {
+
+                failure(
+                    new Error("cancelled")
+                );
+
+                return;
+            }
+
+            console.warn(
+                "HLS:",
+                url,
+                data
+            );
+
+            if (!data.fatal) {
+                return;
+            }
+
+            fatalErrors++;
+
+            /*
+             * Błąd CORS / manifestu.
+             */
+            if (
+                data.type === Hls.ErrorTypes.NETWORK_ERROR
+            ) {
+
+                showStreamStatus(
+                    `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
+                );
+
+                if (
+                    fatalErrors >=
+                    HLS_CONFIG.maxFatalErrorsPerUrl
+                ) {
+
+                    failure(
+                        new Error(
+                            "NETWORK_ERROR"
+                        )
+                    );
+
+                } else {
+
+                    setTimeout(() => {
+
+                        if (
+                            !resolved &&
+                            token === loadingChannelToken
+                        ) {
+
+                            try {
+                                hls.startLoad();
+                            } catch (e) {}
+                        }
+
+                    }, HLS_CONFIG.retryDelay);
+                }
+
+                return;
+            }
+
+
+            /*
+             * Błąd kodeka / media.
+             */
+            if (
+                data.type === Hls.ErrorTypes.MEDIA_ERROR
+            ) {
+
+                showStreamStatus(
+                    `Błąd media — próba naprawy`
+                );
+
+                try {
+
+                    hls.recoverMediaError();
+
+                } catch (e) {
+
+                    failure(
+                        new Error(
+                            "MEDIA_ERROR"
+                        )
+                    );
+                }
+
+                return;
+            }
+
+
+            /*
+             * Każdy inny fatalny błąd.
+             */
+            failure(
+                new Error(
+                    data.details ||
+                    "HLS_FATAL_ERROR"
+                )
+            );
+        }
+
+
+        hls.on(
+            Hls.Events.MANIFEST_PARSED,
+            onManifest
+        );
+
+        hls.on(
+            Hls.Events.ERROR,
+            onError
+        );
+
+
+        /*
+         * Timeout zabezpieczający.
+         */
+        hlsFailTimer =
+            setTimeout(() => {
+
+                if (!resolved) {
+
+                    failure(
+                        new Error(
+                            "HLS_TIMEOUT"
+                        )
+                    );
+                }
+
+            }, HLS_CONFIG.startupTimeout);
+
+
+        try {
+
+            hls.loadSource(url);
+
+            hls.attachMedia(video);
+
+        } catch (e) {
+
+            failure(e);
+        }
+
+    });
+}
+
+
+/* ============================================================
+   GŁÓWNA FUNKCJA HLS Z FALLBACKAMI
+   ============================================================ */
+
+async function loadHlsWithFallback(
+    ch,
+    video,
+    token
+) {
+
+    currentHlsUrls =
+        buildHlsCandidates(ch);
+
+    currentHlsIndex = 0;
+
+    hlsAttempt = 0;
+
+
+    console.log(
+        "HLS candidates:",
+        currentHlsUrls
+    );
+
+
+    /*
+     * Safari / iOS:
+     *
+     * Jeżeli natywny HLS jest dostępny,
+     * możemy spróbować bez hls.js.
+     */
+    if (
+        video.canPlayType(
+            'application/vnd.apple.mpegurl'
+        )
+    ) {
+
+        for (
+            let i = 0;
+            i < currentHlsUrls.length;
+            i++
+        ) {
+
+            if (
+                token !== loadingChannelToken
+            ) {
+                return;
+            }
+
+            const url =
+                currentHlsUrls[i];
+
+            showStreamStatus(
+                `Natywny HLS: wariant ${i + 1}/${currentHlsUrls.length}`
+            );
+
+            video.src = url;
+
+            try {
+
+                await video.play();
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+                setTimeout(() => {
+
+                    if (
+                        token === loadingChannelToken
+                    ) {
+                        hideStreamStatus();
+                    }
+
+                }, 3000);
+
+                return;
+
+            } catch (e) {
+
+                console.warn(
+                    "Natywny HLS nie działa:",
+                    url,
+                    e
+                );
+
+                video.removeAttribute('src');
+
+                try {
+                    video.load();
+                } catch (x) {}
+            }
+        }
+    }
+
+
+    /*
+     * Chrome / Edge / Firefox:
+     * HLS.js.
+     */
+    if (
+        window.Hls &&
+        Hls.isSupported()
+    ) {
+
+        for (
+            let i = 0;
+            i < currentHlsUrls.length;
+            i++
+        ) {
+
+            if (
+                token !== loadingChannelToken
+            ) {
+                return;
+            }
+
+            currentHlsIndex = i;
+
+            const url =
+                currentHlsUrls[i];
+
+            /*
+             * Najpierw test CORS.
+             *
+             * Jeżeli test przejdzie:
+             * próbujemy HLS.js.
+             *
+             * Jeżeli CORS nie przejdzie:
+             * i tak próbujemy HLS.js, ponieważ
+             * niektóre serwery zachowują się
+             * inaczej dla HEAD/fetch i dla HLS.
+             */
+            showStreamStatus(
+                `Sprawdzanie HLS ${i + 1}/${currentHlsUrls.length}...`
+            );
+
+            const corsResult =
+                await testCors(
+                    url,
+                    token
+                );
+
+            if (
+                token !== loadingChannelToken
+            ) {
+                return;
+            }
+
+            if (!corsResult.ok) {
+
+                console.warn(
+                    "Możliwy CORS:",
+                    url,
+                    corsResult
+                );
+
+                showStreamStatus(
+                    `CORS / brak dostępu — próbuję wariant ${i + 1}`
+                );
+            } else {
+
+                showStreamStatus(
+                    `CORS OK — wariant ${i + 1}`
+                );
+            }
+
+
+            /*
+             * Próba HLS.
+             */
+            try {
+
+                await tryHlsUrl(
+                    url,
+                    video,
+                    token,
+                    i
+                );
+
+                /*
+                 * Sukces.
+                 */
+                return;
+
+            } catch (e) {
+
+                console.warn(
+                    "Wariant HLS nie działa:",
+                    url,
+                    e
+                );
+
+                /*
+                 * Czyścimy HLS.
+                 */
+                if (currentHls) {
+
+                    try {
+                        currentHls.destroy();
+                    } catch (x) {}
+
+                    currentHls = null;
+                }
+
+                /*
+                 * Czyścimy video.
+                 */
+                try {
+
+                    video.pause();
+
+                    video.removeAttribute(
+                        'src'
+                    );
+
+                    video.load();
+
+                } catch (x) {}
+            }
+        }
+    }
+
+
+    /*
+     * Nic nie zadziałało.
+     */
+    showStreamStatus(
+        "Brak działającego wariantu HLS",
+        "error"
+    );
+
+    console.error(
+        "Żaden wariant HLS nie działa:",
+        currentHlsUrls
+    );
 }
 
 
@@ -603,961 +1464,27 @@ function connectMediaElement(element) {
 
 channels.forEach((ch, i) => {
 
-    const li = document.createElement("li");
+    const li =
+        document.createElement('li');
 
-    li.className = "channel-item";
+    li.className =
+        'channel-item';
 
-    li.dataset.index = i;
+    li.dataset.index =
+        i;
 
     li.innerHTML =
         `<span class="channel-number">${i + 1}</span>${ch.name}`;
 
-    li.onclick = () => {
+    li.onclick = () =>
         loadChannel(ch, i);
-    };
 
     channelsUl.appendChild(li);
 });
 
 
 /* ============================================================
-   HLS — GENEROWANIE LISTY ADRESÓW
-   ============================================================ */
-
-function getHlsCandidates(ch) {
-
-    const candidates = [];
-
-
-    /*
-     * Jeśli kanał posiada urls[],
-     * używamy wszystkich podanych adresów.
-     */
-    if (Array.isArray(ch.urls)) {
-
-        for (const url of ch.urls) {
-
-            if (typeof url === "string" && url.trim()) {
-                candidates.push(url.trim());
-            }
-        }
-    }
-
-
-    /*
-     * Standardowe url.
-     */
-    if (
-        typeof ch.url === "string" &&
-        ch.url.trim()
-    ) {
-        candidates.push(ch.url.trim());
-    }
-
-
-    /*
-     * Automatyczny wariant playlist720p.m3u8.
-     *
-     * Przykład:
-     *
-     * playlist.m3u8
-     *
-     * ->
-     *
-     * playlist720p.m3u8
-     */
-    const currentCandidates = [...candidates];
-
-    for (const url of currentCandidates) {
-
-        try {
-
-            const parsed = new URL(url);
-
-            const pathname = parsed.pathname;
-
-
-            if (
-                pathname.endsWith("/playlist.m3u8") ||
-                pathname.endsWith("playlist.m3u8")
-            ) {
-
-                parsed.pathname =
-                    pathname.replace(
-                        /playlist\.m3u8$/,
-                        "playlist720p.m3u8"
-                    );
-
-                candidates.push(
-                    parsed.toString()
-                );
-            }
-
-        } catch (e) {
-
-            /*
-             * Niepoprawny URL — HLS.js później
-             * zgłosi błąd.
-             */
-        }
-    }
-
-
-    /*
-     * Usuwamy duplikaty.
-     */
-    return [
-        ...new Set(
-            candidates.filter(Boolean)
-        )
-    ];
-}
-
-
-/* ============================================================
-   HLS — RESET
-   ============================================================ */
-
-function clearHlsTimers() {
-
-    if (hlsRetryTimer) {
-
-        clearTimeout(hlsRetryTimer);
-        hlsRetryTimer = null;
-    }
-
-
-    if (hlsWatchdogTimer) {
-
-        clearTimeout(hlsWatchdogTimer);
-        hlsWatchdogTimer = null;
-    }
-}
-
-
-function destroyHls() {
-
-    clearHlsTimers();
-
-
-    if (currentHls) {
-
-        try {
-            currentHls.destroy();
-        } catch (e) {}
-
-        currentHls = null;
-    }
-
-
-    hlsCandidates = [];
-    hlsCandidateIndex = 0;
-
-    hlsStarted = false;
-    hlsSwitching = false;
-}
-
-
-/* ============================================================
-   HLS — INFORMACJA DLA UŻYTKOWNIKA
-   ============================================================ */
-
-function showHlsStatus(ch, text) {
-
-    channelDisplay.textContent =
-        `${ch.name} — ${text}`;
-
-    channelDisplay.classList.add("show");
-
-    clearTimeout(displayTimeout);
-
-    displayTimeout = setTimeout(() => {
-
-        channelDisplay.classList.remove("show");
-
-    }, 5000);
-}
-
-
-/* ============================================================
-   HLS — NASTĘPNY STREAM
-   ============================================================ */
-
-function switchToNextHlsCandidate(
-    ch,
-    video,
-    sessionId
-) {
-
-    /*
-     * Jeżeli użytkownik już zmienił kanał,
-     * niczego nie rób.
-     */
-    if (sessionId !== playerSessionId) {
-        return;
-    }
-
-
-    const nextIndex =
-        hlsCandidateIndex + 1;
-
-
-    if (nextIndex >= hlsCandidates.length) {
-
-        console.error(
-            "[HLS] Brak kolejnych źródeł dla:",
-            ch.name
-        );
-
-        hlsSwitching = false;
-
-        showHlsStatus(
-            ch,
-            "brak działającego streamu"
-        );
-
-        return;
-    }
-
-
-    console.warn(
-        `[HLS] Fallback ${nextIndex + 1}/${hlsCandidates.length}`
-    );
-
-
-    hlsSwitching = false;
-
-
-    /*
-     * Mała przerwa zapobiega wyścigom pomiędzy
-     * starym i nowym HLS.
-     */
-    hlsRetryTimer = setTimeout(() => {
-
-        if (sessionId !== playerSessionId) {
-            return;
-        }
-
-        tryHlsCandidate(
-            ch,
-            video,
-            nextIndex,
-            sessionId
-        );
-
-    }, 400);
-}
-
-
-/* ============================================================
-   HLS — PRÓBA KONKRETNEGO ŹRÓDŁA
-   ============================================================ */
-
-function tryHlsCandidate(
-    ch,
-    video,
-    candidateIndex,
-    sessionId
-) {
-
-    if (sessionId !== playerSessionId) {
-        return;
-    }
-
-
-    if (
-        candidateIndex < 0 ||
-        candidateIndex >= hlsCandidates.length
-    ) {
-
-        showHlsStatus(
-            ch,
-            "brak działającego streamu"
-        );
-
-        return;
-    }
-
-
-    if (hlsSwitching) {
-        return;
-    }
-
-
-    hlsSwitching = true;
-
-    hlsCandidateIndex = candidateIndex;
-
-    hlsStarted = false;
-
-
-    const url =
-        hlsCandidates[candidateIndex];
-
-
-    console.log(
-        `[HLS] Próba ${candidateIndex + 1}/${hlsCandidates.length}:`,
-        url
-    );
-
-
-    showHlsStatus(
-        ch,
-        `sprawdzanie źródła ${candidateIndex + 1}/${hlsCandidates.length}`
-    );
-
-
-    /*
-     * Usuń poprzedni HLS.
-     */
-    if (currentHls) {
-
-        try {
-            currentHls.destroy();
-        } catch (e) {}
-
-        currentHls = null;
-    }
-
-
-    clearHlsTimers();
-
-
-    /* ========================================================
-       HLS.JS
-       ======================================================== */
-
-    if (
-        typeof Hls !== "undefined" &&
-        Hls.isSupported()
-    ) {
-
-        const hls = new Hls({
-
-            enableWorker: true,
-
-            /*
-             * Nie męcz jednego niedziałającego serwera
-             * w nieskończoność.
-             */
-            manifestLoadingMaxRetry: 1,
-            levelLoadingMaxRetry: 1,
-            fragLoadingMaxRetry: 2,
-
-            /*
-             * Krótsze timeouty umożliwiają szybki fallback.
-             */
-            manifestLoadingTimeOut: 8000,
-            levelLoadingTimeOut: 8000,
-            fragLoadingTimeOut: 10000,
-
-            /*
-             * Stabilniejsze przełączanie.
-             */
-            lowLatencyMode: false
-        });
-
-
-        currentHls = hls;
-
-
-        /*
-         * Manifest poprawnie odczytany.
-         */
-        hls.on(
-            Hls.Events.MANIFEST_PARSED,
-            () => {
-
-                if (
-                    sessionId !== playerSessionId ||
-                    currentHls !== hls
-                ) {
-                    return;
-                }
-
-
-                console.log(
-                    "[HLS] Manifest OK:",
-                    url
-                );
-
-
-                hlsStarted = true;
-                hlsSwitching = false;
-
-
-                clearTimeout(hlsRetryTimer);
-                hlsRetryTimer = null;
-
-
-                showHlsStatus(
-                    ch,
-                    "OK"
-                );
-
-
-                /*
-                 * Autoplay.
-                 */
-                video.play().catch(() => {});
-
-
-                /*
-                 * Watchdog.
-                 *
-                 * Jeżeli po znalezieniu manifestu video
-                 * nadal nie zacznie odtwarzać danych,
-                 * próbujemy kolejnego źródła.
-                 */
-                hlsWatchdogTimer = setTimeout(() => {
-
-                    if (
-                        sessionId !== playerSessionId ||
-                        currentHls !== hls
-                    ) {
-                        return;
-                    }
-
-
-                    if (
-                        video.readyState < 2 &&
-                        video.paused
-                    ) {
-
-                        console.warn(
-                            "[HLS] Watchdog: stream nie rozpoczął odtwarzania:",
-                            url
-                        );
-
-
-                        try {
-                            hls.destroy();
-                        } catch (e) {}
-
-
-                        if (currentHls === hls) {
-                            currentHls = null;
-                        }
-
-
-                        hlsStarted = false;
-                        hlsSwitching = false;
-
-
-                        switchToNextHlsCandidate(
-                            ch,
-                            video,
-                            sessionId
-                        );
-                    }
-
-                }, 12000);
-            }
-        );
-
-
-        /*
-         * Dane zaczęły faktycznie płynąć.
-         */
-        hls.on(
-            Hls.Events.FRAG_LOADED,
-            () => {
-
-                if (
-                    sessionId !== playerSessionId ||
-                    currentHls !== hls
-                ) {
-                    return;
-                }
-
-
-                if (!hlsStarted) {
-
-                    hlsStarted = true;
-                    hlsSwitching = false;
-
-                    clearTimeout(hlsWatchdogTimer);
-                    hlsWatchdogTimer = null;
-
-                    showHlsStatus(
-                        ch,
-                        "odtwarzanie"
-                    );
-                }
-            }
-        );
-
-
-        /*
-         * Błędy HLS.
-         */
-        hls.on(
-            Hls.Events.ERROR,
-            (event, data) => {
-
-                if (
-                    sessionId !== playerSessionId ||
-                    currentHls !== hls
-                ) {
-                    return;
-                }
-
-
-                console.warn(
-                    "[HLS ERROR]",
-                    {
-                        url: url,
-                        type: data.type,
-                        details: data.details,
-                        fatal: data.fatal
-                    }
-                );
-
-
-                /*
-                 * Błąd fatalny.
-                 *
-                 * Może oznaczać:
-                 *
-                 * - CORS
-                 * - 403
-                 * - 404
-                 * - niedostępny manifest
-                 * - błąd sieci
-                 * - nieobsługiwany format
-                 */
-                if (data.fatal) {
-
-                    console.warn(
-                        "[HLS] Fatal error — przechodzę do następnego źródła."
-                    );
-
-
-                    clearHlsTimers();
-
-
-                    try {
-                        hls.destroy();
-                    } catch (e) {}
-
-
-                    if (currentHls === hls) {
-                        currentHls = null;
-                    }
-
-
-                    hlsStarted = false;
-                    hlsSwitching = false;
-
-
-                    switchToNextHlsCandidate(
-                        ch,
-                        video,
-                        sessionId
-                    );
-                }
-            }
-        );
-
-
-        /*
-         * Ładowanie źródła.
-         */
-        try {
-
-            hls.loadSource(url);
-            hls.attachMedia(video);
-
-        } catch (error) {
-
-            console.error(
-                "[HLS] loadSource/attachMedia:",
-                error
-            );
-
-
-            try {
-                hls.destroy();
-            } catch (e) {}
-
-
-            if (currentHls === hls) {
-                currentHls = null;
-            }
-
-
-            hlsStarted = false;
-            hlsSwitching = false;
-
-
-            switchToNextHlsCandidate(
-                ch,
-                video,
-                sessionId
-            );
-
-            return;
-        }
-
-
-        /*
-         * Timeout manifestu.
-         */
-        hlsRetryTimer = setTimeout(() => {
-
-            if (
-                sessionId !== playerSessionId ||
-                currentHls !== hls
-            ) {
-                return;
-            }
-
-
-            if (!hlsStarted) {
-
-                console.warn(
-                    "[HLS] Timeout manifestu:",
-                    url
-                );
-
-
-                try {
-                    hls.destroy();
-                } catch (e) {}
-
-
-                if (currentHls === hls) {
-                    currentHls = null;
-                }
-
-
-                hlsStarted = false;
-                hlsSwitching = false;
-
-
-                switchToNextHlsCandidate(
-                    ch,
-                    video,
-                    sessionId
-                );
-            }
-
-        }, 10000);
-
-
-        return;
-    }
-
-
-    /* ========================================================
-       NATYWNY HLS — SAFARI / iOS
-       ======================================================== */
-
-    if (
-        video.canPlayType(
-            "application/vnd.apple.mpegurl"
-        )
-    ) {
-
-        console.log(
-            "[Native HLS] Próba:",
-            url
-        );
-
-
-        let finished = false;
-
-
-        const cleanup = () => {
-
-            video.removeEventListener(
-                "loadedmetadata",
-                onSuccess
-            );
-
-            video.removeEventListener(
-                "canplay",
-                onSuccess
-            );
-
-            video.removeEventListener(
-                "error",
-                onError
-            );
-        };
-
-
-        const onSuccess = () => {
-
-            if (finished) {
-                return;
-            }
-
-            finished = true;
-
-            cleanup();
-
-
-            if (sessionId !== playerSessionId) {
-                return;
-            }
-
-
-            console.log(
-                "[Native HLS] OK:",
-                url
-            );
-
-
-            hlsStarted = true;
-            hlsSwitching = false;
-
-
-            showHlsStatus(
-                ch,
-                "odtwarzanie"
-            );
-
-
-            video.play().catch(() => {});
-        };
-
-
-        const onError = () => {
-
-            if (finished) {
-                return;
-            }
-
-            finished = true;
-
-            cleanup();
-
-
-            if (sessionId !== playerSessionId) {
-                return;
-            }
-
-
-            console.warn(
-                "[Native HLS] Błąd:",
-                url
-            );
-
-
-            hlsStarted = false;
-            hlsSwitching = false;
-
-
-            switchToNextHlsCandidate(
-                ch,
-                video,
-                sessionId
-            );
-        };
-
-
-        video.addEventListener(
-            "loadedmetadata",
-            onSuccess
-        );
-
-        video.addEventListener(
-            "canplay",
-            onSuccess
-        );
-
-        video.addEventListener(
-            "error",
-            onError
-        );
-
-
-        video.src = url;
-
-
-        hlsRetryTimer = setTimeout(() => {
-
-            if (finished) {
-                return;
-            }
-
-            finished = true;
-
-            cleanup();
-
-
-            if (
-                sessionId !== playerSessionId
-            ) {
-                return;
-            }
-
-
-            console.warn(
-                "[Native HLS] Timeout:",
-                url
-            );
-
-
-            hlsStarted = false;
-            hlsSwitching = false;
-
-
-            switchToNextHlsCandidate(
-                ch,
-                video,
-                sessionId
-            );
-
-        }, 10000);
-
-
-        return;
-    }
-
-
-    /*
-     * Brak obsługi HLS.
-     */
-    console.error(
-        "Przeglądarka nie obsługuje HLS."
-    );
-
-    hlsSwitching = false;
-
-    showHlsStatus(
-        ch,
-        "HLS nieobsługiwany"
-    );
-}
-
-
-/* ============================================================
-   HLS — URUCHOMIENIE
-   ============================================================ */
-
-function startHls(
-    ch,
-    video,
-    sessionId
-) {
-
-    hlsCandidates =
-        getHlsCandidates(ch);
-
-
-    hlsCandidateIndex = 0;
-
-    hlsStarted = false;
-    hlsSwitching = false;
-
-
-    if (!hlsCandidates.length) {
-
-        console.error(
-            "[HLS] Brak adresów dla:",
-            ch.name
-        );
-
-        showHlsStatus(
-            ch,
-            "brak adresu HLS"
-        );
-
-        return;
-    }
-
-
-    console.log(
-        "[HLS] Lista kandydatów:",
-        hlsCandidates
-    );
-
-
-    tryHlsCandidate(
-        ch,
-        video,
-        0,
-        sessionId
-    );
-}
-
-
-/* ============================================================
-   HLS — AUTOMATYCZNE PONOWNE POŁĄCZENIE
-   ============================================================ */
-
-function setupHlsRecovery(
-    ch,
-    video,
-    sessionId
-) {
-
-    /*
-     * Jeśli przeglądarka zgłosi błąd elementu video,
-     * HLS.js może nie zawsze zgłosić wszystko jako fatal.
-     */
-    video.addEventListener(
-        "error",
-        () => {
-
-            if (
-                sessionId !== playerSessionId ||
-                !hlsStarted
-            ) {
-                return;
-            }
-
-
-            console.warn(
-                "[VIDEO] Błąd elementu video — restart HLS."
-            );
-
-
-            /*
-             * Krótki timeout, aby uniknąć pętli.
-             */
-            clearTimeout(hlsRetryTimer);
-
-
-            hlsRetryTimer = setTimeout(() => {
-
-                if (
-                    sessionId !== playerSessionId
-                ) {
-                    return;
-                }
-
-
-                /*
-                 * Najpierw próbujemy ponownie ten sam URL.
-                 */
-                if (
-                    hlsCandidateIndex <
-                    hlsCandidates.length
-                ) {
-
-                    hlsStarted = false;
-                    hlsSwitching = false;
-
-
-                    tryHlsCandidate(
-                        ch,
-                        video,
-                        hlsCandidateIndex,
-                        sessionId
-                    );
-                }
-
-            }, 1500);
-        }
-    );
-}
-
-
-/* ============================================================
-   ŁADOWANIE KANAŁU
+   LOAD CHANNEL
    ============================================================ */
 
 function loadChannel(
@@ -1566,63 +1493,36 @@ function loadChannel(
 ) {
 
     /*
-     * Nowa sesja odtwarzacza.
+     * Token zabezpiecza przed sytuacją:
+     *
+     * kliknięto kanał A
+     * -> A zaczyna ładować
+     * -> kliknięto B
+     * -> A kończy ładowanie po czasie
+     *
+     * Dzięki tokenowi A nie nadpisze B.
      */
-    playerSessionId++;
+    loadingChannelToken++;
 
-    const sessionId =
-        playerSessionId;
-
-
-    currentChannelIndex = index;
+    const token =
+        loadingChannelToken;
 
 
-    /*
-     * Zatrzymaj HLS.
-     */
-    destroyHls();
+    currentChannelIndex =
+        index;
 
 
-    /*
-     * Usuń DASH.
-     */
-    if (currentDash) {
-
-        try {
-            currentDash.reset();
-        } catch (e) {}
-
-        currentDash = null;
-    }
+    destroyCurrentPlayer();
 
 
-    /*
-     * Usuń YouTube.
-     */
-    if (ytPlayer) {
-
-        try {
-            ytPlayer.destroy();
-        } catch (e) {}
-
-        ytPlayer = null;
-    }
-
-
-    /*
-     * Wyczyść poprzedni element.
-     */
     videoTarget.innerHTML = "";
 
 
-    /*
-     * Aktywny kanał.
-     */
     document
-        .querySelectorAll(".channel-item")
-        .forEach(el => {
-            el.classList.remove("active");
-        });
+        .querySelectorAll('.channel-item')
+        .forEach(el =>
+            el.classList.remove('active')
+        );
 
 
     const activeItem =
@@ -1630,29 +1530,28 @@ function loadChannel(
             `.channel-item[data-index="${index}"]`
         );
 
-
     if (activeItem) {
-        activeItem.classList.add("active");
+        activeItem.classList.add('active');
     }
 
 
-    /*
-     * Nazwa kanału.
-     */
     channelDisplay.textContent =
         ch.name;
 
-    channelDisplay.classList.add("show");
-
+    channelDisplay.classList.add(
+        'show'
+    );
 
     clearTimeout(displayTimeout);
 
+    displayTimeout =
+        setTimeout(() => {
 
-    displayTimeout = setTimeout(() => {
+            channelDisplay.classList.remove(
+                'show'
+            );
 
-        channelDisplay.classList.remove("show");
-
-    }, 7000);
+        }, 7000);
 
 
     const isBackgroundAudio =
@@ -1663,66 +1562,65 @@ function loadChannel(
        HLS
        ======================================================== */
 
-    if (ch.type === "hls") {
+    if (ch.type === 'hls') {
 
-        videoTarget.innerHTML = `
-            <video
-                id="v"
-                ${isBackgroundAudio ? "" : "controls"}
+        /*
+         * CELowo NIE dodajemy tutaj:
+         *
+         * crossorigin="anonymous"
+         *
+         * ponieważ to właśnie może blokować
+         * streamy bez odpowiednich nagłówków CORS.
+         */
+        videoTarget.innerHTML =
+            `<video id="v"
+                ${isBackgroundAudio ? '' : 'controls'}
                 autoplay
-                playsinline
-                crossorigin="anonymous">
-            </video>
-        `;
+                playsinline>
+            </video>`;
 
 
         const v =
-            document.getElementById("v");
+            document.getElementById('v');
 
 
         if (isBackgroundAudio) {
-            v.style.display = "none";
+            v.style.display = 'none';
         }
 
 
         /*
-         * Web Audio.
+         * Nie podłączamy WebAudio automatycznie
+         * przed rozpoczęciem odtwarzania.
          */
-        v.addEventListener(
-            "play",
-            () => {
+        v.onplay = () => {
 
-                if (
-                    sessionId !== playerSessionId
-                ) {
-                    return;
-                }
-
+            /*
+             * Próba WebAudio jest opcjonalna.
+             *
+             * Jeżeli CORS nie pozwoli,
+             * stream nadal pozostanie odtwarzany.
+             */
+            if (isBackgroundAudio) {
                 connectMediaElement(v);
-            },
-            {once: true}
-        );
+            }
+        };
 
 
-        /*
-         * Recovery.
-         */
-        setupHlsRecovery(
+        v.onerror = () => {
+
+            console.warn(
+                "Video element error:",
+                v.error
+            );
+        };
+
+
+        loadHlsWithFallback(
             ch,
             v,
-            sessionId
+            token
         );
-
-
-        /*
-         * Start HLS.
-         */
-        startHls(
-            ch,
-            v,
-            sessionId
-        );
-
 
         return;
     }
@@ -1732,30 +1630,29 @@ function loadChannel(
        DASH
        ======================================================== */
 
-    if (ch.type === "dash") {
+    if (ch.type === 'dash') {
 
-        videoTarget.innerHTML = `
-            <video
-                id="v"
-                ${isBackgroundAudio ? "" : "controls"}
+        videoTarget.innerHTML =
+            `<video id="v"
+                ${isBackgroundAudio ? '' : 'controls'}
                 autoplay
-                playsinline
-                crossorigin="anonymous">
-            </video>
-        `;
+                playsinline>
+            </video>`;
 
 
         const v =
-            document.getElementById("v");
+            document.getElementById('v');
 
 
         if (isBackgroundAudio) {
-            v.style.display = "none";
+            v.style.display = 'none';
         }
 
 
         currentDash =
-            dashjs.MediaPlayer().create();
+            dashjs
+                .MediaPlayer()
+                .create();
 
 
         currentDash.initialize(
@@ -1767,15 +1664,10 @@ function loadChannel(
 
         v.onplay = () => {
 
-            if (
-                sessionId !== playerSessionId
-            ) {
-                return;
+            if (isBackgroundAudio) {
+                connectMediaElement(v);
             }
-
-            connectMediaElement(v);
         };
-
 
         return;
     }
@@ -1785,55 +1677,24 @@ function loadChannel(
        YOUTUBE
        ======================================================== */
 
-    if (ch.type === "youtube") {
+    if (ch.type === 'youtube') {
 
         videoTarget.innerHTML =
             `<div id="yt-div"></div>`;
 
 
-        /*
-         * YouTube API może być jeszcze w trakcie
-         * ładowania.
-         */
-        const createYoutube = () => {
+        ytPlayer =
+            new YT.Player(
+                'yt-div',
+                {
+                    videoId: ch.url,
 
-            if (
-                sessionId !== playerSessionId
-            ) {
-                return;
-            }
-
-
-            if (
-                typeof YT === "undefined" ||
-                !YT.Player
-            ) {
-
-                setTimeout(
-                    createYoutube,
-                    300
-                );
-
-                return;
-            }
-
-
-            ytPlayer =
-                new YT.Player(
-                    "yt-div",
-                    {
-                        videoId: ch.url,
-
-                        playerVars: {
-                            autoplay: 1,
-                            playsinline: 1
-                        }
+                    playerVars: {
+                        autoplay: 1,
+                        playsinline: 1
                     }
-                );
-        };
-
-
-        createYoutube();
+                }
+            );
 
         return;
     }
@@ -1844,18 +1705,16 @@ function loadChannel(
        ======================================================== */
 
     if (
-        ch.type === "iframe" ||
-        ch.type === "iframe-dlhd"
+        ch.type === 'iframe' ||
+        ch.type === 'iframe-dlhd'
     ) {
 
-        videoTarget.innerHTML = `
-            <iframe
-                src="${escapeHtmlAttribute(ch.url)}"
+        videoTarget.innerHTML =
+            `<iframe
+                src="${ch.url}"
                 allow="autoplay; fullscreen"
-                allowfullscreen
                 sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
-            </iframe>
-        `;
+            </iframe>`;
 
         return;
     }
@@ -1865,38 +1724,60 @@ function loadChannel(
        AUDIO
        ======================================================== */
 
-    if (ch.type === "audio") {
+    if (ch.type === 'audio') {
 
-        videoTarget.innerHTML = `
-            <audio
-                ${isBackgroundAudio ? "" : "controls"}
+        /*
+         * Tak samo jak przy HLS:
+         *
+         * brak crossorigin="anonymous"
+         *
+         * żeby nie wymuszać CORS.
+         */
+        videoTarget.innerHTML =
+            `<audio
+                ${isBackgroundAudio ? '' : 'controls'}
                 autoplay
-                crossorigin="anonymous"
-                src="${escapeHtmlAttribute(ch.url)}">
-            </audio>
-        `;
+                playsinline>
+            </audio>`;
 
 
         const a =
-            videoTarget.querySelector("audio");
+            videoTarget.querySelector(
+                'audio'
+            );
+
+
+        a.src =
+            ch.url;
 
 
         if (isBackgroundAudio) {
-            a.style.display = "none";
+            a.style.display = 'none';
         }
 
 
         a.onplay = () => {
 
-            if (
-                sessionId !== playerSessionId
-            ) {
-                return;
+            if (isBackgroundAudio) {
+                connectMediaElement(a);
             }
-
-            connectMediaElement(a);
         };
 
+
+        a.onerror = () => {
+
+            console.warn(
+                "Audio error:",
+                a.error
+            );
+        };
+
+
+        /*
+         * Niektóre przeglądarki wymagają
+         * rozpoczęcia odtwarzania po interakcji.
+         */
+        a.play().catch(() => {});
 
         return;
     }
@@ -1904,21 +1785,7 @@ function loadChannel(
 
 
 /* ============================================================
-   BEZPIECZNE WSTAWIANIE URL DO HTML
-   ============================================================ */
-
-function escapeHtmlAttribute(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-}
-
-
-/* ============================================================
-   NEXT / PREVIOUS
+   NEXT
    ============================================================ */
 
 function nextChannel() {
@@ -1927,7 +1794,6 @@ function nextChannel() {
         (currentChannelIndex + 1) %
         channels.length;
 
-
     loadChannel(
         channels[currentChannelIndex],
         currentChannelIndex
@@ -1935,16 +1801,16 @@ function nextChannel() {
 }
 
 
+/* ============================================================
+   PREVIOUS
+   ============================================================ */
+
 function previousChannel() {
 
     currentChannelIndex =
-        (
-            currentChannelIndex -
-            1 +
-            channels.length
-        ) %
+        (currentChannelIndex - 1 +
+            channels.length) %
         channels.length;
-
 
     loadChannel(
         channels[currentChannelIndex],
@@ -1961,49 +1827,51 @@ function toggleFullscreen() {
 
     if (!document.fullscreenElement) {
 
-        document
-            .getElementById("player-container")
-            .requestFullscreen()
-            .catch(err => {
+        const container =
+            document.getElementById(
+                'player-container'
+            );
 
-                console.warn(
-                    "Fullscreen error:",
-                    err
-                );
-            });
+        if (
+            container.requestFullscreen
+        ) {
+
+            container
+                .requestFullscreen()
+                .catch(() => {});
+        }
 
     } else {
 
-        document.exitFullscreen();
+        document
+            .exitFullscreen()
+            .catch(() => {});
     }
 }
 
 
 /* ============================================================
-   FADE BUTTON
+   FADE PRZYCISKU
    ============================================================ */
 
 function resetFade() {
 
-    const button =
+    const btn =
         document.getElementById(
-            "fullscreen-btn"
+            'fullscreen-btn'
         );
 
-
-    button.classList.remove(
-        "fade-out"
+    btn.classList.remove(
+        'fade-out'
     );
 
-
     clearTimeout(fadeTimeout);
-
 
     fadeTimeout =
         setTimeout(() => {
 
-            button.classList.add(
-                "fade-out"
+            btn.classList.add(
+                'fade-out'
             );
 
         }, 3000);
@@ -2023,11 +1891,9 @@ loadChannel(
     0
 );
 
-resetFade();
-
 
 /* ============================================================
-   MOUSE
+   MYSZ
    ============================================================ */
 
 document.addEventListener(
@@ -2051,7 +1917,6 @@ document.addEventListener(
             nextChannel();
         }
 
-
         /*
          * Prawy przycisk:
          * poprzedni kanał.
@@ -2061,6 +1926,29 @@ document.addEventListener(
             e.preventDefault();
 
             previousChannel();
+        }
+    }
+);
+
+
+/* ============================================================
+   KLAWIATURA
+   ============================================================ */
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        if (e.key === "ArrowRight") {
+            nextChannel();
+        }
+
+        if (e.key === "ArrowLeft") {
+            previousChannel();
+        }
+
+        if (e.key === "f" || e.key === "F") {
+            toggleFullscreen();
         }
     }
 );
