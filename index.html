@@ -150,6 +150,9 @@
             pointer-events: none;
         }
 
+        /*
+         * Informacja o aktualnym stanie HLS.
+         */
         #stream-status {
             position: absolute;
             left: 20px;
@@ -283,6 +286,7 @@ const channels = [
 
     {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},
 
+
     {name: "Radio Kiss Kiss TV", url: "https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8", type: "hls"},
 
     {name: "Radiofreccia HD", url: "https://streamcdnb1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8", type: "hls"},
@@ -302,6 +306,11 @@ const channels = [
 
     {name: "Now 70's", url: "https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8", type: "hls"},
 
+    /*
+     * NOW Rock
+     *
+     * Podstawowy adres Rakuten:
+     */
     {
         name: "NOW Rock",
         url: "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8",
@@ -309,6 +318,21 @@ const channels = [
     },
 
     {name: "DELUXE MUSIC", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8", type: "hls"},
+
+    /*
+     * DELUXE DANCE
+     *
+     * WAŻNE:
+     *
+     * Ten kanał dostaje kilka potencjalnych wariantów.
+     *
+     * 1. Oryginalny adres
+     * 2. playlist.m3u8
+     * 3. playlist720p.m3u8
+     *
+     * Możesz później dopisać własne alternatywy w polu
+     * fallbackUrls.
+     */
 
     {
         name: "DELUXE DANCE",
@@ -386,7 +410,7 @@ const channels = [
 
     {name: "Africanews English", url: "https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8", type: "hls"},
 
-    {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls"},
 
     {name: "RADIO ZET", url: "https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx", type: "audio", backgroundAudio: true},
 
@@ -422,17 +446,10 @@ const channels = [
    ELEMENTY
    ============================================================ */
 
-const channelsUl =
-    document.getElementById('channels-ul');
-
-const videoTarget =
-    document.getElementById('video-target');
-
-const channelDisplay =
-    document.getElementById('channel-display');
-
-const streamStatus =
-    document.getElementById('stream-status');
+const channelsUl = document.getElementById('channels-ul');
+const videoTarget = document.getElementById('video-target');
+const channelDisplay = document.getElementById('channel-display');
+const streamStatus = document.getElementById('stream-status');
 
 
 /* ============================================================
@@ -454,16 +471,6 @@ let currentHlsIndex = 0;
 let hlsAttempt = 0;
 let hlsFailTimer = null;
 
-/*
- * Watchdog HLS.
- *
- * Wcześniej stream mógł zatrzymać się bez fatalnego
- * błędu HLS.js i player nic z tym nie robił.
- */
-
-let hlsWatchdogTimer = null;
-let hlsRecoveryInProgress = false;
-
 let loadingChannelToken = 0;
 
 
@@ -478,38 +485,30 @@ let compressorNode = null;
 
 
 /* ============================================================
-   KONFIGURACJA HLS
+   KONFIGURACJA AUTOMATYCZNEGO HLS
    ============================================================ */
 
 const HLS_CONFIG = {
 
-    startupTimeout: 12000,
+    /*
+     * Ile czasu dajemy playlistcie na rozpoczęcie pracy.
+     */
+    startupTimeout: 9000,
 
+    /*
+     * Ile razy próbujemy ponownie ten sam URL.
+     */
     retriesPerUrl: 2,
 
-    retryDelay: 1500,
-
-    maxFatalErrorsPerUrl: 3,
+    /*
+     * Opóźnienie pomiędzy retry.
+     */
+    retryDelay: 1200,
 
     /*
-     * Jeżeli przez tyle sekund nie nastąpi postęp
-     * odtwarzania, uznajemy stream za zatrzymany.
+     * Po ilu błędach przechodzimy na następny URL.
      */
-
-    stallTimeout: 10000,
-
-    /*
-     * Jak często sprawdzamy stan playera.
-     */
-
-    watchdogInterval: 2000,
-
-    /*
-     * Ile razy próbujemy naprawić ten sam URL,
-     * zanim przejdziemy do kolejnego wariantu.
-     */
-
-    maxWatchdogRecoveries: 3
+    maxFatalErrorsPerUrl: 2
 };
 
 
@@ -517,59 +516,24 @@ const HLS_CONFIG = {
    STATUS
    ============================================================ */
 
-function showStreamStatus(
-    text,
-    type = ''
-) {
+function showStreamStatus(text, type = '') {
 
-    streamStatus.textContent =
-        text;
+    streamStatus.textContent = text;
 
-    streamStatus.classList.remove(
-        'show',
-        'error',
-        'ok'
-    );
+    streamStatus.classList.remove('show', 'error', 'ok');
 
     if (type) {
-
-        streamStatus.classList.add(
-            type
-        );
+        streamStatus.classList.add(type);
     }
 
-    streamStatus.classList.add(
-        'show'
-    );
+    streamStatus.classList.add('show');
 }
 
 
 function hideStreamStatus() {
 
-    streamStatus.classList.remove(
-        'show',
-        'error',
-        'ok'
-    );
-}
+    streamStatus.classList.remove('show', 'error', 'ok');
 
-
-/* ============================================================
-   WATCHDOG — CZYSZCZENIE
-   ============================================================ */
-
-function stopHlsWatchdog() {
-
-    if (hlsWatchdogTimer) {
-
-        clearInterval(
-            hlsWatchdogTimer
-        );
-
-        hlsWatchdogTimer = null;
-    }
-
-    hlsRecoveryInProgress = false;
 }
 
 
@@ -579,67 +543,43 @@ function stopHlsWatchdog() {
 
 function destroyCurrentPlayer() {
 
-    clearTimeout(
-        hlsFailTimer
-    );
-
-    stopHlsWatchdog();
-
+    clearTimeout(hlsFailTimer);
 
     if (currentHls) {
 
         try {
-
             currentHls.destroy();
-
         } catch (e) {
-
-            console.warn(
-                "HLS destroy error:",
-                e
-            );
+            console.warn("HLS destroy error:", e);
         }
 
         currentHls = null;
     }
 
-
     if (currentDash) {
 
         try {
-
             currentDash.reset();
-
         } catch (e) {
-
-            console.warn(
-                "DASH reset error:",
-                e
-            );
+            console.warn("DASH reset error:", e);
         }
 
         currentDash = null;
     }
 
-
     if (ytPlayer) {
 
         try {
-
             ytPlayer.destroy();
-
         } catch (e) {}
 
         ytPlayer = null;
     }
 
-
     if (audioSourceNode) {
 
         try {
-
             audioSourceNode.disconnect();
-
         } catch (e) {}
 
         audioSourceNode = null;
@@ -660,92 +600,103 @@ function initAudioContext() {
             window.webkitAudioContext;
 
         if (!AudioContext) {
-
             return false;
         }
 
-        audioCtx =
-            new AudioContext();
-
+        audioCtx = new AudioContext();
 
         compressorNode =
             audioCtx.createDynamicsCompressor();
-
 
         compressorNode.threshold.setValueAtTime(
             -12,
             audioCtx.currentTime
         );
 
-
         compressorNode.knee.setValueAtTime(
             3,
             audioCtx.currentTime
         );
-
 
         compressorNode.ratio.setValueAtTime(
             12,
             audioCtx.currentTime
         );
 
-
         compressorNode.attack.setValueAtTime(
             0.003,
             audioCtx.currentTime
         );
-
 
         compressorNode.release.setValueAtTime(
             0.25,
             audioCtx.currentTime
         );
 
-
-        gainNode =
-            audioCtx.createGain();
-
+        gainNode = audioCtx.createGain();
 
         gainNode.gain.setValueAtTime(
             0.2,
             audioCtx.currentTime
         );
 
+        compressorNode.connect(gainNode);
 
-        compressorNode.connect(
-            gainNode
-        );
-
-
-        gainNode.connect(
-            audioCtx.destination
-        );
+        gainNode.connect(audioCtx.destination);
     }
 
+    if (audioCtx.state === 'suspended') {
 
-    if (
-        audioCtx.state ===
-        'suspended'
-    ) {
-
-        audioCtx.resume().catch(
-            () => {}
-        );
+        audioCtx.resume().catch(() => {});
     }
-
 
     return true;
 }
 
 
+/*
+ * WAŻNA ZMIANA:
+ *
+ * WebAudio może wymagać CORS.
+ *
+ * Dlatego nie pozwalamy, żeby błąd WebAudio
+ * zatrzymał odtwarzanie HLS.
+ */
 function connectMediaElement(element) {
 
-    console.warn(
-        "WebAudio pominięte dla zewnętrznego streamu:",
-        element
-    );
+    try {
 
-    return false;
+        if (!initAudioContext()) {
+            return;
+        }
+
+        if (audioSourceNode) {
+
+            try {
+                audioSourceNode.disconnect();
+            } catch (e) {}
+
+            audioSourceNode = null;
+        }
+
+        audioSourceNode =
+            audioCtx.createMediaElementSource(element);
+
+        audioSourceNode.connect(compressorNode);
+
+    } catch (e) {
+
+        /*
+         * Jeżeli źródło nie posiada CORS,
+         * WebAudio może tutaj zgłosić błąd.
+         *
+         * STREAM NADAL MOŻE DZIAŁAĆ NORMALNIE.
+         */
+        console.warn(
+            "WebAudio/CORS - pozostawiam normalne odtwarzanie:",
+            e
+        );
+    }
 }
 
 
@@ -757,55 +708,49 @@ function buildHlsCandidates(ch) {
 
     const urls = [];
 
-
+    /*
+     * Najpierw podstawowy URL.
+     */
     if (ch.url) {
-
-        urls.push(
-            ch.url.trim()
-        );
+        urls.push(ch.url.trim());
     }
 
+    /*
+     * Własne fallbackUrls.
+     */
+    if (Array.isArray(ch.fallbackUrls)) {
 
-    if (
-        Array.isArray(
-            ch.fallbackUrls
-        )
-    ) {
+        ch.fallbackUrls.forEach(url => {
 
-        ch.fallbackUrls.forEach(
-            url => {
+            if (url && typeof url === 'string') {
 
-                if (
-                    url &&
-                    typeof url === 'string'
-                ) {
-
-                    urls.push(
-                        url.trim()
-                    );
-                }
+                urls.push(url.trim());
             }
-        );
+        });
     }
 
-
+    /*
+     * AUTOMATYCZNE WARIANTY.
+     *
+     * Dla:
+     *
+     * /64733/64733_264_live.m3u8
+     *
+     * próbujemy również:
+     *
+     * /64733/playlist.m3u8
+     * /64733/playlist720p.m3u8
+     */
     try {
 
-        const parsed =
-            new URL(ch.url);
+        const parsed = new URL(ch.url);
 
-        const path =
-            parsed.pathname;
-
+        const path = parsed.pathname;
 
         if (
             path.endsWith('.m3u8') &&
-            !path.endsWith(
-                '/playlist.m3u8'
-            ) &&
-            !path.endsWith(
-                '/playlist720p.m3u8'
-            )
+            !path.endsWith('/playlist.m3u8') &&
+            !path.endsWith('/playlist720p.m3u8')
         ) {
 
             const directory =
@@ -814,17 +759,14 @@ function buildHlsCandidates(ch) {
                     path.lastIndexOf('/') + 1
                 );
 
-
             const origin =
                 parsed.origin;
-
 
             urls.push(
                 origin +
                 directory +
                 'playlist.m3u8'
             );
-
 
             urls.push(
                 origin +
@@ -841,12 +783,12 @@ function buildHlsCandidates(ch) {
         );
     }
 
-
-    return [
-        ...new Set(
-            urls.filter(Boolean)
-        )
-    ];
+    /*
+     * Usuwamy duplikaty.
+     */
+    return [...new Set(
+        urls.filter(Boolean)
+    )];
 }
 
 
@@ -856,15 +798,10 @@ function buildHlsCandidates(ch) {
 
 function isHlsUrl(url) {
 
-    if (!url) {
-
-        return false;
-    }
+    if (!url) return false;
 
     return (
-        url
-            .toLowerCase()
-            .includes('.m3u8')
+        url.toLowerCase().includes('.m3u8')
     );
 }
 
@@ -873,43 +810,36 @@ function isHlsUrl(url) {
    CORS / FETCH TEST
    ============================================================ */
 
-async function testCors(
-    url,
-    token
-) {
+/*
+ * UWAGA:
+ *
+ * Ten test nie może "naprawić" CORS.
+ *
+ * Ma tylko wykryć, czy przeglądarka może
+ * pobrać playlistę przez fetch.
+ *
+ * Jeżeli fetch zakończy się błędem CORS,
+ * przechodzimy dalej do następnego wariantu.
+ */
+async function testCors(url, token) {
 
-    if (
-        token !==
-        loadingChannelToken
-    ) {
-
+    if (token !== loadingChannelToken) {
         return {
             ok: false,
             cancelled: true
         };
     }
 
-
-    let controller = null;
-    let timeout = null;
-
-
     try {
 
-        controller =
+        const controller =
             new AbortController();
 
-
-        timeout =
+        const timeout =
             setTimeout(
-                () => {
-
-                    controller.abort();
-
-                },
+                () => controller.abort(),
                 4500
             );
-
 
         const response =
             await fetch(
@@ -918,57 +848,32 @@ async function testCors(
                     method: 'GET',
                     mode: 'cors',
                     cache: 'no-store',
-                    signal:
-                        controller.signal
+                    signal: controller.signal
                 }
             );
 
-
-        clearTimeout(
-            timeout
-        );
-
+        clearTimeout(timeout);
 
         if (!response.ok) {
 
             return {
                 ok: false,
-                status:
-                    response.status,
+                status: response.status,
                 cors: true
             };
         }
 
-
         /*
-         * Nie pobieramy tutaj całego manifestu.
-         *
-         * To ważne przy niektórych serwerach,
-         * które utrzymują połączenie.
+         * Czytamy niewielki fragment.
          */
-
-        try {
-
-            await response.body?.cancel();
-
-        } catch (e) {}
-
+        await response.text();
 
         return {
             ok: true,
             cors: true
         };
 
-
     } catch (e) {
-
-        if (timeout) {
-
-            clearTimeout(
-                timeout
-            );
-        }
-
 
         return {
             ok: false,
@@ -980,1188 +885,213 @@ async function testCors(
 
 
 /* ============================================================
-   HLS WATCHDOG
-   ============================================================ */
-
-function startHlsWatchdog(
-    hls,
-    media,
-    token,
-    url,
-    candidateIndex
-) {
-
-    stopHlsWatchdog();
-
-
-    let lastCurrentTime =
-        media.currentTime || 0;
-
-    let lastProgressTime =
-        Date.now();
-
-    let recoveryCount = 0;
-
-    let lastReadyState =
-        media.readyState;
-
-
-    function markProgress() {
-
-        lastProgressTime =
-            Date.now();
-
-        lastCurrentTime =
-            media.currentTime || 0;
-    }
-
-
-    media.addEventListener(
-        'playing',
-        markProgress
-    );
-
-
-    media.addEventListener(
-        'timeupdate',
-        function() {
-
-            const now =
-                media.currentTime || 0;
-
-
-            if (
-                Math.abs(
-                    now -
-                    lastCurrentTime
-                ) > 0.05
-            ) {
-
-                lastCurrentTime =
-                    now;
-
-                lastProgressTime =
-                    Date.now();
-            }
-        }
-    );
-
-
-    media.addEventListener(
-        'progress',
-        markProgress
-    );
-
-
-    media.addEventListener(
-        'canplay',
-        markProgress
-    );
-
-
-    media.addEventListener(
-        'loadeddata',
-        markProgress
-    );
-
-
-    /*
-     * HLS.js może dostarczyć fragment,
-     * nawet jeżeli media element jeszcze nie
-     * zdążył zgłosić timeupdate.
-     */
-
-    const onFragBuffered =
-        () => {
-
-            if (
-                token ===
-                loadingChannelToken
-            ) {
-
-                lastProgressTime =
-                    Date.now();
-            }
-        };
-
-
-    hls.on(
-        Hls.Events.FRAG_BUFFERED,
-        onFragBuffered
-    );
-
-
-    hlsWatchdogTimer =
-        setInterval(
-            async () => {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    stopHlsWatchdog();
-
-                    return;
-                }
-
-
-                if (
-                    !currentHls ||
-                    currentHls !== hls
-                ) {
-
-                    stopHlsWatchdog();
-
-                    return;
-                }
-
-
-                if (
-                    hlsRecoveryInProgress
-                ) {
-
-                    return;
-                }
-
-
-                const now =
-                    Date.now();
-
-
-                const stalledFor =
-                    now -
-                    lastProgressTime;
-
-
-                const readyState =
-                    media.readyState;
-
-
-                /*
-                 * Stream działa normalnie.
-                 */
-
-                if (
-                    !media.paused &&
-                    !media.ended &&
-                    readyState >= 3 &&
-                    stalledFor <
-                    HLS_CONFIG.stallTimeout
-                ) {
-
-                    return;
-                }
-
-
-                /*
-                 * Autoplay / zatrzymanie ręczne
-                 * nie jest traktowane jako awaria.
-                 */
-
-                if (
-                    media.paused &&
-                    media.currentTime === 0
-                ) {
-
-                    return;
-                }
-
-
-                /*
-                 * Jeżeli media ma wystarczający
-                 * readyState, ale currentTime się
-                 * nie zmienia — typowy przypadek
-                 * "Deluxe Dance zatrzymał się".
-                 */
-
-                if (
-                    stalledFor <
-                    HLS_CONFIG.stallTimeout
-                ) {
-
-                    return;
-                }
-
-
-                hlsRecoveryInProgress =
-                    true;
-
-                recoveryCount++;
-
-
-                console.warn(
-                    "HLS WATCHDOG: wykryto zatrzymanie",
-                    {
-                        url,
-                        candidateIndex,
-                        recoveryCount,
-                        readyState:
-                            media.readyState,
-                        networkState:
-                            media.networkState,
-                        currentTime:
-                            media.currentTime
-                    }
-                );
-
-
-                showStreamStatus(
-                    `DELUXE/HLS: próba naprawy ${recoveryCount}/${HLS_CONFIG.maxWatchdogRecoveries}...`
-                );
-
-
-                /*
-                 * =================================================
-                 * PRÓBA 1
-                 * =================================================
-                 *
-                 * Wymuszamy ponowne ładowanie live playlisty.
-                 */
-
-                try {
-
-                    hls.startLoad(-1);
-
-                } catch (e) {
-
-                    console.warn(
-                        "startLoad() error:",
-                        e
-                    );
-                }
-
-
-                try {
-
-                    if (
-                        media.paused
-                    ) {
-
-                        await media.play();
-                    }
-
-                } catch (e) {}
-
-
-                /*
-                 * Dajemy HLS chwilę na odzyskanie.
-                 */
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            3500
-                        )
-                );
-
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                const currentAfterRecovery =
-                    media.currentTime || 0;
-
-
-                /*
-                 * Jeżeli czas ruszył — udało się.
-                 */
-
-                if (
-                    currentAfterRecovery !==
-                    lastCurrentTime
-                ) {
-
-                    lastCurrentTime =
-                        currentAfterRecovery;
-
-                    lastProgressTime =
-                        Date.now();
-
-                    recoveryCount = 0;
-
-                    hlsRecoveryInProgress =
-                        false;
-
-                    showStreamStatus(
-                        "STREAM DZIAŁA",
-                        "ok"
-                    );
-
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                token ===
-                                loadingChannelToken
-                            ) {
-
-                                hideStreamStatus();
-                            }
-
-                        },
-                        2500
-                    );
-
-
-                    return;
-                }
-
-
-                /*
-                 * =================================================
-                 * PRÓBA 2
-                 * =================================================
-                 *
-                 * Naprawiamy błąd media.
-                 */
-
-                try {
-
-                    hls.recoverMediaError();
-
-                } catch (e) {
-
-                    console.warn(
-                        "recoverMediaError() error:",
-                        e
-                    );
-                }
-
-
-                try {
-
-                    hls.startLoad(-1);
-
-                } catch (e) {}
-
-
-                try {
-
-                    await media.play();
-
-                } catch (e) {}
-
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            3500
-                        )
-                );
-
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                const currentAfterMediaRecovery =
-                    media.currentTime || 0;
-
-
-                if (
-                    currentAfterMediaRecovery !==
-                    lastCurrentTime
-                ) {
-
-                    lastCurrentTime =
-                        currentAfterMediaRecovery;
-
-                    lastProgressTime =
-                        Date.now();
-
-                    recoveryCount = 0;
-
-                    hlsRecoveryInProgress =
-                        false;
-
-                    showStreamStatus(
-                        "STREAM DZIAŁA",
-                        "ok"
-                    );
-
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                token ===
-                                loadingChannelToken
-                            ) {
-
-                                hideStreamStatus();
-                            }
-
-                        },
-                        2500
-                    );
-
-
-                    return;
-                }
-
-
-                /*
-                 * =================================================
-                 * PRÓBA 3
-                 * =================================================
-                 *
-                 * Wyczyść bufor i przejdź na live.
-                 */
-
-                try {
-
-                    hls.stopLoad();
-
-                } catch (e) {}
-
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            500
-                        )
-                );
-
-
-                try {
-
-                    hls.startLoad(-1);
-
-                } catch (e) {}
-
-
-                try {
-
-                    media.load();
-
-                } catch (e) {}
-
-
-                try {
-
-                    await media.play();
-
-                } catch (e) {}
-
-
-                lastProgressTime =
-                    Date.now();
-
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            4000
-                        )
-                );
-
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                const finalCurrentTime =
-                    media.currentTime || 0;
-
-
-                if (
-                    finalCurrentTime !==
-                    lastCurrentTime
-                ) {
-
-                    lastCurrentTime =
-                        finalCurrentTime;
-
-                    lastProgressTime =
-                        Date.now();
-
-                    recoveryCount = 0;
-
-                    hlsRecoveryInProgress =
-                        false;
-
-                    showStreamStatus(
-                        "STREAM DZIAŁA",
-                        "ok"
-                    );
-
-
-                    setTimeout(
-                        () => {
-
-                            if (
-                                token ===
-                                loadingChannelToken
-                            ) {
-
-                                hideStreamStatus();
-                            }
-
-                        },
-                        2500
-                    );
-
-
-                    return;
-                }
-
-
-                /*
-                 * Nic nie pomogło.
-                 *
-                 * Jeżeli przekroczyliśmy limit,
-                 * kończymy próbę tego URL.
-                 */
-
-                if (
-                    recoveryCount >=
-                    HLS_CONFIG.maxWatchdogRecoveries
-                ) {
-
-                    hlsRecoveryInProgress =
-                        false;
-
-
-                    console.warn(
-                        "HLS WATCHDOG: URL uznany za uszkodzony:",
-                        url
-                    );
-
-
-                    showStreamStatus(
-                        "Stream zatrzymany — zmiana wariantu..."
-                    );
-
-
-                    /*
-                     * Wymuszamy błąd Promise w tryHlsUrl.
-                     */
-
-                    try {
-
-                        hls.stopLoad();
-
-                    } catch (e) {}
-
-
-                    stopHlsWatchdog();
-
-
-                    if (
-                        currentHls === hls
-                    ) {
-
-                        try {
-
-                            hls.destroy();
-
-                        } catch (e) {}
-
-                        currentHls = null;
-                    }
-
-
-                    return;
-                }
-
-
-                hlsRecoveryInProgress =
-                    false;
-
-
-                lastProgressTime =
-                    Date.now();
-
-            },
-            HLS_CONFIG.watchdogInterval
-        );
-
-
-    /*
-     * Przechowujemy funkcję sprzątającą
-     * bezpośrednio na obiekcie HLS.
-     */
-
-    hls.__watchdogCleanup =
-        () => {
-
-            if (hlsWatchdogTimer) {
-
-                clearInterval(
-                    hlsWatchdogTimer
-                );
-
-                hlsWatchdogTimer = null;
-            }
-
-
-            try {
-
-                hls.off(
-                    Hls.Events.FRAG_BUFFERED,
-                    onFragBuffered
-                );
-
-            } catch (e) {}
-        };
-}
-
-
-/* ============================================================
    PRÓBA HLS
    ============================================================ */
 
 function tryHlsUrl(
     url,
-    media,
+    video,
     token,
     candidateIndex
 ) {
 
-    return new Promise(
-        (resolve, reject) => {
+    return new Promise((resolve, reject) => {
 
-            if (
-                token !==
-                loadingChannelToken
-            ) {
+        if (token !== loadingChannelToken) {
 
-                reject(
-                    new Error(
-                        "cancelled"
-                    )
-                );
-
-                return;
-            }
-
-
-            if (
-                !window.Hls ||
-                !Hls.isSupported()
-            ) {
-
-                reject(
-                    new Error(
-                        "HLS.js not supported"
-                    )
-                );
-
-                return;
-            }
-
-
-            showStreamStatus(
-                `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
+            reject(
+                new Error("cancelled")
             );
 
+            return;
+        }
 
-            let resolved = false;
+        if (!window.Hls || !Hls.isSupported()) {
 
-            let fatalErrors = 0;
-
-            let manifestLoaded = false;
-
-
-            clearTimeout(
-                hlsFailTimer
+            reject(
+                new Error("HLS.js not supported")
             );
 
+            return;
+        }
 
-            const hls =
-                new Hls({
+        showStreamStatus(
+            `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
+        );
 
-                    enableWorker: true,
+        let resolved = false;
+        let fatalErrors = 0;
 
-                    lowLatencyMode: false,
+        clearTimeout(hlsFailTimer);
 
-                    backBufferLength: 15,
+        const hls =
+            new Hls({
 
-                    maxBufferLength: 30,
+                enableWorker: true,
 
-                    maxMaxBufferLength: 60,
+                lowLatencyMode: false,
 
-                    maxBufferHole: 0.5,
+                backBufferLength: 30,
 
-                    liveSyncDurationCount: 3,
+                maxBufferLength: 30,
 
-                    liveMaxLatencyDurationCount: 8,
+                maxMaxBufferLength: 60,
 
-                    manifestLoadingMaxRetry: 3,
+                manifestLoadingMaxRetry: 1,
 
-                    manifestLoadingRetryDelay: 1000,
+                manifestLoadingRetryDelay: 1000,
 
-                    levelLoadingMaxRetry: 3,
+                levelLoadingMaxRetry: 1,
 
-                    levelLoadingRetryDelay: 1000,
+                levelLoadingRetryDelay: 1000,
 
-                    fragLoadingMaxRetry: 4,
+                fragLoadingMaxRetry: 2,
 
-                    fragLoadingRetryDelay: 1000,
+                fragLoadingRetryDelay: 1000,
 
-                    fragLoadingTimeOut: 10000,
-
-                    levelLoadingTimeOut: 10000,
-
-                    manifestLoadingTimeOut: 10000,
-
-                    xhrSetup: function(xhr) {
-
-                        try {
-
-                            xhr.withCredentials =
-                                false;
-
-                        } catch (e) {}
-                    }
-                });
-
-
-            currentHls =
-                hls;
-
-
-            function cleanup() {
-
-                clearTimeout(
-                    hlsFailTimer
-                );
-
-
-                stopHlsWatchdog();
-
-
-                if (
-                    hls.__watchdogCleanup
-                ) {
+                /*
+                 * Nie wymuszamy credentials.
+                 */
+                xhrSetup: function(xhr) {
 
                     try {
-
-                        hls.__watchdogCleanup();
-
+                        xhr.withCredentials = false;
                     } catch (e) {}
                 }
+            });
+
+        currentHls = hls;
+
+        function cleanup() {
+
+            clearTimeout(hlsFailTimer);
+
+            hls.off(
+                Hls.Events.MANIFEST_PARSED,
+                onManifest
+            );
+
+            hls.off(
+                Hls.Events.ERROR,
+                onError
+            );
+        }
 
 
-                hls.off(
-                    Hls.Events.MANIFEST_PARSED,
-                    onManifest
-                );
+        function success() {
+
+            if (resolved) return;
+
+            resolved = true;
+
+            cleanup();
+
+            showStreamStatus(
+                "STREAM DZIAŁA",
+                "ok"
+            );
+
+            /*
+             * Po 3 sekundach chowamy status.
+             */
+            setTimeout(() => {
+
+                if (token === loadingChannelToken) {
+                    hideStreamStatus();
+                }
+
+            }, 3000);
+
+            resolve(hls);
+        }
 
 
-                hls.off(
-                    Hls.Events.ERROR,
-                    onError
-                );
+        function failure(error) {
 
+            if (resolved) return;
 
-                hls.off(
-                    Hls.Events.FRAG_LOADED,
-                    onFragLoaded
-                );
+            resolved = true;
 
+            cleanup();
 
-                hls.off(
-                    Hls.Events.LEVEL_LOADED,
-                    onLevelLoaded
-                );
+            try {
+                hls.destroy();
+            } catch (e) {}
+
+            if (currentHls === hls) {
+                currentHls = null;
             }
 
-
-            function success() {
-
-                if (resolved) {
-
-                    return;
-                }
+            reject(error);
+        }
 
 
-                resolved = true;
+        function onManifest() {
 
+            if (token !== loadingChannelToken) {
 
-                cleanup();
-
-
-                /*
-                 * Watchdog musi jednak dalej pracować
-                 * po sukcesie.
-                 *
-                 * Dlatego uruchamiamy go ponownie.
-                 */
-
-                startHlsWatchdog(
-                    hls,
-                    media,
-                    token,
-                    url,
-                    candidateIndex
+                failure(
+                    new Error("cancelled")
                 );
 
-
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    3000
-                );
-
-
-                resolve(hls);
+                return;
             }
 
+            /*
+             * Manifest został pobrany.
+             *
+             * Teraz próbujemy uruchomić video.
+             */
+            video.play()
+                .then(() => {
 
-            function failure(error) {
+                    success();
 
-                if (resolved) {
-
-                    return;
-                }
-
-
-                resolved = true;
-
-
-                cleanup();
-
-
-                try {
-
-                    hls.destroy();
-
-                } catch (e) {}
-
-
-                if (
-                    currentHls === hls
-                ) {
-
-                    currentHls = null;
-                }
-
-
-                reject(error);
-            }
-
-
-            function onManifest() {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    failure(
-                        new Error(
-                            "cancelled"
-                        )
-                    );
-
-                    return;
-                }
-
-
-                manifestLoaded = true;
-
-
-                showStreamStatus(
-                    `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: manifest OK`
-                );
-
-
-                /*
-                 * Startujemy watchdog już przy poprawnym
-                 * manifeście, a nie dopiero po pierwszym
-                 * błędzie.
-                 */
-
-                startHlsWatchdog(
-                    hls,
-                    media,
-                    token,
-                    url,
-                    candidateIndex
-                );
-
-
-                media.play()
-                    .then(
-                        () => {
-
-                            success();
-
-                        }
-                    )
-                    .catch(
-                        () => {
-
-                            /*
-                             * Autoplay może być zablokowany,
-                             * ale HLS nadal jest poprawnie
-                             * załadowany.
-                             */
-
-                            success();
-                        }
-                    );
-            }
-
-
-            function onFragLoaded() {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                /*
-                 * Jeżeli fragmenty dochodzą,
-                 * resetujemy timeout startowy.
-                 */
-
-                if (
-                    manifestLoaded
-                ) {
-
-                    showStreamStatus(
-                        "STREAM DZIAŁA",
-                        "ok"
-                    );
-                }
-            }
-
-
-            function onLevelLoaded() {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
-                /*
-                 * Live playlist nadal się odświeża.
-                 */
-
-                if (
-                    manifestLoaded
-                ) {
-
-                    clearTimeout(
-                        hlsFailTimer
-                    );
-                }
-            }
-
-
-            function onError(
-                event,
-                data
-            ) {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    failure(
-                        new Error(
-                            "cancelled"
-                        )
-                    );
-
-                    return;
-                }
-
-
-                console.warn(
-                    "HLS:",
-                    url,
-                    data
-                );
-
-
-                /*
-                 * Nie każdy błąd HLS jest fatalny.
-                 */
-
-                if (
-                    !data.fatal
-                ) {
+                })
+                .catch(() => {
 
                     /*
-                     * Jeżeli mamy BUFFER_STALLED_ERROR,
-                     * watchdog sam zajmie się sytuacją.
+                     * Autoplay może być zablokowany.
+                     * Sam manifest jest jednak poprawny.
                      */
-
-                    if (
-                        data.details ===
-                        'bufferStalledError'
-                    ) {
-
-                        showStreamStatus(
-                            "HLS: buforowanie..."
-                        );
-                    }
+                    success();
+                });
+        }
 
 
-                    return;
-                }
+        function onError(event, data) {
 
+            if (token !== loadingChannelToken) {
 
-                fatalErrors++;
+                failure(
+                    new Error("cancelled")
+                );
 
+                return;
+            }
 
-                /*
-                 * BŁĄD SIECIOWY
-                 */
+            console.warn(
+                "HLS:",
+                url,
+                data
+            );
 
-                if (
-                    data.type ===
-                    Hls.ErrorTypes.NETWORK_ERROR
-                ) {
+            if (!data.fatal) {
+                return;
+            }
 
-                    showStreamStatus(
-                        `HLS: błąd sieci — naprawa ${fatalErrors}/${HLS_CONFIG.maxFatalErrorsPerUrl}`
-                    );
+            fatalErrors++;
 
+            /*
+             * Błąd CORS / manifestu.
+             */
+            if (
+                data.type === Hls.ErrorTypes.NETWORK_ERROR
+            ) {
 
-                    if (
-                        fatalErrors >=
-                        HLS_CONFIG.maxFatalErrorsPerUrl
-                    ) {
-
-                        failure(
-                            new Error(
-                                "NETWORK_ERROR"
-                            )
-                        );
-
-                    } else {
-
-                        setTimeout(
-                            () => {
-
-                                if (
-                                    !resolved &&
-                                    token ===
-                                    loadingChannelToken
-                                ) {
-
-                                    try {
-
-                                        hls.startLoad(-1);
-
-                                    } catch (e) {}
-
-                                }
-
-                            },
-                            HLS_CONFIG.retryDelay
-                        );
-                    }
-
-
-                    return;
-                }
-
-
-                /*
-                 * BŁĄD MEDIA
-                 */
-
-                if (
-                    data.type ===
-                    Hls.ErrorTypes.MEDIA_ERROR
-                ) {
-
-                    showStreamStatus(
-                        "HLS: naprawa błędu media..."
-                    );
-
-
-                    try {
-
-                        hls.recoverMediaError();
-
-                    } catch (e) {
-
-                        console.warn(
-                            "recoverMediaError:",
-                            e
-                        );
-
-
-                        try {
-
-                            hls.startLoad(-1);
-
-                        } catch (x) {}
-
-
-                        if (
-                            fatalErrors >=
-                            HLS_CONFIG.maxFatalErrorsPerUrl
-                        ) {
-
-                            failure(
-                                new Error(
-                                    "MEDIA_ERROR"
-                                )
-                            );
-                        }
-                    }
-
-
-                    return;
-                }
-
-
-                /*
-                 * INNY BŁĄD FATALNY
-                 */
+                showStreamStatus(
+                    `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
+                );
 
                 if (
                     fatalErrors >=
@@ -2170,92 +1100,112 @@ function tryHlsUrl(
 
                     failure(
                         new Error(
-                            data.details ||
-                            "HLS_FATAL_ERROR"
+                            "NETWORK_ERROR"
                         )
                     );
 
                 } else {
 
-                    try {
+                    setTimeout(() => {
 
-                        hls.startLoad(-1);
+                        if (
+                            !resolved &&
+                            token === loadingChannelToken
+                        ) {
 
-                    } catch (e) {}
+                            try {
+                                hls.startLoad();
+                            } catch (e) {}
+                        }
 
+                    }, HLS_CONFIG.retryDelay);
                 }
+
+                return;
             }
-
-
-            hls.on(
-                Hls.Events.MANIFEST_PARSED,
-                onManifest
-            );
-
-
-            hls.on(
-                Hls.Events.ERROR,
-                onError
-            );
-
-
-            hls.on(
-                Hls.Events.FRAG_LOADED,
-                onFragLoaded
-            );
-
-
-            hls.on(
-                Hls.Events.LEVEL_LOADED,
-                onLevelLoaded
-            );
 
 
             /*
-             * Timeout startowy.
+             * Błąd kodeka / media.
              */
+            if (
+                data.type === Hls.ErrorTypes.MEDIA_ERROR
+            ) {
 
-            hlsFailTimer =
-                setTimeout(
-                    () => {
-
-                        if (
-                            !resolved
-                        ) {
-
-                            failure(
-                                new Error(
-                                    "HLS_TIMEOUT"
-                                )
-                            );
-                        }
-
-                    },
-                    HLS_CONFIG.startupTimeout
+                showStreamStatus(
+                    `Błąd media — próba naprawy`
                 );
 
+                try {
 
-            try {
+                    hls.recoverMediaError();
 
-                /*
-                 * Najpierw źródło,
-                 * potem element media.
-                 */
+                } catch (e) {
 
-                hls.loadSource(
-                    url
-                );
+                    failure(
+                        new Error(
+                            "MEDIA_ERROR"
+                        )
+                    );
+                }
 
-                hls.attachMedia(
-                    media
-                );
-
-            } catch (e) {
-
-                failure(e);
+                return;
             }
+
+
+            /*
+             * Każdy inny fatalny błąd.
+             */
+            failure(
+                new Error(
+                    data.details ||
+                    "HLS_FATAL_ERROR"
+                )
+            );
         }
-    );
+
+
+        hls.on(
+            Hls.Events.MANIFEST_PARSED,
+            onManifest
+        );
+
+        hls.on(
+            Hls.Events.ERROR,
+            onError
+        );
+
+
+        /*
+         * Timeout zabezpieczający.
+         */
+        hlsFailTimer =
+            setTimeout(() => {
+
+                if (!resolved) {
+
+                    failure(
+                        new Error(
+                            "HLS_TIMEOUT"
+                        )
+                    );
+                }
+
+            }, HLS_CONFIG.startupTimeout);
+
+
+        try {
+
+            hls.loadSource(url);
+
+            hls.attachMedia(video);
+
+        } catch (e) {
+
+            failure(e);
+        }
+
+    });
 }
 
 
@@ -2265,7 +1215,7 @@ function tryHlsUrl(
 
 async function loadHlsWithFallback(
     ch,
-    media,
+    video,
     token
 ) {
 
@@ -2284,177 +1234,58 @@ async function loadHlsWithFallback(
 
 
     /*
-     * =========================================================
-     * NATYWNY HLS
-     * =========================================================
+     * Safari / iOS:
+     *
+     * Jeżeli natywny HLS jest dostępny,
+     * możemy spróbować bez hls.js.
      */
-
     if (
-        media.canPlayType(
+        video.canPlayType(
             'application/vnd.apple.mpegurl'
         )
     ) {
 
         for (
             let i = 0;
-            i <
-            currentHlsUrls.length;
+            i < currentHlsUrls.length;
             i++
         ) {
 
             if (
-                token !==
-                loadingChannelToken
+                token !== loadingChannelToken
             ) {
-
                 return;
             }
 
-
             const url =
                 currentHlsUrls[i];
-
 
             showStreamStatus(
                 `Natywny HLS: wariant ${i + 1}/${currentHlsUrls.length}`
             );
 
+            video.src = url;
 
             try {
 
-                media.pause();
-
-            } catch (e) {}
-
-
-            media.removeAttribute(
-                'src'
-            );
-
-
-            try {
-
-                media.load();
-
-            } catch (e) {}
-
-
-            media.src =
-                url;
-
-
-            try {
-
-                await media.play();
-
+                await video.play();
 
                 showStreamStatus(
                     "STREAM DZIAŁA",
                     "ok"
                 );
 
+                setTimeout(() => {
 
-                setTimeout(
-                    () => {
+                    if (
+                        token === loadingChannelToken
+                    ) {
+                        hideStreamStatus();
+                    }
 
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    3000
-                );
-
-
-                /*
-                 * Dla natywnego HLS również uruchamiamy
-                 * prosty watchdog.
-                 */
-
-                let nativeLastTime =
-                    media.currentTime || 0;
-
-                let nativeLastProgress =
-                    Date.now();
-
-
-                const nativeWatchdog =
-                    setInterval(
-                        () => {
-
-                            if (
-                                token !==
-                                loadingChannelToken
-                            ) {
-
-                                clearInterval(
-                                    nativeWatchdog
-                                );
-
-                                return;
-                            }
-
-
-                            const current =
-                                media.currentTime || 0;
-
-
-                            if (
-                                Math.abs(
-                                    current -
-                                    nativeLastTime
-                                ) > 0.05
-                            ) {
-
-                                nativeLastTime =
-                                    current;
-
-                                nativeLastProgress =
-                                    Date.now();
-
-                                return;
-                            }
-
-
-                            if (
-                                Date.now() -
-                                nativeLastProgress >
-                                HLS_CONFIG.stallTimeout
-                            ) {
-
-                                console.warn(
-                                    "Natywny HLS zatrzymany — restart:",
-                                    url
-                                );
-
-
-                                nativeLastProgress =
-                                    Date.now();
-
-
-                                try {
-
-                                    media.load();
-
-                                    media.play()
-                                        .catch(
-                                            () => {}
-                                        );
-
-                                } catch (e) {}
-                            }
-
-                        },
-                        HLS_CONFIG.watchdogInterval
-                    );
-
+                }, 3000);
 
                 return;
-
 
             } catch (e) {
 
@@ -2464,16 +1295,10 @@ async function loadHlsWithFallback(
                     e
                 );
 
-
-                media.removeAttribute(
-                    'src'
-                );
-
+                video.removeAttribute('src');
 
                 try {
-
-                    media.load();
-
+                    video.load();
                 } catch (x) {}
             }
         }
@@ -2481,11 +1306,9 @@ async function loadHlsWithFallback(
 
 
     /*
-     * =========================================================
-     * HLS.JS
-     * =========================================================
+     * Chrome / Edge / Firefox:
+     * HLS.js.
      */
-
     if (
         window.Hls &&
         Hls.isSupported()
@@ -2493,39 +1316,35 @@ async function loadHlsWithFallback(
 
         for (
             let i = 0;
-            i <
-            currentHlsUrls.length;
+            i < currentHlsUrls.length;
             i++
         ) {
 
             if (
-                token !==
-                loadingChannelToken
+                token !== loadingChannelToken
             ) {
-
                 return;
             }
 
-
-            currentHlsIndex =
-                i;
-
+            currentHlsIndex = i;
 
             const url =
                 currentHlsUrls[i];
 
-
             /*
-             * Informacyjny test CORS.
+             * Najpierw test CORS.
              *
-             * Nawet gdy fetch nie przejdzie,
-             * HLS.js nadal dostaje swoją próbę.
+             * Jeżeli test przejdzie:
+             * próbujemy HLS.js.
+             *
+             * Jeżeli CORS nie przejdzie:
+             * i tak próbujemy HLS.js, ponieważ
+             * niektóre serwery zachowują się
+             * inaczej dla HEAD/fetch i dla HLS.
              */
-
             showStreamStatus(
                 `Sprawdzanie HLS ${i + 1}/${currentHlsUrls.length}...`
             );
-
 
             const corsResult =
                 await testCors(
@@ -2533,19 +1352,13 @@ async function loadHlsWithFallback(
                     token
                 );
 
-
             if (
-                token !==
-                loadingChannelToken
+                token !== loadingChannelToken
             ) {
-
                 return;
             }
 
-
-            if (
-                !corsResult.ok
-            ) {
+            if (!corsResult.ok) {
 
                 console.warn(
                     "Możliwy CORS:",
@@ -2553,11 +1366,9 @@ async function loadHlsWithFallback(
                     corsResult
                 );
 
-
                 showStreamStatus(
                     `CORS / brak dostępu — próbuję wariant ${i + 1}`
                 );
-
             } else {
 
                 showStreamStatus(
@@ -2569,27 +1380,19 @@ async function loadHlsWithFallback(
             /*
              * Próba HLS.
              */
-
             try {
 
                 await tryHlsUrl(
                     url,
-                    media,
+                    video,
                     token,
                     i
                 );
 
-
                 /*
                  * Sukces.
-                 *
-                 * UWAGA:
-                 * Promise rozwiązuje się po starcie.
-                 * Watchdog działa dalej w tle.
                  */
-
                 return;
-
 
             } catch (e) {
 
@@ -2599,110 +1402,44 @@ async function loadHlsWithFallback(
                     e
                 );
 
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    return;
-                }
-
-
                 /*
-                 * DELUXE DANCE:
-                 *
-                 * Jeżeli bieżący URL przestał działać,
-                 * czyścimy go i próbujemy następny.
+                 * Czyścimy HLS.
                  */
-
-                showStreamStatus(
-                    `Wariant ${i + 1} nie działa — próba następnego...`
-                );
-
-
                 if (currentHls) {
 
                     try {
-
-                        if (
-                            currentHls.__watchdogCleanup
-                        ) {
-
-                            currentHls
-                                .__watchdogCleanup();
-                        }
-
-                    } catch (x) {}
-
-
-                    try {
-
                         currentHls.destroy();
-
                     } catch (x) {}
-
 
                     currentHls = null;
                 }
 
-
-                stopHlsWatchdog();
-
-
+                /*
+                 * Czyścimy video.
+                 */
                 try {
 
-                    media.pause();
+                    video.pause();
 
-                    media.removeAttribute(
+                    video.removeAttribute(
                         'src'
                     );
 
-                    media.load();
+                    video.load();
 
                 } catch (x) {}
-
-
-                /*
-                 * Krótka przerwa.
-                 *
-                 * Nie przełączamy natychmiast,
-                 * żeby serwer zdążył zamknąć poprzednie
-                 * połączenie.
-                 */
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            1000
-                        )
-                );
             }
         }
     }
 
 
     /*
-     * =========================================================
-     * NIC NIE ZADZIAŁAŁO
-     * =========================================================
+     * Nic nie zadziałało.
      */
-
-    if (
-        token !==
-        loadingChannelToken
-    ) {
-
-        return;
-    }
-
-
     showStreamStatus(
         "Brak działającego wariantu HLS",
         "error"
     );
-
 
     console.error(
         "Żaden wariant HLS nie działa:",
@@ -2715,39 +1452,25 @@ async function loadHlsWithFallback(
    LISTA KANAŁÓW
    ============================================================ */
 
-channels.forEach(
-    (ch, i) => {
+channels.forEach((ch, i) => {
 
-        const li =
-            document.createElement(
-                'li'
-            );
+    const li =
+        document.createElement('li');
 
+    li.className =
+        'channel-item';
 
-        li.className =
-            'channel-item';
+    li.dataset.index =
+        i;
 
+    li.innerHTML =
+        `<span class="channel-number">${i + 1}</span>${ch.name}`;
 
-        li.dataset.index =
-            i;
+    li.onclick = () =>
+        loadChannel(ch, i);
 
-
-        li.innerHTML =
-            `<span class="channel-number">${i + 1}</span>${ch.name}`;
-
-
-        li.onclick = () =>
-            loadChannel(
-                ch,
-                i
-            );
-
-
-        channelsUl.appendChild(
-            li
-        );
-    }
-);
+    channelsUl.appendChild(li);
+});
 
 
 /* ============================================================
@@ -2760,11 +1483,16 @@ function loadChannel(
 ) {
 
     /*
-     * Nowy token anuluje wszystkie stare próby.
+     * Token zabezpiecza przed sytuacją:
+     *
+     * kliknięto kanał A
+     * -> A zaczyna ładować
+     * -> kliknięto B
+     * -> A kończy ładowanie po czasie
+     *
+     * Dzięki tokenowi A nie nadpisze B.
      */
-
     loadingChannelToken++;
-
 
     const token =
         loadingChannelToken;
@@ -2777,19 +1505,13 @@ function loadChannel(
     destroyCurrentPlayer();
 
 
-    videoTarget.innerHTML =
-        "";
+    videoTarget.innerHTML = "";
 
 
     document
-        .querySelectorAll(
-            '.channel-item'
-        )
-        .forEach(
-            el =>
-                el.classList.remove(
-                    'active'
-                )
+        .querySelectorAll('.channel-item')
+        .forEach(el =>
+            el.classList.remove('active')
         );
 
 
@@ -2798,40 +1520,28 @@ function loadChannel(
             `.channel-item[data-index="${index}"]`
         );
 
-
     if (activeItem) {
-
-        activeItem.classList.add(
-            'active'
-        );
+        activeItem.classList.add('active');
     }
 
 
     channelDisplay.textContent =
         ch.name;
 
-
     channelDisplay.classList.add(
         'show'
     );
 
-
-    clearTimeout(
-        displayTimeout
-    );
-
+    clearTimeout(displayTimeout);
 
     displayTimeout =
-        setTimeout(
-            () => {
+        setTimeout(() => {
 
-                channelDisplay.classList.remove(
-                    'show'
-                );
+            channelDisplay.classList.remove(
+                'show'
+            );
 
-            },
-            7000
-        );
+        }, 7000);
 
 
     const isBackgroundAudio =
@@ -2842,115 +1552,58 @@ function loadChannel(
        HLS
        ======================================================== */
 
-    if (
-        ch.type === 'hls'
-    ) {
+    if (ch.type === 'hls') {
 
-        if (isBackgroundAudio) {
-
-            videoTarget.innerHTML =
-                `<audio
-                    id="v"
-                    autoplay
-                    playsinline
-                    preload="auto">
-                </audio>`;
-
-        } else {
-
-            videoTarget.innerHTML =
-                `<video
-                    id="v"
-                    controls
-                    autoplay
-                    playsinline>
-                </video>`;
-        }
+        /*
+         * CELowo NIE dodajemy tutaj:
+         *
+         * crossorigin="anonymous"
+         *
+         * ponieważ to właśnie może blokować
+         * streamy bez odpowiednich nagłówków CORS.
+         */
+        videoTarget.innerHTML =
+            `<video id="v"
+                ${isBackgroundAudio ? '' : 'controls'}
+                autoplay
+                playsinline>
+            </video>`;
 
 
         const v =
-            document.getElementById(
-                'v'
-            );
+            document.getElementById('v');
 
 
         if (isBackgroundAudio) {
-
-            v.style.display =
-                'none';
+            v.style.display = 'none';
         }
 
 
-        v.onerror =
-            () => {
+        /*
+         * Nie podłączamy WebAudio automatycznie
+         * przed rozpoczęciem odtwarzania.
+         */
+        v.onplay = () => {
 
-                console.warn(
-                    "HLS element error:",
-                    v.error
-                );
-            };
-
-
-        v.onplaying =
-            () => {
-
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    2500
-                );
-            };
+            /*
+             * Próba WebAudio jest opcjonalna.
+             *
+             * Jeżeli CORS nie pozwoli,
+             * stream nadal pozostanie odtwarzany.
+             */
+            if (isBackgroundAudio) {
+                connectMediaElement(v);
+            }
+        };
 
 
-        v.onwaiting =
-            () => {
+        v.onerror = () => {
 
-                /*
-                 * Nie przełączamy od razu kanału.
-                 *
-                 * Watchdog HLS ma szansę naprawić
-                 * chwilowe zatrzymanie.
-                 */
-
-                showStreamStatus(
-                    "Buforowanie streamu..."
-                );
-            };
-
-
-        v.onstalled =
-            () => {
-
-                console.warn(
-                    "HLS media stalled:",
-                    ch.url
-                );
-            };
-
-
-        v.onpause =
-            () => {
-
-                console.warn(
-                    "HLS media paused:",
-                    ch.name
-                );
-            };
+            console.warn(
+                "Video element error:",
+                v.error
+            );
+        };
 
 
         loadHlsWithFallback(
@@ -2958,7 +1611,6 @@ function loadChannel(
             v,
             token
         );
-
 
         return;
     }
@@ -2968,29 +1620,22 @@ function loadChannel(
        DASH
        ======================================================== */
 
-    if (
-        ch.type === 'dash'
-    ) {
+    if (ch.type === 'dash') {
 
         videoTarget.innerHTML =
-            `<video
-                id="v"
-                controls
+            `<video id="v"
+                ${isBackgroundAudio ? '' : 'controls'}
                 autoplay
                 playsinline>
             </video>`;
 
 
         const v =
-            document.getElementById(
-                'v'
-            );
+            document.getElementById('v');
 
 
         if (isBackgroundAudio) {
-
-            v.style.display =
-                'none';
+            v.style.display = 'none';
         }
 
 
@@ -3007,41 +1652,12 @@ function loadChannel(
         );
 
 
-        v.onplaying =
-            () => {
+        v.onplay = () => {
 
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    2500
-                );
-            };
-
-
-        v.onerror =
-            () => {
-
-                console.warn(
-                    "DASH element error:",
-                    v.error
-                );
-            };
-
+            if (isBackgroundAudio) {
+                connectMediaElement(v);
+            }
+        };
 
         return;
     }
@@ -3051,9 +1667,7 @@ function loadChannel(
        YOUTUBE
        ======================================================== */
 
-    if (
-        ch.type === 'youtube'
-    ) {
+    if (ch.type === 'youtube') {
 
         videoTarget.innerHTML =
             `<div id="yt-div"></div>`;
@@ -3063,8 +1677,7 @@ function loadChannel(
             new YT.Player(
                 'yt-div',
                 {
-                    videoId:
-                        ch.url,
+                    videoId: ch.url,
 
                     playerVars: {
                         autoplay: 1,
@@ -3072,7 +1685,6 @@ function loadChannel(
                     }
                 }
             );
-
 
         return;
     }
@@ -3094,7 +1706,6 @@ function loadChannel(
                 sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
             </iframe>`;
 
-
         return;
     }
 
@@ -3103,22 +1714,26 @@ function loadChannel(
        AUDIO
        ======================================================== */
 
-    if (
-        ch.type === 'audio'
-    ) {
+    if (ch.type === 'audio') {
 
+        /*
+         * Tak samo jak przy HLS:
+         *
+         * brak crossorigin="anonymous"
+         *
+         * żeby nie wymuszać CORS.
+         */
         videoTarget.innerHTML =
             `<audio
-                id="radio-audio"
+                ${isBackgroundAudio ? '' : 'controls'}
                 autoplay
-                playsinline
-                preload="none">
+                playsinline>
             </audio>`;
 
 
         const a =
-            document.getElementById(
-                'radio-audio'
+            videoTarget.querySelector(
+                'audio'
             );
 
 
@@ -3126,98 +1741,33 @@ function loadChannel(
             ch.url;
 
 
-        if (
-            isBackgroundAudio
-        ) {
-
-            a.style.display =
-                'none';
-
-        } else {
-
-            a.controls =
-                true;
+        if (isBackgroundAudio) {
+            a.style.display = 'none';
         }
 
 
-        a.onplaying =
-            () => {
+        a.onplay = () => {
 
-                showStreamStatus(
-                    "RADIO DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    2500
-                );
-            };
+            if (isBackgroundAudio) {
+                connectMediaElement(a);
+            }
+        };
 
 
-        a.onerror =
-            () => {
+        a.onerror = () => {
 
-                console.warn(
-                    "Radio audio error:",
-                    a.error,
-                    ch.url
-                );
-
-
-                showStreamStatus(
-                    "Błąd odtwarzania radia",
-                    "error"
-                );
-            };
-
-
-        a.onwaiting =
-            () => {
-
-                showStreamStatus(
-                    "Ładowanie radia..."
-                );
-            };
-
-
-        a.onstalled =
-            () => {
-
-                console.warn(
-                    "Radio stream stalled:",
-                    ch.url
-                );
-            };
-
-
-        a.play()
-            .catch(
-                err => {
-
-                    console.warn(
-                        "Autoplay radia zablokowany:",
-                        err
-                    );
-
-
-                    showStreamStatus(
-                        "Radio oczekuje na uruchomienie"
-                    );
-                }
+            console.warn(
+                "Audio error:",
+                a.error
             );
+        };
 
+
+        /*
+         * Niektóre przeglądarki wymagają
+         * rozpoczęcia odtwarzania po interakcji.
+         */
+        a.play().catch(() => {});
 
         return;
     }
@@ -3231,16 +1781,11 @@ function loadChannel(
 function nextChannel() {
 
     currentChannelIndex =
-        (
-            currentChannelIndex + 1
-        ) %
+        (currentChannelIndex + 1) %
         channels.length;
 
-
     loadChannel(
-        channels[
-            currentChannelIndex
-        ],
+        channels[currentChannelIndex],
         currentChannelIndex
     );
 }
@@ -3253,17 +1798,12 @@ function nextChannel() {
 function previousChannel() {
 
     currentChannelIndex =
-        (
-            currentChannelIndex - 1 +
-            channels.length
-        ) %
+        (currentChannelIndex - 1 +
+            channels.length) %
         channels.length;
 
-
     loadChannel(
-        channels[
-            currentChannelIndex
-        ],
+        channels[currentChannelIndex],
         currentChannelIndex
     );
 }
@@ -3275,15 +1815,12 @@ function previousChannel() {
 
 function toggleFullscreen() {
 
-    if (
-        !document.fullscreenElement
-    ) {
+    if (!document.fullscreenElement) {
 
         const container =
             document.getElementById(
                 'player-container'
             );
-
 
         if (
             container.requestFullscreen
@@ -3291,18 +1828,14 @@ function toggleFullscreen() {
 
             container
                 .requestFullscreen()
-                .catch(
-                    () => {}
-                );
+                .catch(() => {});
         }
 
     } else {
 
         document
             .exitFullscreen()
-            .catch(
-                () => {}
-            );
+            .catch(() => {});
     }
 }
 
@@ -3318,28 +1851,20 @@ function resetFade() {
             'fullscreen-btn'
         );
 
-
     btn.classList.remove(
         'fade-out'
     );
 
-
-    clearTimeout(
-        fadeTimeout
-    );
-
+    clearTimeout(fadeTimeout);
 
     fadeTimeout =
-        setTimeout(
-            () => {
+        setTimeout(() => {
 
-                btn.classList.add(
-                    'fade-out'
-                );
+            btn.classList.add(
+                'fade-out'
+            );
 
-            },
-            3000
-        );
+        }, 3000);
 }
 
 
@@ -3363,8 +1888,7 @@ loadChannel(
 
 document.addEventListener(
     "contextmenu",
-    e =>
-        e.preventDefault()
+    e => e.preventDefault()
 );
 
 
@@ -3376,25 +1900,18 @@ document.addEventListener(
          * Środkowy przycisk:
          * następny kanał.
          */
-
-        if (
-            e.button === 1
-        ) {
+        if (e.button === 1) {
 
             e.preventDefault();
 
             nextChannel();
         }
 
-
         /*
          * Prawy przycisk:
          * poprzedni kanał.
          */
-
-        else if (
-            e.button === 2
-        ) {
+        else if (e.button === 2) {
 
             e.preventDefault();
 
@@ -3412,82 +1929,17 @@ document.addEventListener(
     "keydown",
     function(e) {
 
-        if (
-            e.key === "ArrowRight"
-        ) {
-
+        if (e.key === "ArrowRight") {
             nextChannel();
         }
 
-
-        if (
-            e.key === "ArrowLeft"
-        ) {
-
+        if (e.key === "ArrowLeft") {
             previousChannel();
         }
 
-
-        if (
-            e.key === "f" ||
-            e.key === "F"
-        ) {
-
+        if (e.key === "f" || e.key === "F") {
             toggleFullscreen();
         }
-    }
-);
-
-
-/* ============================================================
-   URUCHOMIENIE RADIA PO PIERWSZEJ INTERAKCJI
-   ============================================================ */
-
-document.addEventListener(
-    "click",
-    function() {
-
-        const audio =
-            document.querySelector(
-                "#radio-audio"
-            );
-
-
-        if (audio) {
-
-            audio.play()
-                .catch(
-                    () => {}
-                );
-        }
-    }
-);
-
-
-/* ============================================================
-   URUCHOMIENIE PO DOTKNIĘCIU
-   ============================================================ */
-
-document.addEventListener(
-    "touchstart",
-    function() {
-
-        const audio =
-            document.querySelector(
-                "#radio-audio"
-            );
-
-
-        if (audio) {
-
-            audio.play()
-                .catch(
-                    () => {}
-                );
-        }
-    },
-    {
-        passive: true
     }
 );
 
