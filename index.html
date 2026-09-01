@@ -1,2450 +1,534 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Odtwarzacz Streamów</title>
+```html
+<!-- ============================================================
+     ZMIANA 1 — wpis Silk Way w tablicy channels
+     ============================================================ -->
 
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
+{
+    name: "Silk Way",
+    url: "https://ikomg-static-content.akamaized.net/players/kazakh/index.html",
+    type: "silkway",
+    audioLanguage: "en"
+},
+```
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            font-family: sans-serif;
-            overflow: hidden;
-            color: #fff;
-        }
-
-        #player-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        video, audio {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: #000;
-        }
-
-        iframe {
-            width: 102%;
-            height: 102%;
-            border: none;
-            background-color: #000;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        #trigger-zone {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 30px;
-            height: 100%;
-            z-index: 9999;
-        }
-
-        #sidebar {
-            position: absolute;
-            left: -300px;
-            top: 0;
-            width: 300px;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            transition: left 0.3s;
-            z-index: 10000;
-            overflow-y: auto;
-            padding: 20px 10px;
-            border-right: 1px solid #333;
-            scrollbar-width: none;
-        }
-
-        #sidebar::-webkit-scrollbar {
-            display: none;
-        }
-
-        #trigger-zone:hover + #sidebar,
-        #sidebar:hover {
-            left: 0;
-        }
-
-        .channel-item {
-            padding: 12px;
-            margin-bottom: 5px;
-            background: #1a1a1a;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            transition: background 0.2s;
-        }
-
-        .channel-item:hover {
-            background: #333;
-        }
-
-        .channel-item.active {
-            background: #ff333d;
-            color: #fff;
-        }
-
-        .channel-number {
-            font-weight: bold;
-            margin-right: 10px;
-            min-width: 30px;
-        }
-
-        #channel-display {
-            position: absolute;
-            left: 20px;
-            top: 20px;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            border-radius: 5px;
-            z-index: 9998;
-            font-size: 1.2rem;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-
-        #channel-display.show {
-            opacity: 1;
-        }
-
-        #fullscreen-btn {
-            position: absolute;
-            right: 20px;
-            bottom: calc(20px + 57px);
-            padding: 12px 20px;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid #fff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 999;
-            transition: opacity 0.5s;
-        }
-
-        .fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #stream-status {
-            position: absolute;
-            left: 20px;
-            bottom: 20px;
-            z-index: 9998;
-            padding: 8px 14px;
-            background: rgba(0,0,0,0.75);
-            border-radius: 5px;
-            font-size: 13px;
-            color: #ddd;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        #stream-status.show {
-            opacity: 1;
-        }
-
-        #stream-status.error {
-            color: #ff7777;
-        }
-
-        #stream-status.ok {
-            color: #8cff8c;
-        }
-    </style>
-</head>
-
-<body>
-
-<div id="player-container">
-
-    <div id="channel-display"></div>
-
-    <div id="stream-status"></div>
-
-    <div id="trigger-zone"></div>
-
-    <div id="sidebar">
-        <ul id="channels-ul"></ul>
-    </div>
-
-    <div id="video-target" style="width:100%; height:100%;"></div>
-
-    <button id="fullscreen-btn" onclick="toggleFullscreen()">
-        PEŁNY EKRAN
-    </button>
-
-</div>
-
-<script>
-
-const channels = [
-
-
-
-    
-    
-
-    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio", backgroundAudio: true},
-    {name: "POLONIA", url: "https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8", type: "hls"},
-    {name: "TVP Info", url: "https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8", type: "hls"},
-    {name: "wPolsce 24", url: "https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8", type: "hls"},
-    {name: "REPUBLIKA", url: "dzntyCTgJMQ", type: "youtube"},
-    {name: "TRWAM", url: "https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd", type: "dash"},
-    {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8", type: "hls"},
-    {name: "LUBELSKA TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
-    {name: "TV KUJAWY", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-    {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8", type: "hls"},
-    {name: "Grjngo Westerny", url: "https://b6c7c7d1020a4588982ca7c2625f85d1.mediatailor.us-east-1.amazonaws.com/v1/master/0fb304b2320b25f067414d481a779b77db81760d/RakutenTV-eu_GrjngoWesterny/playlist.m3u8", type: "hls"},
-    {name: "RED CARPET", url: "https://fast-rakuten.okast.tv/fa2e8c4385712f9a9076eaf728c751de/channels/1a6ecfaa-40c6-41b8-8634-595c424f856e/21f67fd1-4d21-43ba-8ad8-3afac9982c25/master.m3u8", type: "hls"},
-    {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},    
-    {name: "Royalworld", url: "https://ac76260b1102416c93f3d20958bfeb4b.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-pl_Royalworld/playlist.m3u8", type: "hls"},    
-    {name: "Sports First TV", url: "https://d4ddgdmj1cvnm.cloudfront.net/scheduler/scheduleMaster/409.m3u8", type: "hls"},
-    {name: "wedo BIG stories", url: "https://amg00735-videosolutionsa-wedobigdocs-ono-0urlz.amagi.tv/playlist/amg00735-videosolutionsa-wedobigdocs-ono/playlist.m3u8", type: "hls"},
-    {name: "VIASAT EXPLORE", url: "https://da9c49fa.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLXBsX1ZpYXNhdEV4cGxvcmVfSExT/playlist.m3u8", type: "hls"},
-    {name: "DocuBay TV", url: "https://cc-mgr91yrk4pehy.akamaized.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-mgr91yrk4pehy/playlist.m3u8", type: "hls"},
-    {name: "WildEarth", url: "https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8", type: "hls"},
-    {name: "Wild TV (Kanada)", url: "https://dfhsahpa45kk2.cloudfront.net/scheduler/scheduleMaster/476.m3u8", type: "hls"},
-    {name: "Documentary+ International", url: "https://1d153317c8db4250b3789601274e2402.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-887-DOCUMENTARYINTERNATIONAL-DOCUMENTARYPLUS/mt/documentaryplus/887/hls/master/playlist.m3u8", type: "hls"},
-    {name: "Documentary+", url: "https://ef79b15c8c7c46c7a9de9d33001dbd07.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-859-DOCUMENTARYPLUS-DOCUMENTARYPLUS/mt/documentaryplus/859/hls/master/playlist.m3u8", type: "hls"},
-    {name: "WaterBear", url: "https://amg01415-waterbearnetwor-waterbear-samsunguk-1h0y8.amagi.tv/playlist/amg01415-waterbearnetwor-waterbear-samsunguk/playlist.m3u8", type: "hls"},
-    {name: "China Travel", url: "https://amg01314-amg01314c7-distrotv-us-10219.playouts.now.amagi.tv/playlist/amg01314-cgtn-cgtnchinatravel-distrotvus/playlist.m3u8", type: "hls"},
-    {name: "Discovering China", url: "https://amg01314-amg01314c8-distrotv-us-10218.playouts.now.amagi.tv/playlist/amg01314-cgtn-cgtndiscoveringchina-distrotvus/playlist.m3u8", type: "hls"},
-    {name: "CGTN Documentary", url: "https://english-livebkali.cgtn.com/live/doccgtn.m3u8", type: "hls"},
-    {name: "CGTN", url: "https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8", type: "hls"},
-    {name: "Arirang TV World", url: "https://amdlive-ch01-ctnd-com.akamaized.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8", type: "hls"},
-    {name: "Arirang TV World", url: "https://amdlive.ctnd.com.edgesuite.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8", type: "hls"},                        
-    {name: "NHK World-Japan", url: "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8", type: "hls"},
-    {name: "DW English", url: "https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8", type: "hls"},
-    {name: "France 24", url: "https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master_5000.m3u8", type: "hls"},
-    {name: "ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"}, 
-    {name: "Silk Way", url: "https://ikomg-static-content.akamaized.net/players/kazakh/index.html", type: "iframe"},
-    {name: "GB News HD", url: "https://live-gbnews.simplestreamcdn.com/live5/gbnews/bitrate1.isml/manifest.m3u8", type: "hls"},    
-    {name: "EURONEWS", url: "pykpO5kQJ98", type: "youtube"},
-    {name: "Africanews English", url: "https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8", type: "hls"},
-    {name: "TVP World", url: "https://dash2.antik.sk/live/test_tvp_world/playlist.m3u8", type: "hls"},
-    {name: "Al Jazeera English", url: "https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8", type: "hls"},
-    {name: "TRT World", url: "https://dash2.antik.sk/live/test_trt_world_atktv/playlist.m3u8", type: "hls"},
-    {name: "BBC News HD", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/mobile_wifi_main_hd_abr_v2.m3u8", type: "hls"},    
-    {name: "ABC News", url: "https://abc-news-dmd-streams-1.akamaized.net/out/v1/701126012d044971b3fa89406a440133/index.m3u8", type: "hls"},
-    {name: "WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},        
-    {name: "TV5MONDE Europe", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/TV5/default/index.m3u8", type: "hls"},
-    {name: "wedotv Movies", url: "https://watch4movies-samsunguk.amagi.tv/playlist.m3u8", type: "hls"},
-
-
-    {name: "4FUN TV", url: "https://stream.4fun.tv:8888/hls/4f_high/index.m3u8", type: "hls"},
-    {name: "Kiss TV Romania", url: "https://tv.broadcasting.ro/kisstv/a629c031-2170-4ee9-a36d-87a891aa3131.m3u8", type: "hls"},
-    {name: "Magic TV Romania", url: "https://tv.broadcasting.ro/magictv/925f90db-5c88-4190-a53d-5163cdffe6f4.m3u8", type: "hls"},
-    {name: "Radio Kiss Kiss TV", url: "https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8", type: "hls"},
-    {name: "City TV", url: "https://tv.city.bg/play/tshls/citytv/3.m3u8", type: "hls"},
-    {name: "Now 80´s", url: "https://lightning-now80s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now80s-rakuten/CDN/playlist.m3u8", type: "hls"},
-    {name: "Now 70's", url: "https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8", type: "hls"},
-    {name: "NOW Rock", url: "https://lightning-now90s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now90s-rakuten/CDN/playlist.m3u8", type: "hls"},
-    {name: "DELUXE MUSIC", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8", type: "hls"},
-    {name: "Rock TV Romania", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb.m3u8", type: "hls"},
-    {name: "V2Beat", url: "http://de1se01.v2beat.live/playlist.m3u8", type: "hls"},    
-    {name: "Radiofreccia HD", url: "https://streamcdnb1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8", type: "hls"},
-    {name: "RTL 102.5 Caliente", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/playlist_video.m3u8", type: "hls"},
-    //{name: "Radio Norba TV", url: "https://stream12.xdevel.com/video0s975885-2349/stream/playlist_dvr.m3u8", type: "hls"},
-    {name: "Radio Norba TV", url: "https://router.xdevel.com/video0s975885-462/stream/playlist_dvr.m3u8", type: "hls"},
-    {name: "Radio ZETA TV", url: "https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S9346184/XEx1LqlYbNic/playlist_video.m3u8", type: "hls"},
-    {name: "RTL 102.5", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist_video.m3u8", type: "hls"},    
-    {name: "DELUXE DANCE", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8", type: "hls"},
-    {
-        name: "DELUXE DANCE",
-        url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8",
-        type: "hls",
-        fallbackUrls: [
-            "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist.m3u8",
-            "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/playlist720p.m3u8"
-        ]
-    },
-
-    
-
-    {name: "TVP 1", url: "https://dlhd.st/watch/stream-560.php", type: "iframe-dlhd"},
-    {name: "TVP 2", url: "https://dlhd.st/watch/stream-561.php", type: "iframe-dlhd"},
-    {name: "POLSAT", url: "https://dlhd.st/watch/stream-562.php", type: "iframe-dlhd"},
-    {name: "TVN", url: "https://dlhd.st/watch/stream-565.php", type: "iframe-dlhd"},
-    {name: "TVN24", url: "https://dlhd.st/watch/stream-444.php", type: "iframe-dlhd"},
-    {name: "POLSAT NEWS", url: "https://dlhd.st/watch/stream-443.php", type: "iframe-dlhd"},
-    {name: "TVP SPORT", url: "https://dlhd.st/watch/stream-128.php", type: "iframe-dlhd"},
-    {name: "EUROSPORT 1", url: "https://dlhd.st/watch/stream-57.php", type: "iframe-dlhd"},
-    {name: "EUROSPORT 2", url: "https://dlhd.st/watch/stream-58.php", type: "iframe-dlhd"},
-    {name: "CANAL+ PREMIUM", url: "https://dlhd.st/watch/stream-566.php", type: "iframe-dlhd"},
-    {name: "HBO", url: "https://dlhd.st/watch/stream-569.php", type: "iframe-dlhd"},
-    {name: "POLSAT FILM", url: "https://dlhd.st/watch/stream-564.php", type: "iframe-dlhd"},
-    {name: "MOTOWIZJA", url: "https://dlhd.st/watch/stream-563.php", type: "iframe-dlhd"},
-    {name: "WP TV", url: "https://pilot.wp.pl/tv/#telewizja-wp-hd", type: "iframe"},
-    {name: "CZWÓRKA PR WIDEO", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},    
-    {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w1277744280_b5128000.m3u8", type: "hls"},
-    {name: "TVJ", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w431631781.m3u8", type: "hls"},
-    {name: "Telewizja Zabrze", url: "EVOt6OyHU9g", type: "youtube"},
-    {name: "TV DLA CIEBIE", url: "https://6034e09794f07.streamlock.net/tv/dlaCiebieTv/playlist.m3u8", type: "hls"},
-    {name: "SFERA TV", url: "https://stream.sferatv.pl/sferatvlive/live.m3u8", type: "hls"},
-    {name: "TV RELAX", url: "https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8.m3u8", type: "hls"},
-    {name: "IMPERIUM", url: "https://str10.imperiummedia.pl/TVIMPERIUM/tracks-v1a1/mono.m3u8", type: "hls"},    
-    {name: "REMONTY TV", url: "https://prx-y5cf8.4vod.tv/playout/repl-abr67/index.m3u8", type: "hls"},
-
-    
-    {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls", backgroundAudio: true},
-    {name: "RADIO ZET", url: "https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx", type: "audio", backgroundAudio: true},
-    {name: "RMF FM", url: "https://rs9-krk2.rmfstream.pl/rmf_fm", type: "audio", backgroundAudio: true},
-    {name: "RMF MAXXX", url: "https://rs201-krk.rmfstream.pl/rmf_maxxx", type: "audio", backgroundAudio: true},
-    {name: "MELORADIO", url: "https://r.dcs.redcdn.pl/sc/o2/Eurozet/live/meloradio.livx?audio=5", type: "audio", backgroundAudio: true},
-    {name: "ESKA", url: "https://ic2.smcdn.pl/2570-1.mp3", type: "audio", backgroundAudio: true},
-    {name: "TOK FM", url: "https://stream51.radiostream.pl:443/tuba10-1.mp3", type: "audio", backgroundAudio: true},
-    {name: "RADIO 357", url: "https://stream.rcs.revma.com/ye5kghkgcm0uv", type: "audio", backgroundAudio: true},
-    {name: "NOWY SWIAT", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv", type: "audio", backgroundAudio: true},
-    {name: "RDN NOWY SACZ", url: "https://stream1.dabcom.pl/rdn_ns", type: "audio", backgroundAudio: true},
-    {name: "CHILLI ZET", url: "https://n-4-1.dcs.redcdn.pl/sc/o2/Eurozet/live/chillizet.livx", type: "audio", backgroundAudio: true},
-    {name: "ZŁOTE PRZEBOJE", url: "https://radiostream.pl/tuba8922-1.mp3", type: "audio", backgroundAudio: true},
-    {name: "ANTYRADIO", url: "https://n-4-4.dcs.redcdn.pl/sc/o2/Eurozet/live/antyradio.livx", type: "audio", backgroundAudio: true},
-    {name: "ESKA2", url: "https://waw.ic.smcdn.pl/1290-1.mp3", type: "audio", backgroundAudio: true},
-    {name: "ESKA ROCK", url: "https://liveradio.timesa.pl/2330-2.aac/playlist.m3u8", type: "audio", backgroundAudio: true},
-    {name: "RMF  CLASSIC", url: "https://rs9-krk2.rmfstream.pl/RMFCLASSIC48", type: "audio", backgroundAudio: true}
-];
-
-
-
-
-    
-
-/* ============================================================
-   ELEMENTY
-   ============================================================ */
-
-const channelsUl =
-    document.getElementById('channels-ul');
-
-const videoTarget =
-    document.getElementById('video-target');
-
-const channelDisplay =
-    document.getElementById('channel-display');
-
-const streamStatus =
-    document.getElementById('stream-status');
+```html
+<!-- ============================================================
+     ZMIANA 2 — w funkcji loadChannel()
+     
+     ZNAJDŹ CAŁĄ OBECNĄ SEKCJĘ:
+     
+     if (
+         ch.type === 'iframe' ||
+         ch.type === 'iframe-dlhd'
+     ) {
+         ...
+     }
+     
+     I ZASTĄP JĄ PONIŻSZYM KODEM.
+     ============================================================ -->
 
 
 /* ============================================================
-   ZMIENNE ODTWARZACZA
+   SILK WAY
    ============================================================ */
 
-let currentHls = null;
-let currentDash = null;
-let ytPlayer = null;
+if (ch.type === 'silkway') {
 
-let fadeTimeout;
-let displayTimeout;
+    /*
+     * Tworzymy iframe ręcznie zamiast innerHTML.
+     * Dzięki temu mamy dostęp do load/error oraz
+     * możemy wysyłać postMessage do playera.
+     */
 
-let currentChannelIndex = 0;
-
-let currentHlsUrls = [];
-let currentHlsIndex = 0;
-
-let hlsAttempt = 0;
-let hlsFailTimer = null;
-
-let loadingChannelToken = 0;
+    const iframe =
+        document.createElement('iframe');
 
 
-/* ============================================================
-   WEB AUDIO
-   ============================================================ */
-
-/*
- * Web Audio pozostawiony w kodzie,
- * ale ZEWNĘTRZNE STACJE RADIOWE NIE SĄ
- * już przez niego przepuszczane.
- *
- * To eliminuje problemy z CORS,
- * które mogą powodować ciszę.
- */
-
-let audioCtx = null;
-let audioSourceNode = null;
-let gainNode = null;
-let compressorNode = null;
-
-
-/* ============================================================
-   KONFIGURACJA AUTOMATYCZNEGO HLS
-   ============================================================ */
-
-const HLS_CONFIG = {
-
-    startupTimeout: 9000,
-
-    retriesPerUrl: 2,
-
-    retryDelay: 1200,
-
-    maxFatalErrorsPerUrl: 2
-};
-
-
-/* ============================================================
-   STATUS
-   ============================================================ */
-
-function showStreamStatus(
-    text,
-    type = ''
-) {
-
-    streamStatus.textContent =
-        text;
-
-    streamStatus.classList.remove(
-        'show',
-        'error',
-        'ok'
-    );
-
-    if (type) {
-
-        streamStatus.classList.add(
-            type
-        );
-    }
-
-    streamStatus.classList.add(
-        'show'
-    );
-}
-
-
-function hideStreamStatus() {
-
-    streamStatus.classList.remove(
-        'show',
-        'error',
-        'ok'
-    );
-}
-
-
-/* ============================================================
-   CZYSZCZENIE ODTWARZACZA
-   ============================================================ */
-
-function destroyCurrentPlayer() {
-
-    clearTimeout(
-        hlsFailTimer
-    );
-
-    if (currentHls) {
-
-        try {
-
-            currentHls.destroy();
-
-        } catch (e) {
-
-            console.warn(
-                "HLS destroy error:",
-                e
-            );
-        }
-
-        currentHls = null;
-    }
-
-
-    if (currentDash) {
-
-        try {
-
-            currentDash.reset();
-
-        } catch (e) {
-
-            console.warn(
-                "DASH reset error:",
-                e
-            );
-        }
-
-        currentDash = null;
-    }
-
-
-    if (ytPlayer) {
-
-        try {
-
-            ytPlayer.destroy();
-
-        } catch (e) {}
-
-        ytPlayer = null;
-    }
+    iframe.id =
+        'silkway-player';
 
 
     /*
-     * Jeżeli gdzieś wcześniej został utworzony
-     * WebAudio source, odłączamy go.
+     * WAŻNE:
      *
-     * Nie dotyczy to obecnych stacji radiowych.
+     * Nie dodajemy sandbox.
+     *
+     * Player Silk Way jest zewnętrzną aplikacją
+     * i może potrzebować własnego storage/cookies
+     * oraz mechanizmu playera.
      */
 
-    if (audioSourceNode) {
-
-        try {
-
-            audioSourceNode.disconnect();
-
-        } catch (e) {}
-
-        audioSourceNode = null;
-    }
-}
+    iframe.src =
+        ch.url;
 
 
-/* ============================================================
-   WEB AUDIO
-   ============================================================ */
-
-function initAudioContext() {
-
-    if (!audioCtx) {
-
-        const AudioContext =
-            window.AudioContext ||
-            window.webkitAudioContext;
-
-        if (!AudioContext) {
-
-            return false;
-        }
-
-        audioCtx =
-            new AudioContext();
+    iframe.allow =
+        'autoplay; fullscreen; encrypted-media; picture-in-picture';
 
 
-        compressorNode =
-            audioCtx.createDynamicsCompressor();
-
-
-        compressorNode.threshold.setValueAtTime(
-            -12,
-            audioCtx.currentTime
-        );
-
-
-        compressorNode.knee.setValueAtTime(
-            3,
-            audioCtx.currentTime
-        );
-
-
-        compressorNode.ratio.setValueAtTime(
-            12,
-            audioCtx.currentTime
-        );
-
-
-        compressorNode.attack.setValueAtTime(
-            0.003,
-            audioCtx.currentTime
-        );
-
-
-        compressorNode.release.setValueAtTime(
-            0.25,
-            audioCtx.currentTime
-        );
-
-
-        gainNode =
-            audioCtx.createGain();
-
-
-        gainNode.gain.setValueAtTime(
-            0.2,
-            audioCtx.currentTime
-        );
-
-
-        compressorNode.connect(
-            gainNode
-        );
-
-
-        gainNode.connect(
-            audioCtx.destination
-        );
-    }
-
-
-    if (
-        audioCtx.state ===
-        'suspended'
-    ) {
-
-        audioCtx.resume().catch(
-            () => {}
-        );
-    }
-
-
-    return true;
-}
-
-
-/*
- * WAŻNE:
- *
- * Funkcja została celowo wyłączona dla
- * zewnętrznych streamów.
- *
- * createMediaElementSource() wymaga odpowiedniej
- * polityki CORS po stronie serwera.
- *
- * Przy radiu mogło to powodować:
- *
- * - brak dźwięku,
- * - ciszę po rozpoczęciu,
- * - SecurityError,
- * - problemy po zmianie stacji.
- */
-
-function connectMediaElement(element) {
-
-    console.warn(
-        "WebAudio pominięte dla zewnętrznego streamu:",
-        element
+    iframe.setAttribute(
+        'allowfullscreen',
+        ''
     );
 
-    return false;
-}
+
+    iframe.referrerPolicy =
+        'strict-origin-when-cross-origin';
 
 
-/* ============================================================
-   BUDOWANIE LISTY HLS
-   ============================================================ */
+    iframe.style.position =
+        'absolute';
 
-function buildHlsCandidates(ch) {
+    iframe.style.left =
+        '50%';
 
-    const urls = [];
+    iframe.style.top =
+        '50%';
+
+    iframe.style.width =
+        '102%';
+
+    iframe.style.height =
+        '102%';
+
+    iframe.style.border =
+        '0';
+
+    iframe.style.transform =
+        'translate(-50%, -50%)';
+
+    iframe.style.background =
+        '#000';
+
+
+    videoTarget.style.position =
+        'relative';
+
+    videoTarget.style.width =
+        '100%';
+
+    videoTarget.style.height =
+        '100%';
+
+
+    videoTarget.appendChild(
+        iframe
+    );
+
+
+    showStreamStatus(
+        'Silk Way — uruchamianie...'
+    );
 
 
     /*
-     * Podstawowy URL.
+     * ========================================================
+     * SILK WAY AUDIO
+     * ========================================================
+     *
+     * Player jest w innej domenie.
+     *
+     * Nie wolno próbować:
+     *
+     * iframe.contentWindow.document
+     *
+     * ponieważ blokuje to Same-Origin Policy.
+     *
+     * Możemy natomiast wysyłać postMessage.
+     *
+     * Poniższa funkcja wysyła kilka popularnych
+     * wariantów komunikatu wyboru ścieżki.
+     *
+     * Jeżeli aktualna wersja playera obsługuje
+     * któryś z nich, angielski zostanie wybrany.
      */
 
-    if (ch.url) {
+    function setSilkWayEnglishAudio() {
 
-        urls.push(
-            ch.url.trim()
-        );
-    }
+        if (
+            !iframe.contentWindow
+        ) {
+            return;
+        }
 
 
-    /*
-     * Własne fallbackUrls.
-     */
+        const messages = [
 
-    if (
-        Array.isArray(
-            ch.fallbackUrls
-        )
-    ) {
+            /*
+             * Shaka Player / podobne API
+             */
 
-        ch.fallbackUrls.forEach(
-            url => {
+            {
+                type: 'setAudioTrack',
+                language: 'en'
+            },
 
-                if (
-                    url &&
-                    typeof url === 'string'
-                ) {
+            {
+                type: 'setAudioLanguage',
+                language: 'en'
+            },
 
-                    urls.push(
-                        url.trim()
+
+            /*
+             * Ogólny wariant
+             */
+
+            {
+                action: 'setAudioTrack',
+                language: 'en'
+            },
+
+            {
+                action: 'setAudioLanguage',
+                language: 'en'
+            },
+
+
+            /*
+             * Wariant z kodem języka
+             */
+
+            {
+                type: 'audioTrack',
+                language: 'en',
+                lang: 'en'
+            },
+
+            {
+                type: 'audio',
+                language: 'en',
+                lang: 'en'
+            },
+
+
+            /*
+             * Wariant playera z command
+             */
+
+            {
+                command: 'setAudioLanguage',
+                language: 'en'
+            },
+
+            {
+                command: 'setAudioTrack',
+                language: 'en'
+            },
+
+
+            /*
+             * Wariant HTML5/player API
+             */
+
+            {
+                event: 'setAudioLanguage',
+                value: 'en'
+            },
+
+            {
+                event: 'audioLanguage',
+                value: 'en'
+            }
+
+        ];
+
+
+        messages.forEach(
+            message => {
+
+                try {
+
+                    iframe.contentWindow.postMessage(
+                        message,
+                        '*'
                     );
+
+                } catch (e) {
+
+                    console.warn(
+                        'Silk Way postMessage:',
+                        e
+                    );
+
                 }
+
             }
         );
     }
 
 
     /*
-     * Automatyczne warianty.
+     * ========================================================
+     * AUTOMATYCZNE URUCHOMIENIE
+     * ========================================================
      */
 
-    try {
+    iframe.addEventListener(
+        'load',
+        function() {
 
-        const parsed =
-            new URL(ch.url);
-
-        const path =
-            parsed.pathname;
-
-
-        if (
-            path.endsWith('.m3u8') &&
-            !path.endsWith(
-                '/playlist.m3u8'
-            ) &&
-            !path.endsWith(
-                '/playlist720p.m3u8'
-            )
-        ) {
-
-            const directory =
-                path.substring(
-                    0,
-                    path.lastIndexOf('/') + 1
-                );
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+                return;
+            }
 
 
-            const origin =
-                parsed.origin;
-
-
-            urls.push(
-                origin +
-                directory +
-                'playlist.m3u8'
+            showStreamStatus(
+                'Silk Way — player załadowany',
+                'ok'
             );
 
 
-            urls.push(
-                origin +
-                directory +
-                'playlist720p.m3u8'
-            );
-        }
+            /*
+             * Pierwsza próba wyboru English.
+             */
 
-    } catch (e) {
-
-        console.warn(
-            "Nie można wygenerować wariantów HLS:",
-            e
-        );
-    }
+            setSilkWayEnglishAudio();
 
 
-    return [
-        ...new Set(
-            urls.filter(Boolean)
-        )
-    ];
-}
+            /*
+             * Player może potrzebować czasu
+             * na utworzenie video/audio.
+             */
 
-
-/* ============================================================
-   SPRAWDZENIE CZY URL WYGLĄDA NA HLS
-   ============================================================ */
-
-function isHlsUrl(url) {
-
-    if (!url) {
-
-        return false;
-    }
-
-    return (
-        url
-            .toLowerCase()
-            .includes('.m3u8')
-    );
-}
-
-
-/* ============================================================
-   CORS / FETCH TEST
-   ============================================================ */
-
-async function testCors(
-    url,
-    token
-) {
-
-    if (
-        token !==
-        loadingChannelToken
-    ) {
-
-        return {
-            ok: false,
-            cancelled: true
-        };
-    }
-
-
-    let controller = null;
-    let timeout = null;
-
-
-    try {
-
-        controller =
-            new AbortController();
-
-
-        timeout =
             setTimeout(
                 () => {
 
-                    controller.abort();
-
-                },
-                4500
-            );
-
-
-        const response =
-            await fetch(
-                url,
-                {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-store',
-                    signal:
-                        controller.signal
-                }
-            );
-
-
-        clearTimeout(
-            timeout
-        );
-
-
-        if (!response.ok) {
-
-            return {
-                ok: false,
-                status:
-                    response.status,
-                cors: true
-            };
-        }
-
-
-        await response.text();
-
-
-        return {
-            ok: true,
-            cors: true
-        };
-
-
-    } catch (e) {
-
-        if (timeout) {
-
-            clearTimeout(
-                timeout
-            );
-        }
-
-
-        return {
-            ok: false,
-            cors: false,
-            error: e
-        };
-    }
-}
-
-
-/* ============================================================
-   PRÓBA HLS
-   ============================================================ */
-
-function tryHlsUrl(
-    url,
-    media,
-    token,
-    candidateIndex
-) {
-
-    return new Promise(
-        (resolve, reject) => {
-
-            if (
-                token !==
-                loadingChannelToken
-            ) {
-
-                reject(
-                    new Error(
-                        "cancelled"
-                    )
-                );
-
-                return;
-            }
-
-
-            if (
-                !window.Hls ||
-                !Hls.isSupported()
-            ) {
-
-                reject(
-                    new Error(
-                        "HLS.js not supported"
-                    )
-                );
-
-                return;
-            }
-
-
-            showStreamStatus(
-                `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
-            );
-
-
-            let resolved = false;
-
-            let fatalErrors = 0;
-
-
-            clearTimeout(
-                hlsFailTimer
-            );
-
-
-            const hls =
-                new Hls({
-
-                    enableWorker: true,
-
-                    lowLatencyMode: false,
-
-                    backBufferLength: 30,
-
-                    maxBufferLength: 30,
-
-                    maxMaxBufferLength: 60,
-
-                    manifestLoadingMaxRetry: 1,
-
-                    manifestLoadingRetryDelay: 1000,
-
-                    levelLoadingMaxRetry: 1,
-
-                    levelLoadingRetryDelay: 1000,
-
-                    fragLoadingMaxRetry: 2,
-
-                    fragLoadingRetryDelay: 1000,
-
-                    xhrSetup: function(xhr) {
-
-                        try {
-
-                            xhr.withCredentials =
-                                false;
-
-                        } catch (e) {}
-                    }
-                });
-
-
-            currentHls =
-                hls;
-
-
-            function cleanup() {
-
-                clearTimeout(
-                    hlsFailTimer
-                );
-
-
-                hls.off(
-                    Hls.Events.MANIFEST_PARSED,
-                    onManifest
-                );
-
-
-                hls.off(
-                    Hls.Events.ERROR,
-                    onError
-                );
-            }
-
-
-            function success() {
-
-                if (resolved) {
-
-                    return;
-                }
-
-
-                resolved = true;
-
-
-                cleanup();
-
-
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    3000
-                );
-
-
-                resolve(hls);
-            }
-
-
-            function failure(error) {
-
-                if (resolved) {
-
-                    return;
-                }
-
-
-                resolved = true;
-
-
-                cleanup();
-
-
-                try {
-
-                    hls.destroy();
-
-                } catch (e) {}
-
-
-                if (
-                    currentHls === hls
-                ) {
-
-                    currentHls = null;
-                }
-
-
-                reject(error);
-            }
-
-
-            function onManifest() {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    failure(
-                        new Error(
-                            "cancelled"
-                        )
-                    );
-
-                    return;
-                }
-
-
-                /*
-                 * Manifest jest poprawny.
-                 *
-                 * Teraz uruchamiamy media.
-                 */
-
-                media.play()
-                    .then(
-                        () => {
-
-                            success();
-
-                        }
-                    )
-                    .catch(
-                        () => {
-
-                            /*
-                             * Autoplay może być
-                             * zablokowany.
-                             *
-                             * Sam stream jest jednak
-                             * poprawnie załadowany.
-                             */
-
-                            success();
-                        }
-                    );
-            }
-
-
-            function onError(
-                event,
-                data
-            ) {
-
-                if (
-                    token !==
-                    loadingChannelToken
-                ) {
-
-                    failure(
-                        new Error(
-                            "cancelled"
-                        )
-                    );
-
-                    return;
-                }
-
-
-                console.warn(
-                    "HLS:",
-                    url,
-                    data
-                );
-
-
-                if (
-                    !data.fatal
-                ) {
-
-                    return;
-                }
-
-
-                fatalErrors++;
-
-
-                /*
-                 * Błąd sieci / manifestu.
-                 */
-
-                if (
-                    data.type ===
-                    Hls.ErrorTypes.NETWORK_ERROR
-                ) {
-
-                    showStreamStatus(
-                        `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
-                    );
-
-
                     if (
-                        fatalErrors >=
-                        HLS_CONFIG.maxFatalErrorsPerUrl
+                        token ===
+                        loadingChannelToken
                     ) {
 
-                        failure(
-                            new Error(
-                                "NETWORK_ERROR"
-                            )
-                        );
+                        setSilkWayEnglishAudio();
 
-                    } else {
-
-                        setTimeout(
-                            () => {
-
-                                if (
-                                    !resolved &&
-                                    token ===
-                                    loadingChannelToken
-                                ) {
-
-                                    try {
-
-                                        hls.startLoad();
-
-                                    } catch (e) {}
-                                }
-
-                            },
-                            HLS_CONFIG.retryDelay
-                        );
                     }
 
+                },
+                500
+            );
 
-                    return;
-                }
+
+            setTimeout(
+                () => {
+
+                    if (
+                        token ===
+                        loadingChannelToken
+                    ) {
+
+                        setSilkWayEnglishAudio();
+
+                    }
+
+                },
+                1500
+            );
 
 
-                /*
-                 * Błąd kodeka / media.
-                 */
+            setTimeout(
+                () => {
+
+                    if (
+                        token ===
+                        loadingChannelToken
+                    ) {
+
+                        setSilkWayEnglishAudio();
+
+                    }
+
+                },
+                3000
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        token ===
+                        loadingChannelToken
+                    ) {
+
+                        hideStreamStatus();
+
+                    }
+
+                },
+                5000
+            );
+
+        }
+    );
+
+
+    /*
+     * ========================================================
+     * BŁĄD IFRAME
+     * ========================================================
+     */
+
+    iframe.addEventListener(
+        'error',
+        function() {
+
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+                return;
+            }
+
+
+            showStreamStatus(
+                'Silk Way — błąd playera',
+                'error'
+            );
+
+        }
+    );
+
+
+    /*
+     * ========================================================
+     * PONOWIENIE PO 10 SEKUNDACH
+     * ========================================================
+     *
+     * Nie przeładowujemy iframe normalnie co kilka sekund,
+     * ponieważ mogłoby to powodować niepotrzebne restartowanie
+     * streamu.
+     *
+     * Robimy tylko jedno odświeżenie, jeśli player nie odpowiada.
+     */
+
+    const silkwayReloadTimer =
+        setTimeout(
+            () => {
 
                 if (
-                    data.type ===
-                    Hls.ErrorTypes.MEDIA_ERROR
+                    token !==
+                    loadingChannelToken
                 ) {
-
-                    showStreamStatus(
-                        "Błąd media — próba naprawy"
-                    );
-
-
-                    try {
-
-                        hls.recoverMediaError();
-
-                    } catch (e) {
-
-                        failure(
-                            new Error(
-                                "MEDIA_ERROR"
-                            )
-                        );
-                    }
-
-
                     return;
                 }
 
 
                 /*
-                 * Inny fatalny błąd.
+                 * Jeżeli iframe nadal istnieje,
+                 * wysyłamy ponownie wybór audio.
                  */
 
-                failure(
-                    new Error(
-                        data.details ||
-                        "HLS_FATAL_ERROR"
-                    )
-                );
-            }
-
-
-            hls.on(
-                Hls.Events.MANIFEST_PARSED,
-                onManifest
-            );
-
-
-            hls.on(
-                Hls.Events.ERROR,
-                onError
-            );
-
-
-            /*
-             * Timeout.
-             */
-
-            hlsFailTimer =
-                setTimeout(
-                    () => {
-
-                        if (!resolved) {
-
-                            failure(
-                                new Error(
-                                    "HLS_TIMEOUT"
-                                )
-                            );
-                        }
-
-                    },
-                    HLS_CONFIG.startupTimeout
-                );
-
-
-            try {
-
-                hls.loadSource(
-                    url
-                );
-
-                hls.attachMedia(
-                    media
-                );
-
-            } catch (e) {
-
-                failure(e);
-            }
-        }
-    );
-}
-
-
-/* ============================================================
-   GŁÓWNA FUNKCJA HLS Z FALLBACKAMI
-   ============================================================ */
-
-async function loadHlsWithFallback(
-    ch,
-    media,
-    token
-) {
-
-    currentHlsUrls =
-        buildHlsCandidates(ch);
-
-    currentHlsIndex = 0;
-
-    hlsAttempt = 0;
-
-
-    console.log(
-        "HLS candidates:",
-        currentHlsUrls
-    );
-
-
-    /*
-     * Safari / iOS:
-     *
-     * Natomiast dla radia HLS używamy
-     * bezpośrednio elementu audio.
-     */
-
-    if (
-        media.canPlayType(
-            'application/vnd.apple.mpegurl'
-        )
-    ) {
-
-        for (
-            let i = 0;
-            i <
-            currentHlsUrls.length;
-            i++
-        ) {
-
-            if (
-                token !==
-                loadingChannelToken
-            ) {
-
-                return;
-            }
-
-
-            const url =
-                currentHlsUrls[i];
-
-
-            showStreamStatus(
-                `Natywny HLS: wariant ${i + 1}/${currentHlsUrls.length}`
-            );
-
-
-            /*
-             * Czyścimy poprzedni HLS.
-             */
-
-            try {
-
-                media.pause();
-
-            } catch (e) {}
-
-
-            media.removeAttribute(
-                'src'
-            );
-
-
-            try {
-
-                media.load();
-
-            } catch (e) {}
-
-
-            media.src =
-                url;
-
-
-            try {
-
-                await media.play();
-
-
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    3000
-                );
-
-
-                return;
-
-
-            } catch (e) {
-
-                console.warn(
-                    "Natywny HLS nie działa:",
-                    url,
-                    e
-                );
-
-
-                media.removeAttribute(
-                    'src'
-                );
-
-
-                try {
-
-                    media.load();
-
-                } catch (x) {}
-            }
-        }
-    }
-
-
-    /*
-     * Chrome / Edge / Firefox:
-     *
-     * HLS.js.
-     */
-
-    if (
-        window.Hls &&
-        Hls.isSupported()
-    ) {
-
-        for (
-            let i = 0;
-            i <
-            currentHlsUrls.length;
-            i++
-        ) {
-
-            if (
-                token !==
-                loadingChannelToken
-            ) {
-
-                return;
-            }
-
-
-            currentHlsIndex =
-                i;
-
-
-            const url =
-                currentHlsUrls[i];
-
-
-            /*
-             * Test CORS jest tylko informacyjny.
-             *
-             * Nawet jeżeli fetch nie przejdzie,
-             * nadal próbujemy HLS.js.
-             */
-
-            showStreamStatus(
-                `Sprawdzanie HLS ${i + 1}/${currentHlsUrls.length}...`
-            );
-
-
-            const corsResult =
-                await testCors(
-                    url,
-                    token
-                );
-
-
-            if (
-                token !==
-                loadingChannelToken
-            ) {
-
-                return;
-            }
-
-
-            if (
-                !corsResult.ok
-            ) {
-
-                console.warn(
-                    "Możliwy CORS:",
-                    url,
-                    corsResult
-                );
-
-
-                showStreamStatus(
-                    `CORS / brak dostępu — próbuję wariant ${i + 1}`
-                );
-
-            } else {
-
-                showStreamStatus(
-                    `CORS OK — wariant ${i + 1}`
-                );
-            }
-
-
-            /*
-             * Próba HLS.
-             */
-
-            try {
-
-                await tryHlsUrl(
-                    url,
-                    media,
-                    token,
-                    i
-                );
-
-
-                /*
-                 * Sukces.
-                 */
-
-                return;
-
-
-            } catch (e) {
-
-                console.warn(
-                    "Wariant HLS nie działa:",
-                    url,
-                    e
-                );
-
-
-                /*
-                 * Czyścimy HLS.
-                 */
-
-                if (currentHls) {
-
-                    try {
-
-                        currentHls.destroy();
-
-                    } catch (x) {}
-
-                    currentHls = null;
-                }
-
-
-                /*
-                 * Czyścimy element media.
-                 */
-
-                try {
-
-                    media.pause();
-
-                    media.removeAttribute(
-                        'src'
-                    );
-
-                    media.load();
-
-                } catch (x) {}
-            }
-        }
-    }
-
-
-    /*
-     * Nic nie zadziałało.
-     */
-
-    showStreamStatus(
-        "Brak działającego wariantu HLS",
-        "error"
-    );
-
-
-    console.error(
-        "Żaden wariant HLS nie działa:",
-        currentHlsUrls
-    );
-}
-
-
-/* ============================================================
-   LISTA KANAŁÓW
-   ============================================================ */
-
-channels.forEach(
-    (ch, i) => {
-
-        const li =
-            document.createElement(
-                'li'
-            );
-
-
-        li.className =
-            'channel-item';
-
-
-        li.dataset.index =
-            i;
-
-
-        li.innerHTML =
-            `<span class="channel-number">${i + 1}</span>${ch.name}`;
-
-
-        li.onclick = () =>
-            loadChannel(
-                ch,
-                i
-            );
-
-
-        channelsUl.appendChild(
-            li
-        );
-    }
-);
-
-
-/* ============================================================
-   LOAD CHANNEL
-   ============================================================ */
-
-function loadChannel(
-    ch,
-    index = currentChannelIndex
-) {
-
-    /*
-     * Token zabezpiecza przed sytuacją:
-     *
-     * kanał A zaczyna ładować
-     * ->
-     * klikamy kanał B
-     * ->
-     * A kończy ładowanie
-     *
-     * A nie nadpisze wtedy B.
-     */
-
-    loadingChannelToken++;
-
-
-    const token =
-        loadingChannelToken;
-
-
-    currentChannelIndex =
-        index;
-
-
-    destroyCurrentPlayer();
-
-
-    videoTarget.innerHTML =
-        "";
-
-
-    document
-        .querySelectorAll(
-            '.channel-item'
-        )
-        .forEach(
-            el =>
-                el.classList.remove(
-                    'active'
-                )
-        );
-
-
-    const activeItem =
-        document.querySelector(
-            `.channel-item[data-index="${index}"]`
-        );
-
-
-    if (activeItem) {
-
-        activeItem.classList.add(
-            'active'
-        );
-    }
-
-
-    channelDisplay.textContent =
-        ch.name;
-
-
-    channelDisplay.classList.add(
-        'show'
-    );
-
-
-    clearTimeout(
-        displayTimeout
-    );
-
-
-    displayTimeout =
-        setTimeout(
-            () => {
-
-                channelDisplay.classList.remove(
-                    'show'
-                );
+                setSilkWayEnglishAudio();
 
             },
-            7000
+            10000
         );
 
 
-    const isBackgroundAudio =
-        ch.backgroundAudio === true;
+    /*
+     * Przy zmianie kanału timer zostanie
+     * automatycznie unieważniony przez token.
+     */
 
 
-    /* ========================================================
-       HLS
-       ======================================================== */
-
-    if (
-        ch.type === 'hls'
-    ) {
-
-        /*
-         * WAŻNA ZMIANA:
-         *
-         * HLS z backgroundAudio:
-         *
-         * <audio>
-         *
-         * Pozostałe:
-         *
-         * <video>
-         */
-
-        if (isBackgroundAudio) {
-
-            videoTarget.innerHTML =
-                `<audio
-                    id="v"
-                    autoplay
-                    playsinline
-                    preload="auto">
-                </audio>`;
-
-        } else {
-
-            videoTarget.innerHTML =
-                `<video
-                    id="v"
-                    controls
-                    autoplay
-                    playsinline>
-                </video>`;
-        }
-
-
-        const v =
-            document.getElementById(
-                'v'
-            );
-
-
-        if (isBackgroundAudio) {
-
-            /*
-             * Element jest aktywny,
-             * tylko niewidoczny.
-             */
-
-            v.style.display =
-                'none';
-        }
-
-
-        /*
-         * NIE podłączamy HLS do WebAudio.
-         *
-         * To jest kluczowa zmiana.
-         */
-
-        v.onerror =
-            () => {
-
-                console.warn(
-                    "HLS element error:",
-                    v.error
-                );
-            };
-
-
-        v.onplaying =
-            () => {
-
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    2500
-                );
-            };
-
-
-        loadHlsWithFallback(
-            ch,
-            v,
-            token
-        );
-
-
-        return;
-    }
-
-
-    /* ========================================================
-       DASH
-       ======================================================== */
-
-    if (
-        ch.type === 'dash'
-    ) {
-
-        videoTarget.innerHTML =
-            `<video
-                id="v"
-                controls
-                autoplay
-                playsinline>
-            </video>`;
-
-
-        const v =
-            document.getElementById(
-                'v'
-            );
-
-
-        if (isBackgroundAudio) {
-
-            v.style.display =
-                'none';
-        }
-
-
-        currentDash =
-            dashjs
-                .MediaPlayer()
-                .create();
-
-
-        currentDash.initialize(
-            v,
-            ch.url,
-            true
-        );
-
-
-        v.onplaying =
-            () => {
-
-                showStreamStatus(
-                    "STREAM DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    2500
-                );
-            };
-
-
-        v.onerror =
-            () => {
-
-                console.warn(
-                    "DASH element error:",
-                    v.error
-                );
-            };
-
-
-        return;
-    }
-
-
-    /* ========================================================
-       YOUTUBE
-       ======================================================== */
-
-    if (
-        ch.type === 'youtube'
-    ) {
-
-        videoTarget.innerHTML =
-            `<div id="yt-div"></div>`;
-
-
-        ytPlayer =
-            new YT.Player(
-                'yt-div',
-                {
-                    videoId:
-                        ch.url,
-
-                    playerVars: {
-                        autoplay: 1,
-                        playsinline: 1
-                    }
-                }
-            );
-
-
-        return;
-    }
-
-
-    /* ========================================================
-       IFRAME
-       ======================================================== */
-
-    if (
-        ch.type === 'iframe' ||
-        ch.type === 'iframe-dlhd'
-    ) {
-
-        videoTarget.innerHTML =
-            `<iframe
-                src="${ch.url}"
-                allow="autoplay; fullscreen"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
-            </iframe>`;
-
-
-        return;
-    }
-
-
-    /* ========================================================
-       AUDIO
-       ======================================================== */
-
-    if (
-        ch.type === 'audio'
-    ) {
-
-        /*
-         * NAJWAŻNIEJSZA ZMIANA:
-         *
-         * Zewnętrzne radio jest odtwarzane
-         * bezpośrednio przez <audio>.
-         *
-         * NIE MA:
-         *
-         * crossorigin="anonymous"
-         *
-         * createMediaElementSource()
-         *
-         * compressora WebAudio
-         *
-         * Dzięki temu CORS streamu nie może
-         * wyciszyć odtwarzania.
-         */
-
-        videoTarget.innerHTML =
-            `<audio
-                id="radio-audio"
-                autoplay
-                playsinline
-                preload="none">
-            </audio>`;
-
-
-        const a =
-            document.getElementById(
-                'radio-audio'
-            );
-
-
-        a.src =
-            ch.url;
-
-
-        if (
-            isBackgroundAudio
-        ) {
-
-            a.style.display =
-                'none';
-
-        } else {
-
-            a.controls =
-                true;
-        }
-
-
-        /*
-         * Informacja o rozpoczęciu.
-         */
-
-        a.onplaying =
-            () => {
-
-                showStreamStatus(
-                    "RADIO DZIAŁA",
-                    "ok"
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            token ===
-                            loadingChannelToken
-                        ) {
-
-                            hideStreamStatus();
-                        }
-
-                    },
-                    2500
-                );
-            };
-
-
-        /*
-         * Błąd radia.
-         */
-
-        a.onerror =
-            () => {
-
-                console.warn(
-                    "Radio audio error:",
-                    a.error,
-                    ch.url
-                );
-
-
-                showStreamStatus(
-                    "Błąd odtwarzania radia",
-                    "error"
-                );
-            };
-
-
-        /*
-         * Stany pośrednie.
-         */
-
-        a.onwaiting =
-            () => {
-
-                showStreamStatus(
-                    "Ładowanie radia..."
-                );
-            };
-
-
-        a.onstalled =
-            () => {
-
-                console.warn(
-                    "Radio stream stalled:",
-                    ch.url
-                );
-            };
-
-
-        /*
-         * Próba uruchomienia.
-         *
-         * Jeśli przeglądarka zablokuje autoplay,
-         * stream pozostaje przypisany do elementu.
-         */
-
-        a.play()
-            .catch(
-                err => {
-
-                    console.warn(
-                        "Autoplay radia zablokowany:",
-                        err
-                    );
-
-
-                    showStreamStatus(
-                        "Radio oczekuje na uruchomienie"
-                    );
-                }
-            );
-
-
-        return;
-    }
+    return;
 }
 
 
 /* ============================================================
-   NEXT
+   ZWYKŁY IFRAME
    ============================================================ */
 
-function nextChannel() {
+if (
+    ch.type === 'iframe' ||
+    ch.type === 'iframe-dlhd'
+) {
 
-    currentChannelIndex =
-        (
-            currentChannelIndex + 1
-        ) %
-        channels.length;
-
-
-    loadChannel(
-        channels[
-            currentChannelIndex
-        ],
-        currentChannelIndex
-    );
-}
+    const iframe =
+        document.createElement('iframe');
 
 
-/* ============================================================
-   PREVIOUS
-   ============================================================ */
-
-function previousChannel() {
-
-    currentChannelIndex =
-        (
-            currentChannelIndex - 1 +
-            channels.length
-        ) %
-        channels.length;
+    iframe.src =
+        ch.url;
 
 
-    loadChannel(
-        channels[
-            currentChannelIndex
-        ],
-        currentChannelIndex
-    );
-}
+    iframe.allow =
+        'autoplay; fullscreen; encrypted-media';
 
 
-/* ============================================================
-   FULLSCREEN
-   ============================================================ */
-
-function toggleFullscreen() {
-
-    if (
-        !document.fullscreenElement
-    ) {
-
-        const container =
-            document.getElementById(
-                'player-container'
-            );
-
-
-        if (
-            container.requestFullscreen
-        ) {
-
-            container
-                .requestFullscreen()
-                .catch(
-                    () => {}
-                );
-        }
-
-    } else {
-
-        document
-            .exitFullscreen()
-            .catch(
-                () => {}
-            );
-    }
-}
-
-
-/* ============================================================
-   FADE PRZYCISKU
-   ============================================================ */
-
-function resetFade() {
-
-    const btn =
-        document.getElementById(
-            'fullscreen-btn'
-        );
-
-
-    btn.classList.remove(
-        'fade-out'
+    iframe.setAttribute(
+        'allowfullscreen',
+        ''
     );
 
 
-    clearTimeout(
-        fadeTimeout
+    iframe.style.width =
+        '102%';
+
+    iframe.style.height =
+        '102%';
+
+    iframe.style.border =
+        '0';
+
+    iframe.style.position =
+        'absolute';
+
+    iframe.style.top =
+        '50%';
+
+    iframe.style.left =
+        '50%';
+
+    iframe.style.transform =
+        'translate(-50%, -50%)';
+
+
+    videoTarget.appendChild(
+        iframe
     );
 
 
-    fadeTimeout =
-        setTimeout(
-            () => {
-
-                btn.classList.add(
-                    'fade-out'
-                );
-
-            },
-            3000
-        );
+    return;
 }
+```
 
+### Dodatkowo zmień start
 
-document.onmousemove =
-    resetFade;
+Twój obecny kod:
 
-
-/* ============================================================
-   START
-   ============================================================ */
-
+```js
 loadChannel(
     channels[0],
     0
 );
+```
 
+może zostać bez zmian.
 
-/* ============================================================
-   MYSZ
-   ============================================================ */
+Silk Way jest kanałem znajdującym się później na liście, więc **nie będzie automatycznie pierwszym kanałem**. Jeśli natomiast chcesz, żeby **po uruchomieniu całej strony od razu startował Silk Way**, zmień to na:
 
-document.addEventListener(
-    "contextmenu",
-    e =>
-        e.preventDefault()
+```js
+const silkWayIndex =
+    channels.findIndex(
+        ch => ch.type === 'silkway'
+    );
+
+loadChannel(
+    channels[silkWayIndex],
+    silkWayIndex
 );
+```
 
+### Ważne
 
-document.addEventListener(
-    "mousedown",
-    function(e) {
+Ten kod **nie gwarantuje wymuszenia English**, ponieważ `postMessage` działa tylko wtedy, gdy konkretny player Silk Way ma obsługę takiego komunikatu. Oficjalna strona potwierdza natomiast, że player obsługuje wybór ścieżki językowej.
 
-        /*
-         * Środkowy przycisk:
-         * następny kanał.
-         */
+Jeżeli chcesz **naprawdę wymusić English**, trzeba przejść poziom niżej: znaleźć request wykonywany przez `index.html` do **manifestu HLS/DASH i playlisty audio**, a następnie podłączyć ten manifest bezpośrednio do Twojego `hls.js`/`dash.js`. To jest właściwa droga, jeśli obecny iframe nadal uruchamia np. kazachski zamiast angielskiego.
 
-        if (
-            e.button === 1
-        ) {
+```
 
-            e.preventDefault();
-
-            nextChannel();
-        }
-
-
-        /*
-         * Prawy przycisk:
-         * poprzedni kanał.
-         */
-
-        else if (
-            e.button === 2
-        ) {
-
-            e.preventDefault();
-
-            previousChannel();
-        }
-    }
-);
-
-
-/* ============================================================
-   KLAWIATURA
-   ============================================================ */
-
-document.addEventListener(
-    "keydown",
-    function(e) {
-
-        if (
-            e.key === "ArrowRight"
-        ) {
-
-            nextChannel();
-        }
-
-
-        if (
-            e.key === "ArrowLeft"
-        ) {
-
-            previousChannel();
-        }
-
-
-        if (
-            e.key === "f" ||
-            e.key === "F"
-        ) {
-
-            toggleFullscreen();
-        }
-    }
-);
-
-
-/* ============================================================
-   URUCHOMIENIE RADIA PO PIERWSZEJ INTERAKCJI
-   ============================================================ */
-
-/*
- * Niektóre przeglądarki blokują autoplay.
- *
- * Po pierwszym kliknięciu / dotknięciu próbujemy
- * ponownie uruchomić aktualne radio.
- */
-
-document.addEventListener(
-    "click",
-    function() {
-
-        const audio =
-            document.querySelector(
-                "#radio-audio"
-            );
-
-
-        if (audio) {
-
-            audio.play()
-                .catch(
-                    () => {}
-                );
-        }
-    }
-);
-
-
-/*
- * Również dla urządzeń dotykowych.
- */
-
-document.addEventListener(
-    "touchstart",
-    function() {
-
-        const audio =
-            document.querySelector(
-                "#radio-audio"
-            );
-
-
-        if (audio) {
-
-            audio.play()
-                .catch(
-                    () => {}
-                );
-        }
-    },
-    {
-        passive: true
-    }
-);
-
-</script>
-
-</body>
-</html>
+Jeżeli chcesz, mogę też przygotować **pełną wersję całego Twojego HTML-a po zmianach**, a nie tylko fragmenty do podmiany.
 ```
