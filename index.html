@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="pl">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Odtwarzacz Streamów</title>
 
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -18,11 +16,10 @@
             padding: 0;
         }
 
-        html,
-        body {
+        body, html {
             width: 100%;
             height: 100%;
-            background: #000;
+            background-color: #000;
             font-family: sans-serif;
             overflow: hidden;
             color: #fff;
@@ -36,22 +33,20 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background: #000;
         }
 
-        video,
-        audio {
+        video, audio {
             width: 100%;
             height: 100%;
             border: none;
-            background: #000;
+            background-color: #000;
         }
 
         iframe {
             width: 102%;
             height: 102%;
             border: none;
-            background: #000;
+            background-color: #000;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -73,7 +68,7 @@
             top: 0;
             width: 300px;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0,0,0,0.95);
             transition: left 0.3s;
             z-index: 10000;
             overflow-y: auto;
@@ -122,8 +117,8 @@
             left: 20px;
             top: 20px;
             padding: 10px 20px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
+            background: rgba(0,0,0,0.7);
+            color: white;
             border-radius: 5px;
             z-index: 9998;
             font-size: 1.2rem;
@@ -141,9 +136,9 @@
             right: 20px;
             bottom: calc(20px + 57px);
             padding: 12px 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0,0,0,0.7);
             border: 1px solid #fff;
-            color: #fff;
+            color: white;
             border-radius: 5px;
             cursor: pointer;
             z-index: 999;
@@ -161,14 +156,13 @@
             bottom: 20px;
             z-index: 9998;
             padding: 8px 14px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0,0,0,0.75);
             border-radius: 5px;
             font-size: 13px;
             color: #ddd;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
-            max-width: calc(100% - 40px);
         }
 
         #stream-status.show {
@@ -196,10 +190,10 @@
     <div id="trigger-zone"></div>
 
     <div id="sidebar">
-        <ul id="channels-ul" style="list-style:none;"></ul>
+        <ul id="channels-ul"></ul>
     </div>
 
-    <div id="video-target" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
+    <div id="video-target" style="width:100%; height:100%;"></div>
 
     <button id="fullscreen-btn" onclick="toggleFullscreen()">
         PEŁNY EKRAN
@@ -209,390 +203,2398 @@
 
 <script>
 
-/* ============================================================
-   KANAŁY
-   ============================================================ */
-
 const channels = [
 
-    {name:"JEDYNKA PR",url:"https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8",type:"hls",backgroundAudio:true},
-    {name:"DWÓJKA PR",url:"https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8",type:"hls",backgroundAudio:true},
-    {name:"TRÓJKA PR",url:"https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8",type:"hls",backgroundAudio:true},
-    {name:"CZWORKA PR",url:"https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8",type:"hls",backgroundAudio:true},
-    {name:"RADIO KRAKÓW",url:"https://stream3.nadaje.com:9117/radiokrakow",type:"audio",backgroundAudio:true},
-    {name:"POLONIA",url:"https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8",type:"hls"},
-    {name:"TVP Info",url:"https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8",type:"hls"},
-    {name:"wPolsce 24",url:"https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8",type:"hls"},
-    {name:"REPUBLIKA",url:"dzntyCTgJMQ",type:"youtube"},
-    {name:"TRWAM",url:"https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd",type:"dash"},
-    {name:"EWTN",url:"https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8",type:"hls"},
-    {name:"LUBELSKA TV",url:"https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8",type:"hls"},
-    {name:"TV KUJAWY",url:"https://stream.tvkujawy.pl:8090/live/broadcast.m3u8",type:"hls"},
-    {name:"TV REGIONALNA",url:"https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8",type:"hls"},
-    {name:"Grjngo Westerny",url:"https://b6c7c7d1020a4588982ca7c2625f85d1.mediatailor.us-east-1.amazonaws.com/v1/master/0fb304b2320b25f067414d481a779b77db81760d/RakutenTV-eu_GrjngoWesterny/playlist.m3u8",type:"hls"},
-    {name:"RED CARPET",url:"https://fast-rakuten.okast.tv/fa2e8c4385712f9a9076eaf728c751de/channels/1a6ecfaa-40c6-41b8-8634-595c424f856e/21f67fd1-4d21-43ba-8ad8-3afac9982c25/master.m3u8",type:"hls"},
-    {name:"TOP MOVIES",url:"https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8",type:"hls"},
-    {name:"Royalworld",url:"https://ac76260b1102416c93f3d20958bfeb4b.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-pl_Royalworld/playlist.m3u8",type:"hls"},
-    {name:"VIASAT EXPLORE",url:"https://da9c49fa.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLXBsX1ZpYXNhdEV4cGxvcmVfSExT/playlist.m3u8",type:"hls"},
 
-    {name:"(ED) wedo BIG stories",url:"https://amg00735-videosolutionsa-wedobigdocs-ono-0urlz.amagi.tv/playlist/amg00735-videosolutionsa-wedobigdocs-ono/playlist.m3u8",type:"hls"},
-    {name:"(ED) CGTN Documentary",url:"https://english-livebkali.cgtn.com/live/doccgtn.m3u8",type:"hls"},
-    {name:"(ED) CGTN Documentary",url:"https://amg00405-rakutentv-cgtndocumentary-rakuten-0ql8j.amagi.tv/master.m3u8",type:"hls"},
-    {name:"(ED) CGTN",url:"https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8",type:"hls"},
-    {name:"(ED) Arirang TV World",url:"https://amdlive-ch01-ctnd-com.akamaized.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8",type:"hls"},
-    {name:"(ED) NHK World-Japan",url:"https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8",type:"hls"},
-    {name:"(ED) DW English",url:"https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8",type:"hls"},
-    {name:"(ED) France 24",url:"https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master_5000.m3u8",type:"hls"},
-    {name:"(ED) ERT Cosmos",url:"https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8",type:"hls"},
-    {name:"(ED) Silk Way",url:"https://ikomg-static-content.akamaized.net/players/kazakh/index.html",type:"iframe"},
-    {name:"(ED) Wild TV (Kanada)",url:"https://dfhsahpa45kk2.cloudfront.net/scheduler/scheduleMaster/476.m3u8",type:"hls"},
-    {name:"(ED) Al Jazeera English",url:"https://dash4.antik.sk/live/test_aljazeera_eng/playlist.m3u8",type:"hls"},
-    {name:"(ED) Sports First TV",url:"https://d4ddgdmj1cvnm.cloudfront.net/scheduler/scheduleMaster/409.m3u8",type:"hls"},
-    {name:"(ED) DocuBay TV",url:"https://cc-mgr91yrk4pehy.akamaized.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-mgr91yrk4pehy/playlist.m3u8",type:"hls"},
-    {name:"(ED) WildEarth",url:"https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8",type:"hls"},
-    {name:"(ED) Documentary+ International",url:"https://1d153317c8db4250b3789601274e2402.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-887-DOCUMENTARYINTERNATIONAL-DOCUMENTARYPLUS/mt/documentaryplus/887/hls/master/playlist.m3u8",type:"hls"},
-    {name:"(ED) Documentary+",url:"https://ef79b15c8c7c46c7a9de9d33001dbd07.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-859-DOCUMENTARYPLUS-DOCUMENTARYPLUS/mt/documentaryplus/859/hls/master/playlist.m3u8",type:"hls"},
-    {name:"(ED) WaterBear",url:"https://amg01415-waterbearnetwor-waterbear-samsunguk-1h0y8.amagi.tv/playlist/amg01415-waterbearnetwor-waterbear-samsunguk/playlist.m3u8",type:"hls"},
-    {name:"(ED) China Travel",url:"https://amg01314-amg01314c7-distrotv-us-10219.playouts.now.amagi.tv/playlist/amg01314-cgtn-cgtnchinatravel-distrotvus/playlist.m3u8",type:"hls"},
-    {name:"(ED) Discovering China",url:"https://amg01314-amg01314c8-distrotv-us-10218.playouts.now.amagi.tv/playlist/amg01314-cgtn-cgtndiscoveringchina-distrotvus/playlist.m3u8",type:"hls"},
-    {name:"(ED) Dateline 24/7",url:"https://dz59iptwz5rxs.cloudfront.net/live/master.m3u8",type:"hls"},
-    {name:"(ED) Travelxp",url:"https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8",type:"hls"},
-    {name:"(ED) AP TV Ghana",url:"https://59nyqg8elwap-hls-live.5centscdn.com/APTV/85c20905211659d143febd7c32592ee0.sdp/playlist.m3u8",type:"hls"},
-    {name:"(ED) TeleSUR English eng",url:"aMUIOgHCrf0",type:"youtube"},
-    {name:"(ED) Outdoor Channel",url:"https://amg00718-outdoorchannela-outdoortvnz-samsungnz-lylq4.amagi.tv/playlist/amg00718-outdoorchannela-outdoortvnz-samsungnz/playlist.m3u8",type:"hls"},
-    {name:"(ED) TVRI World",url:"https://ott-balancer.tvri.go.id/live/eds/TVRIWorld/hls/TVRIWorld.m3u8",type:"hls"},
-    {name:"(ED) Persiana Travel",url:"https://ptravelhls.persiana.live/hls/stream.m3u8",type:"hls"},
-    {name:"(EF) iFilm English",url:"https://live.presstv.co.uk/hls/ifilmen_4_482/index.m3u8",type:"hls"},
-    {name:"(EF) AVA Family",url:"https://familyhls.avatv.live/hls/stream.m3u8",type:"hls"},
-    {name:"(EF) AVA Series",url:"https://avaserieshls.wns.live/hls/stream.m3u8",type:"hls"},
+    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio", backgroundAudio: true},
+    {name: "POLONIA", url: "https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8", type: "hls"},
+    {name: "TVP Info", url: "https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8", type: "hls"},
+    {name: "wPolsce 24", url: "https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8", type: "hls"},
+    {name: "REPUBLIKA", url: "dzntyCTgJMQ", type: "youtube"},
+    {name: "TRWAM", url: "https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd", type: "dash"},
+    {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8", type: "hls"},
+    {name: "LUBELSKA TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
+    {name: "TV KUJAWY", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
+    {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8", type: "hls"},
+    {name: "Grjngo Westerny", url: "https://b6c7c7d1020a4588982ca7c2625f85d1.mediatailor.us-east-1.amazonaws.com/v1/master/0fb304b2320b25f067414d481a779b77db81760d/RakutenTV-eu_GrjngoWesterny/playlist.m3u8", type: "hls"},
+    {name: "RED CARPET", url: "https://fast-rakuten.okast.tv/fa2e8c4385712f9a9076eaf728c751de/channels/1a6ecfaa-40c6-41b8-8634-595c424f856e/21f67fd1-4d21-43ba-8ad8-3afac9982c25/master.m3u8", type: "hls"},
+    {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},    
+    {name: "Royalworld", url: "https://ac76260b1102416c93f3d20958bfeb4b.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-pl_Royalworld/playlist.m3u8", type: "hls"},    
+    {name: "VIASAT EXPLORE", url: "https://da9c49fa.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLXBsX1ZpYXNhdEV4cGxvcmVfSExT/playlist.m3u8", type: "hls"},
+    
+    
+{name: "(ED) wedo BIG stories", url: "https://amg00735-videosolutionsa-wedobigdocs-ono-0urlz.amagi.tv/playlist/amg00735-videosolutionsa-wedobigdocs-ono/playlist.m3u8", type: "hls"},
+{name: "(ED) CGTN Documentary", url: "https://english-livebkali.cgtn.com/live/doccgtn.m3u8", type: "hls"},
+{name: "(ED) CGTN Documentary", url: "https://amg00405-rakutentv-cgtndocumentary-rakuten-0ql8j.amagi.tv/master.m3u8", type: "hls"},
+{name: "(ED) CGTN", url: "https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8", type: "hls"},
+{name: "(ED) Arirang TV World", url: "https://amdlive-ch01-ctnd-com.akamaized.net/arirang_1ch/smil:arirang_1ch.smil/playlist.m3u8", type: "hls"},
+{name: "(ED) NHK World-Japan", url: "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8", type: "hls"},
+{name: "(ED) DW English", url: "https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8", type: "hls"},
+{name: "(ED) France 24", url: "https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master_5000.m3u8", type: "hls"},
+{name: "(ED) ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"},
+{name: "(ED) Silk Way", url: "https://ikomg-static-content.akamaized.net/players/kazakh/index.html", type: "iframe"},
+{name: "(ED) Wild TV (Kanada)", url: "https://dfhsahpa45kk2.cloudfront.net/scheduler/scheduleMaster/476.m3u8", type: "hls"},
+{name: "(ED) Al Jazeera English", url: "https://dash4.antik.sk/live/test_aljazeera_eng/playlist.m3u8", type: "hls"},
+{name: "(ED) Sports First TV", url: "https://d4ddgdmj1cvnm.cloudfront.net/scheduler/scheduleMaster/409.m3u8", type: "hls"},
+{name: "(ED) DocuBay TV", url: "https://cc-mgr91yrk4pehy.akamaized.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-mgr91yrk4pehy/playlist.m3u8", type: "hls"},
+{name: "(ED) WildEarth", url: "https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8", type: "hls"},
+{name: "(ED) Documentary+ International", url: "https://1d153317c8db4250b3789601274e2402.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-887-DOCUMENTARYINTERNATIONAL-DOCUMENTARYPLUS/mt/documentaryplus/887/hls/master/playlist.m3u8", type: "hls"},
+{name: "(ED) Documentary+", url: "https://ef79b15c8c7c46c7a9de9d33001dbd07.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-859-DOCUMENTARYPLUS-DOCUMENTARYPLUS/mt/documentaryplus/859/hls/master/playlist.m3u8", type: "hls"},
+{name: "(ED) WaterBear", url: "https://amg01415-waterbearnetwor-waterbear-samsunguk-1h0y8.amagi.tv/playlist/amg01415-waterbearnetwor-waterbear-samsunguk/playlist.m3u8", type: "hls"},
+{name: "(ED) China Travel", url: "https://amg01314-amg01314c7-distrotv-us-10219.playouts.now.amagi.tv/playlist/amg01314-cgtn-cgtnchinatravel-distrotvus/playlist.m3u8", type: "hls"},
+{name: "(ED) Discovering China", url: "https://amg01314-amg01314c8-distrotv-us-10218.playouts.now.amagi.tv/playlist/amg01314-cgtn-cgtndiscoveringchina-distrotvus/playlist.m3u8", type: "hls"},
+{name: "(ED) Dateline 24/7", url: "https://dz59iptwz5rxs.cloudfront.net/live/master.m3u8", type: "hls"},
+{name: "(ED) Travelxp", url: "https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8", type: "hls"},
+{name: "(ED) AP TV Ghana", url: "https://59nyqg8elwap-hls-live.5centscdn.com/APTV/85c20905211659d143febd7c32592ee0.sdp/playlist.m3u8", type: "hls"},
+{name: "(ED) TeleSUR English eng", url: "aMUIOgHCrf0", type: "youtube"},
+{name: "(ED) Outdoor Channel", url: "https://amg00718-outdoorchannela-outdoortvnz-samsungnz-lylq4.amagi.tv/playlist/amg00718-outdoorchannela-outdoortvnz-samsungnz/playlist.m3u8", type: "hls"},
+{name: "(ED) TVRI World", url: "https://ott-balancer.tvri.go.id/live/eds/TVRIWorld/hls/TVRIWorld.m3u8", type: "hls"},
+{name: "(ED) Persiana Travel", url: "https://ptravelhls.persiana.live/hls/stream.m3u8", type: "hls"},
+{name: "(EF) iFilm English", url: "https://live.presstv.co.uk/hls/ifilmen_4_482/index.m3u8", type: "hls"},
+{name: "(EF) AVA Family", url: "https://familyhls.avatv.live/hls/stream.m3u8", type: "hls"},
+{name: "(EF) AVA Series", url: "https://avaserieshls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "(EI) GB News HD", url: "https://live-gbnews.simplestreamcdn.com/live5/gbnews/bitrate1.isml/manifest.m3u8", type: "hls"},
+{name: "(EI) TRT World", url: "https://tv-trtworld.medya.trt.com.tr/master.m3u8", type: "hls"},
+{name: "(EI) BBC News HD", url: "https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/mobile_wifi_main_hd_abr_v2.m3u8", type: "hls"},
+{name: "(EI) ABC News", url: "https://abc-news-dmd-streams-1.akamaized.net/out/v1/701126012d044971b3fa89406a440133/index.m3u8", type: "hls"},
+{name: "(EI) WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},
+{name: "(EI) Africanews English", url: "https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8", type: "hls"},
+{name: "(EI) TVC News", url: "b-Yzp0l8cAM", type: "youtube"},
+{name: "(EI) Russia Today", url: "https://wisewatchoott.wiseplayout.com/RT/master.m3u8", type: "hls"},
+{name: "(EI) AnewZ", url: "FyRcKWhNrPg", type: "youtube"},
+{name: "(EI) EURONEWS", url: "pykpO5kQJ98", type: "youtube"},
+{name: "(EI) TVP World", url: "https://dash2.antik.sk/live/test_tvp_world/playlist.m3u8", type: "hls"},
+{name: "(M) 4FUN TV", url: "https://stream.4fun.tv:8888/hls/4f_high/index.m3u8", type: "hls"},
+{name: "(M) Radio Kiss Kiss TV", url: "https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8", type: "hls"},
+{name: "(M) Radiofreccia HD", url: "https://streamcdnb1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8", type: "hls"},
+{name: "(M) RTL 102.5 Caliente", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/playlist_video.m3u8", type: "hls"},
+{name: "(M) Radio Norba TV", url: "https://stream12.xdevel.com/video0s975885-2349/stream/playlist_dvr.m3u8", type: "hls"},
+{name: "(M) Radio Norba TV", url: "https://router.xdevel.com/video0s975885-462/stream/playlist_dvr.m3u8", type: "hls"},
+{name: "(M) Radio ZETA TV", url: "https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S9346184/XEx1LqlYbNic/playlist_video.m3u8", type: "hls"},
+{name: "(M) RTL 102.5", url: "https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist_video.m3u8", type: "hls"},
+{name: "(M) City TV", url: "https://tv.city.bg/play/tshls/citytv/3.m3u8", type: "hls"},
+{name: "(M) NOW 90s & 00s", url: "https://amg01076-amg01076c19-rakuten-gb-8653.playouts.now.amagi.tv/playlist/amg01076-lightning-now90s00s-rakutengb/playlist.m3u8", type: "hls"},
+{name: "(M) Now 80´s", url: "https://lightning-now80s-samsunguk.amagi.tv/playlist.m3u8", type: "hls"},
+{name: "(M) Now 70's", url: "https://lightning-now70s-samsungnz.amagi.tv/playlist.m3u8", type: "hls"},
+{name: "(M) Now 70's", url: "https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8", type: "hls"},
+{name: "(M) NOW Rock", url: "https://lightning-now90s-samsungnz.amagi.tv/playlist.m3u8", type: "hls"},
+{name: "(M) DELUXE MUSIC", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8 ", type: "hls"},
+{name: "(M) DELUXE DANCE", url: "https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8", type: "hls"},
+{name: "(M) Magic TV Bulgaria", url: "https://bss1.neterra.tv/magictv/magictv.m3u8", type: "hls"},
+{name: "(M) Rock TV Romania", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb.m3u8", type: "hls"},
+{name: "(M) V2Beat", url: "https://de1se01.v2beat.live/playlist.m3u8", type: "hls"},
+{name: "(M) Kiss TV Romania", url: "https://tv.broadcasting.ro/kisstv/a629c031-2170-4ee9-a36d-87a891aa3131.m3u8", type: "hls"},
+{name: "(M) Magic TV Romania", url: "https://tv.broadcasting.ro/magictv/925f90db-5c88-4190-a53d-5163cdffe6f4.m3u8", type: "hls"},
+{name: "(M) Deejay TV", url: "https://streamcdnf34-4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/playlist.m3u8", type: "hls"},
+{name: "(M) Globo TV", url: "https://nrvideo1.newradio.it:1936/awrgaebshj/awrgaebshj/playlist.m3u8", type: "hls"},
+{name: "(M) Óčko Star", url: "https://ocko-live-dash.ssl.cdn.cra.cz/cra_live2/ocko_gold.stream.1.smil/master.m3u8", type: "hls"},
 
-    {name:"(EI) GB News HD",url:"https://live-gbnews.simplestreamcdn.com/live5/gbnews/bitrate1.isml/manifest.m3u8",type:"hls"},
-    {name:"(EI) TRT World",url:"https://tv-trtworld.medya.trt.com.tr/master.m3u8",type:"hls"},
-    {name:"(EI) BBC News HD",url:"https://vs-hls-push-ww-live.akamaized.net/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/mobile_wifi_main_hd_abr_v2.m3u8",type:"hls"},
-    {name:"(EI) ABC News",url:"https://abc-news-dmd-streams-1.akamaized.net/out/v1/701126012d044971b3fa89406a440133/index.m3u8",type:"hls"},
-    {name:"(EI) WION",url:"https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8",type:"hls"},
-    {name:"(EI) Africanews English",url:"https://cdn-euronews.akamaized.net/live/eds/africanews-en/25049/index.m3u8",type:"hls"},
-    {name:"(EI) TVC News",url:"b-Yzp0l8cAM",type:"youtube"},
-    {name:"(EI) Russia Today",url:"https://wisewatchoott.wiseplayout.com/RT/master.m3u8",type:"hls"},
-    {name:"(EI) AnewZ",url:"FyRcKWhNrPg",type:"youtube"},
-    {name:"(EI) EURONEWS",url:"pykpO5kQJ98",type:"youtube"},
-    {name:"(EI) TVP World",url:"https://dash2.antik.sk/live/test_tvp_world/playlist.m3u8",type:"hls"},
+    
+    {name: "TVP 1", url: "https://dlhd.st/watch/stream-560.php", type: "iframe-dlhd"},
+    {name: "TVP 2", url: "https://dlhd.st/watch/stream-561.php", type: "iframe-dlhd"},
+    {name: "POLSAT", url: "https://dlhd.st/watch/stream-562.php", type: "iframe-dlhd"},
+    {name: "TVN", url: "https://dlhd.st/watch/stream-565.php", type: "iframe-dlhd"},
+    {name: "TVN24", url: "https://dlhd.st/watch/stream-444.php", type: "iframe-dlhd"},
+    {name: "POLSAT NEWS", url: "https://dlhd.st/watch/stream-443.php", type: "iframe-dlhd"},
+    {name: "TVP SPORT", url: "https://dlhd.st/watch/stream-128.php", type: "iframe-dlhd"},
+    {name: "EUROSPORT 1", url: "https://dlhd.st/watch/stream-57.php", type: "iframe-dlhd"},
+    {name: "EUROSPORT 2", url: "https://dlhd.st/watch/stream-58.php", type: "iframe-dlhd"},
+    {name: "CANAL+ PREMIUM", url: "https://dlhd.st/watch/stream-566.php", type: "iframe-dlhd"},
+    {name: "HBO", url: "https://dlhd.st/watch/stream-569.php", type: "iframe-dlhd"},
+    {name: "POLSAT FILM", url: "https://dlhd.st/watch/stream-564.php", type: "iframe-dlhd"},
+    {name: "MOTOWIZJA", url: "https://dlhd.st/watch/stream-563.php", type: "iframe-dlhd"},
+    {name: "WP TV", url: "https://pilot.wp.pl/tv/#telewizja-wp-hd", type: "iframe"},
+    {name: "CZWÓRKA PR WIDEO", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},    
+    {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w1277744280_b5128000.m3u8", type: "hls"},
+    {name: "TVJ", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w431631781.m3u8", type: "hls"},
+    {name: "Telewizja Zabrze", url: "EVOt6OyHU9g", type: "youtube"},
+    {name: "TV DLA CIEBIE", url: "https://6034e09794f07.streamlock.net/tv/dlaCiebieTv/playlist.m3u8", type: "hls"},
+    {name: "SFERA TV", url: "https://stream.sferatv.pl/sferatvlive/live.m3u8", type: "hls"},
+    {name: "TV RELAX", url: "https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8.m3u8", type: "hls"},
+    {name: "IMPERIUM", url: "https://str10.imperiummedia.pl/TVIMPERIUM/tracks-v1a1/mono.m3u8", type: "hls"},    
+    {name: "REMONTY TV", url: "https://prx-y5cf8.4vod.tv/playout/repl-abr67/index.m3u8", type: "hls"},
 
-    {name:"(M) 4FUN TV",url:"https://stream.4fun.tv:8888/hls/4f_high/index.m3u8",type:"hls"},
-    {name:"(M) Radio Kiss Kiss TV",url:"https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/playlist.m3u8",type:"hls"},
-    {name:"(M) Radiofreccia HD",url:"https://streamcdnb1-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/playlist_video.m3u8",type:"hls"},
-    {name:"(M) RTL 102.5 Caliente",url:"https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/playlist_video.m3u8",type:"hls"},
-    {name:"(M) Radio Norba TV",url:"https://stream12.xdevel.com/video0s975885-2349/stream/playlist_dvr.m3u8",type:"hls"},
-    {name:"(M) Radio Norba TV alt",url:"https://router.xdevel.com/video0s975885-462/stream/playlist_dvr.m3u8",type:"hls"},
-    {name:"(M) Radio ZETA TV",url:"https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S9346184/XEx1LqlYbNic/playlist_video.m3u8",type:"hls"},
-    {name:"(M) RTL 102.5",url:"https://dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/playlist_video.m3u8",type:"hls"},
-    {name:"(M) City TV",url:"https://tv.city.bg/play/tshls/citytv/3.m3u8",type:"hls"},
-    {name:"(M) NOW 90s & 00s",url:"https://amg01076-amg01076c19-rakuten-gb-8653.playouts.now.amagi.tv/playlist/amg01076-lightning-now90s00s-rakutengb/playlist.m3u8",type:"hls"},
-    {name:"(M) Now 80´s",url:"https://lightning-now80s-samsunguk.amagi.tv/playlist.m3u8",type:"hls"},
-    {name:"(M) Now 70's",url:"https://lightning-now70s-samsungnz.amagi.tv/playlist.m3u8",type:"hls"},
-    {name:"(M) Now 70's alt",url:"https://lightning-now70s-rakuten.amagi.tv/hls/amagi_hls_data_rakutenAA-lightning-now70s-rakuten/CDN/playlist.m3u8",type:"hls"},
-    {name:"(M) NOW Rock",url:"https://lightning-now90s-samsungnz.amagi.tv/playlist.m3u8",type:"hls"},
-    {name:"(M) DELUXE MUSIC",url:"https://sdn-global-live-streaming-packager-cache.3qsdn.com/13456/13456_264_live.m3u8",type:"hls"},
-    {name:"(M) DELUXE DANCE",url:"https://sdn-global-live-streaming-packager-cache.3qsdn.com/64733/64733_264_live.m3u8",type:"hls"},
-    {name:"(M) Magic TV Bulgaria",url:"https://bss1.neterra.tv/magictv/magictv.m3u8",type:"hls"},
-    {name:"(M) Rock TV Romania",url:"https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb.m3u8",type:"hls"},
-    {name:"(M) V2Beat",url:"https://de1se01.v2beat.live/playlist.m3u8",type:"hls"},
-    {name:"(M) Kiss TV Romania",url:"https://tv.broadcasting.ro/kisstv/a629c031-2170-4ee9-a36d-87a891aa3131.m3u8",type:"hls"},
-    {name:"(M) Magic TV Romania",url:"https://tv.broadcasting.ro/magictv/925f90db-5c88-4190-a53d-5163cdffe6f4.m3u8",type:"hls"},
-    {name:"(M) Deejay TV",url:"https://streamcdnf34-4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/playlist_video.m3u8",type:"hls"},
-    {name:"(M) Globo TV",url:"https://nrvideo1.newradio.it:1936/awrgaebshj/awrgaebshj/playlist.m3u8",type:"hls"},
-    {name:"(M) Óčko Star",url:"https://ocko-live-dash.ssl.cdn.cra.cz/cra_live2/ocko_gold.stream.1.smil/master.m3u8",type:"hls"},
+    
+    {name: "Radio RAM", url: "https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "RADIO ZET", url: "https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx", type: "audio", backgroundAudio: true},
+    {name: "RMF FM", url: "https://rs9-krk2.rmfstream.pl/rmf_fm", type: "audio", backgroundAudio: true},
+    {name: "RMF MAXXX", url: "https://rs201-krk.rmfstream.pl/rmf_maxxx", type: "audio", backgroundAudio: true},
+    {name: "MELORADIO", url: "https://r.dcs.redcdn.pl/sc/o2/Eurozet/live/meloradio.livx?audio=5", type: "audio", backgroundAudio: true},
+    {name: "ESKA", url: "https://ic2.smcdn.pl/2570-1.mp3", type: "audio", backgroundAudio: true},
+    {name: "TOK FM", url: "https://stream51.radiostream.pl:443/tuba10-1.mp3", type: "audio", backgroundAudio: true},
+    {name: "RADIO 357", url: "https://stream.rcs.revma.com/ye5kghkgcm0uv", type: "audio", backgroundAudio: true},
+    {name: "NOWY SWIAT", url: "https://stream.rcs.revma.com/ypqt40u0x1zuv", type: "audio", backgroundAudio: true},
+    {name: "RDN NOWY SACZ", url: "https://stream1.dabcom.pl/rdn_ns", type: "audio", backgroundAudio: true},
+    {name: "CHILLI ZET", url: "https://n-4-1.dcs.redcdn.pl/sc/o2/Eurozet/live/chillizet.livx", type: "audio", backgroundAudio: true},
+    {name: "ZŁOTE PRZEBOJE", url: "https://radiostream.pl/tuba8922-1.mp3", type: "audio", backgroundAudio: true},
+    {name: "ANTYRADIO", url: "https://n-4-4.dcs.redcdn.pl/sc/o2/Eurozet/live/antyradio.livx", type: "audio", backgroundAudio: true},
+    {name: "ESKA2", url: "https://waw.ic.smcdn.pl/1290-1.mp3", type: "audio", backgroundAudio: true},
+    {name: "ESKA ROCK", url: "https://liveradio.timesa.pl/2330-2.aac/playlist.m3u8", type: "audio", backgroundAudio: true},
+    {name: "RMF  CLASSIC", url: "https://rs9-krk2.rmfstream.pl/RMFCLASSIC48", type: "audio", backgroundAudio: true},
 
-    {name:"TVP 1",url:"https://dlhd.st/watch/stream-560.php",type:"iframe-dlhd"},
-    {name:"TVP 2",url:"https://dlhd.st/watch/stream-561.php",type:"iframe-dlhd"},
-    {name:"POLSAT",url:"https://dlhd.st/watch/stream-562.php",type:"iframe-dlhd"},
-    {name:"TVN",url:"https://dlhd.st/watch/stream-565.php",type:"iframe-dlhd"},
-    {name:"TVN24",url:"https://dlhd.st/watch/stream-444.php",type:"iframe-dlhd"},
-    {name:"POLSAT NEWS",url:"https://dlhd.st/watch/stream-443.php",type:"iframe-dlhd"},
-    {name:"TVP SPORT",url:"https://dlhd.st/watch/stream-128.php",type:"iframe-dlhd"},
-    {name:"EUROSPORT 1",url:"https://dlhd.st/watch/stream-57.php",type:"iframe-dlhd"},
-    {name:"EUROSPORT 2",url:"https://dlhd.st/watch/stream-58.php",type:"iframe-dlhd"},
-    {name:"CANAL+ PREMIUM",url:"https://dlhd.st/watch/stream-566.php",type:"iframe-dlhd"},
-    {name:"HBO",url:"https://dlhd.st/watch/stream-569.php",type:"iframe-dlhd"},
-    {name:"POLSAT FILM",url:"https://dlhd.st/watch/stream-564.php",type:"iframe-dlhd"},
-    {name:"MOTOWIZJA",url:"https://dlhd.st/watch/stream-563.php",type:"iframe-dlhd"},
+{name: "Algieria - Echorouk News HD", url: "https://www.echoroukonline.com/live-news", type: "iframe"},
+{name: "Algieria - AL24 News", url: "https://cdn.live.easybroadcast.io/abr_corp/66_al24_u4yga6h/corp/66_al24_u4yga6h_240p/chunks.m3u8", type: "hls"},
+{name: "Algieria - Zahra TV", url: "https://live.al-zahratv.com/live/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Rotana Comedy HD", url: "https://rotana.hibridcdn.net/rotananet/comedy_net-7Y83PP5adWixDF93/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Rotana Drama HD", url: "https://rotana.hibridcdn.net/rotananet/drama_net-7Y83PP5adWixDF93/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Rotana Music HD", url: "https://rotana.hibridcdn.net/rotananet/music_net-7Y83PP5adWixDF93/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Ressala HD", url: "https://rotana.hibridcdn.net/rotananet/risala_net-7Y83PP5adWixDF93/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Rotana Clip HD", url: "https://rotana.hibridcdn.net/rotananet/clip_net-7Y83PP5adWixDF93/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Al Arabiya Business", url: "https://live.alarabiya.net/alarabiapublish/aswaaq.smil/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Thikrayat TV", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-thikrayat/8cfa8fe0c96275735745b89c683b27e3/index.m3u8", type: "hls"},
+{name: "Arabia S. - Saudia Alaan TV", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-ksa-now/71ed3aa814c643306c0a8bc4fcc7d17f/index.m3u8", type: "hls"},
+{name: "Arabia S. - MBC 5", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8", type: "hls"},
+{name: "Arabia S. - Al Hadath", url: "https://av.alarabiya.net/alarabiapublish/alhadath.smil/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - Asharq News Channel", url: "https://live-news.asharq.com/asharq.m3u8", type: "hls"},
+{name: "Arabia S. - Asharq Documentary", url: "https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8", type: "hls"},
+{name: "Arabia S. - Asharq Discovery", url: "https://svs.itworkscdn.net/asharqdiscoverylive/asharqd.smil/playlist_dvr.m3u8", type: "hls"},
+{name: "Arabia S. - Al Arabiya", url: "https://live.alarabiya.net/alarabiapublish/alarabiya.smil/playlist.m3u8", type: "hls"},
+{name: "Arabia S. - MBC Drama", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-drama/2c28a458e2f3253e678b07ac7d13fe71/index.m3u8", type: "hls"},
+{name: "Arabia S. - MBC 4", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-4/24f134f1cd63db9346439e96b86ca6ed/index.m3u8", type: "hls"},
+{name: "Arabia S. - MBC 3", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-3-usa/5d58265a862a476dc7f97694addb5ded/index.m3u8", type: "hls"},
+{name: "Arabia S. - MBC Persia HD", url: "https://hls.mbcpersia.live/hls/stream.m3u8", type: "hls"},
+{name: "Arabia S. - MBC Persia HD", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-persia/818ee8e4b592dc497608f066d825bfb4/index.m3u8", type: "hls"},
+{name: "Bahrajn - Lualua TV", url: "https://vimeo.com/event/1117458/embed", type: "iframe"},
+{name: "Białoruś - Belarus 24 HD", url: "https://edge50.dc.beltelecom.by/ngtrk/smil:belarus24.smil/playlist.m3u8", type: "hls"},
+{name: "Bośnia i Hercegowina - BN TV HD", url: "https://stream2.rtvbn.tv:8080/live_1935/bnstream/index.m3u8", type: "hls"},
+{name: "Bułgaria - Nova TV", url: "https://nova.bg/live/news", type: "iframe"},
+{name: "Burkina Faso - RTB Télévision", url: "https://www.rtb.bf/television-en-direct/", type: "iframe"},
+{name: "Chorwacja - HRT 4", url: "https://bpcdnmanprod.nexttv.ht.hr/bpk-tv/HRT4/default/index.mpd", type: "dash"},
+{name: "Czechy - ČT24 HD", url: "https://dash2.antik.sk/live/ct24_avc_25p/playlist.m3u8", type: "hls"},
+{name: "Egipt - Al Ghad HD", url: "https://eazyvwqssi.erbvr.com/alghadtv/alghadtv.m3u8", type: "hls"},
+{name: "Francja - BFM TV HD", url: "https://abg3-xdn-edge-live01.pfd.sfr.net/bfm-ncdn-live-premium-pal1.pfd.sfr.net/sid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpcCI6IjM3LjQ3LjEwNC4yMzUiLCJzdWIiOiJCRk1fVFYiLCJleHAiOjE3ODg1OTA2NTQsImlzcyI6Im1pdDEtY2RuLXNyMDAiLCJqdGkiOiIwMG8ycGdqZDMxbjdzZzY5aXI3ZyIsImlhdCI6MTc4ODU0NzQ1NH0.cjcp3GCZbw_HM-DlI9-qzyc3ra1hUkcp10FxLhCHBqs/shls/LIVE$BFM_TV/index.m3u8?start=LIVE&end=END", type: "hls"},
+{name: "Francja - BFM TV HD", url: "https://www.bfmtv.com/en-direct/", type: "iframe"},
+{name: "Francja - CNews HD", url: "https://hls-m015-live-aka-canalplus.akamaized.net/live/disk/cnews-clair-hd/hls-v3-hd-clair/cnews-clair-hd.m3u8", type: "hls"},
+{name: "Francja - L´Equipe 21", url: "https://dq37unyetkpcz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-m04j89j7k5gtp/LEquipe_FR.m3u8", type: "hls"},
+{name: "Francja - RMC Life", url: "https://d3dcdjv6dx07iz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-eaaww2dyp3iih/RMC_Life_FR.m3u8", type: "hls"},
+{name: "Francja - RMC Découverte", url: "https://d16zzycxcd0m0r.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-hixvx5kymecr9/RMC_Decouverte_FR.m3u8", type: "hls"},
+{name: "Francja - RMC Story", url: "https://d15aro46bnpfm8.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-fqkqiax1078up/RMC_Story_FR.m3u8", type: "hls"},
+{name: "Francja - M6 HD", url: "http://99.27.51.147:8080/M6/index.m3u8", type: "hls"},
+{name: "Francja - TF 1", url: "http://151.80.18.177:86/TF1_HD/index.m3u8", type: "hls"},
+{name: "Francja - TMC HD", url: "http://151.80.18.177:86/TMC/index.m3u8", type: "hls"},
+{name: "Francja - France 3 Sat HD", url: "http://5.180.164.197:8080/FRANCE3/index.m3u8", type: "hls"},
+{name: "Francja - TV5MONDE Europe", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/TV5/default/index.m3u8", type: "hls"},
+{name: "Grecja - Kanali Voulis HD", url: "https://diavlos-cache.cnt.grnet.gr/parltv/webtv-1b.sdp/playlist.m3u8", type: "hls"},
+{name: "Hiszpania - Television Castilla - La Mancha HD", url: "https://cdnapisec.kaltura.com/p/2288691/sp/228869100/playManifest/entryId/1_gnz6ity9/protocol/https/format/applehttp/a.m3u8", type: "hls"},
+{name: "Hiszpania - NorteVision", url: "http://amaru.dyndns.org:8870/0.m3u8", type: "hls"},
+{name: "Indie - Aastha TV International", url: "https://aasthaott.akamaized.net/110923/smil:aasthatv.smil/index.m3u8", type: "hls"},
+{name: "Indie - Pitaara", url: "https://mumt04.tangotv.in/m18aqlK4PITAARA/index.m3u8", type: "hls"},
+{name: "Indie - NDTV 24x7", url: "https://ndtv24x7elemarchana.akamaized.net/hls/live/2003678/ndtv24x7/master.m3u8", type: "hls"},
+{name: "Irak - Dijlah HD", url: "https://ghaasiflu.online/Dijlah/tracks-v1a1/playlist.m3u8", type: "hls"},
+{name: "Irak - Karbala Documentary", url: "https://ktvlive.online/stream/hls/ch3.m3u8", type: "hls"},
+{name: "Irak - Kirkuk TV", url: "https://live.kirkuklive.live/hls/stream/index.m3u8", type: "hls"},
+{name: "Irak - Rudaw TV", url: "https://live.rudaw.net/hls/rudaw-tv/master.m3u8", type: "hls"},
+{name: "Irak - Channel 8 Kurdish", url: "https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8", type: "hls"},
+{name: "Irak - Kurdistan TV HD", url: "https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/playlist.m3u8", type: "hls"},
+{name: "Irak - Kurdistan 24 HD", url: "https://hlspackager.akamaized.net/live/DB/K24/HLS/K24.m3u8", type: "hls"},
+{name: "Irak - AVA TV HD", url: "https://ava2.store/upload/ava.m3u8", type: "hls"},
+{name: "Irak - TRT Kurdi", url: "https://tv-trtkurdi.medya.trt.com.tr/master.m3u8", type: "hls"},
+{name: "Irak - Payam HD", url: "https://media2.streambrothers.com:1936/8218/8218/playlist.m3u8", type: "hls"},
+{name: "Irak - Bangawaz", url: "http://bangawaztv.ddns.net:40/live/bangawaztv/playlist.m3u8", type: "hls"},
+{name: "Iran - Hamoon TV", url: "https://live-aburayhan1104.telewebion.ir/ek/hamoon/live/1080p/index.m3u8", type: "hls"},
+{name: "Iran - Iran TV Network", url: "https://itnhls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "Iran - FX 1 MOVIES", url: "https://fxtvhls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "Iran - Iran Wire", url: "https://iranwire.wns.live", type: "iframe"},
+{name: "Iran - DEJ TV", url: "https://rdejhls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "Iran - Setareh TV", url: "https://setarehhls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "Iran - Persiana HD", url: "https://euhls.persiana.live/hls/stream.m3u8", type: "hls"},
+{name: "Iran - 4U TV Iranian", url: "https://hls.4utv.live/hls/stream.m3u8", type: "hls"},
+{name: "Iran - VOA Persian HD", url: "https://voa-ingest.akamaized.net/hls/live/2033876/tvmc07/playlist.m3u8", type: "hls"},
+{name: "Iran - Al Shams Satellite Channel", url: "https://stream.shams.tv/hls/stream.m3u8", type: "hls"},
+{name: "Jemen - Yemen Today", url: "https://video.yementdy.com/hls/yementoday.m3u8", type: "hls"},
+{name: "Jemen - Almahriah HD", url: "https://starmenajo.com/hls/almahriah/index.m3u8", type: "hls"},
+{name: "Katar - Al Jazeera 2 HD", url: "https://live-hls-apps-aja2-gcp.thehlive.com/AJA2/01.m3u8", type: "hls"},
+{name: "Kosowo - RTK 1 Sat", url: "https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/rtk-sat/index.m3u8", type: "hls"},
+{name: "Liban - MTV Lebanon HD", url: "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mtv-lebanon/b8ebb2a5affb812f1541712adde10e26/index.m3u8", type: "hls"},
+{name: "Liban - ONE", url: "https://hms.pfs.gdn/v1/broadcast/one/playlist.m3u8", type: "hls"},
+{name: "Litwa - LRT TELEVIZIJA", url: "https://www.lrt.lt/mediateka/tiesiogiai/lrt-televizija", type: "iframe"},
+{name: "Litwa - LRT Plius", url: "https://www.lrt.lt/mediateka/tiesiogiai/lrt-plius", type: "iframe"},
+{name: "Litwa - LRT Lituanica", url: "https://www.lrt.lt/mediateka/tiesiogiai/lrt-lituanica", type: "iframe"},
+{name: "Maroko - Medi 1 TV Inter HD", url: "https://cdn.live.easybroadcast.io/abr_corp/83_medi1tv-arabic_g90v4ec/playlist.m3u8", type: "hls"},
+{name: "Niemcy - Arte HD", url: "https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8", type: "hls"},
+{name: "Niemcy - wedotv Movies", url: "https://watch4movies-samsunguk.amagi.tv/playlist.m3u8", type: "hls"},
+{name: "Niger - Télé Sahel", url: "https://rtn.ne/direct.php", type: "iframe"},
+{name: "Norwegia - Bedehuskanalen", url: "https://tv.bedehuskanalen.no/direkte/events/direkte", type: "iframe"},
+{name: "Palestyna - Falestinona TV", url: "https://ffs3.gulfsat.com/Falestinona-TV/index.fmp4.m3u8", type: "hls"},
+{name: "Portugalia - RTP International", url: "https://streaming-live.rtp.pt/liverepeater/smil:rtpi.smil/playlist.m3u8", type: "hls"},
+{name: "Portugalia - Kuriakos TV HD", url: "https://w1.manasat.com/ktv/smil:ktv.smil/playlist.m3u8", type: "hls"},
+{name: "Rosja - Euronews Russian", url: "lwYzwdBiaho", type: "youtube"},
+{name: "Rosja - Perviy Kanal", url: "https://stream8.cinerama.uz/1214/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "Rosja - RTR Planeta", url: "https://streaming.televizor24.cc/live/211.m3u8", type: "hls"},
+{name: "Rumunia - TVR 3", url: "https://tvr-3.lg.mncdn.com/tvr3/smil:tvr3.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Rumunia - TVR Moldova", url: "https://tvr-moldova.lg.mncdn.com/tvrmoldova/smil:tvrmoldova.smil/playlist.m3u8", type: "hls"},
+{name: "Rumunia - TV Romania International", url: "https://tvr-international.lg.mncdn.com/tvrinternational/smil:tvrinternational.smil/playlist.m3u8", type: "hls"},
+{name: "Rumunia - TVR Cluj", url: "https://tvr-cluj.lg.mncdn.com/tvrcluj/smil:tvrcluj.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Rumunia - TVR Iasi", url: "https://tvr-iasi.lg.mncdn.com/tvriasi/smil:tvriasi.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Rumunia - TVR 1 HD", url: "https://tvr-1.lg.mncdn.com/tvr1/smil:tvr1.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Rumunia - TVR 2 HD", url: "https://tvr-2.lg.mncdn.com/tvr2/smil:tvr2.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Rumunia - TVR Cultural", url: "https://tvr-cultural.lg.mncdn.com/tvrcultural/smil:tvrcultural.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Rumunia - TVR Info", url: "https://tvr-info.lg.mncdn.com/tvrinfo/smil:tvrinfo.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "Serbia - RTS Svet HD", url: "https://webtvstream.bhtelecom.ba/rts_svet.m3u8", type: "hls"},
+{name: "Serbia - Kurir TV", url: "https://static.am.mediaoutcast.com/storage/nQJnjJkO/nQJnjJkO/stream/O68x4o8g/720p/720p.m3u8", type: "hls"},
+{name: "Serbia - Nova S HD", url: "https://best-str.umn.cdn.united.cloud/stream?stream=hp7000&sp=novas&channel=novashd&u=novas&p=n0v43%2123t001&player=m3u8", type: "hls"},
+{name: "Serbia - N1 Serbia HD", url: "https://n1-bg-ku-r1-2.umn.cdn.united.cloud/stream/?i=EtvxNZsR6lMoDaOR0IHgOA&a=c7UhCXYpPdzyNGZ1NV_HozkwjxFZGBNTnI2KmyR20S-yv-48HQKOm-TaeVe5UeFxQSzF0HSfKxIrkAAHVaKWI6w9NtrcjpQDXU5PJzcMZ2mPghPg6xIPazsdb1JThNCNuR-EIi2O5gtqY9NkqJWMgRWYXHzz5xkbAYOMEiYZcfgTvHkcPqqwHt6aM6ePD63OA2vQ3hnSWoNNjUBSKh6P5dWVADkfd1gPqXI9EK8cIgwlBYCZAvxt0SNn-YUietIL&sp=n1info&u=n1info&player=m3u8", type: "hls"},
+{name: "Słowacja - RTVS 24 HD", url: "http://88.212.15.19/live/test_trojka_25p/playlist.m3u8", type: "hls"},
+{name: "Słowacja - TV Lux HD", url: "https://stream.tvlux.sk/luxtv/luxtv-livestream/chunklist_w617812057.m3u8", type: "hls"},
+{name: "Słowenia - Nova 24 TV", url: "X6OdTtTszec", type: "youtube"},
+{name: "Słowenia - Adria Music Television HD", url: "https://adriaapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
+{name: "Syria - Syria TV HD", url: "https://svs.itworkscdn.net/syriatvlive/syriatv.smil/playlist_dvr.m3u8", type: "hls"},
+{name: "Szwecja - Vision Sverige", url: "https://www.lightcast.com/embed/player.php?id=26014&type=live", type: "iframe"},
+{name: "Turcja - Haber Global HD", url: "https://tv.ensonhaber.com/haberglobal/haberglobal.m3u8", type: "hls"},
+{name: "Ukraina - Espreso TV HD", url: "ScdUZNkwcYc", type: "youtube"},
+{name: "Ukraina - TET", url: "https://iptv.prosto.tv/id11/video.m3u8", type: "hls"},
+{name: "Ukraina - Bigudi TV", url: "http://stream.mcquack.net/340/index.m3u8", type: "hls"},
+{name: "Ukraina - 2+2", url: "http://stream.mcquack.net/173/index.m3u8", type: "hls"},
+{name: "Ukraina - 24 Kanal", url: "http://streamvideol1.luxnet.ua/news24/livenews_720p/index.m3u8", type: "hls"},
+{name: "Ukraina - Army TV", url: "m_H8IGqXxcs", type: "youtube"},
+{name: "Ukraina - We-Ukraine+", url: "http://stream.mcquack.net/442/index.m3u8", type: "hls"},
+{name: "Ukraina - Tviy Serial", url: "http://gr.seetv.cc/play/23/1966B8DE7EC6FEE/video.m3u8", type: "hls"},
+{name: "Ukraina - TV Kiev", url: "https://tv.kyiv24.news/live", type: "iframe"},
+{name: "W.K.S. - RTI1", url: "https://www.rtiplay.ci/rti1/direct", type: "iframe"},
+{name: "W.K.S. - RTI2", url: "https://www.rtiplay.ci/rti2/direct", type: "iframe"},
+{name: "W.K.S. - LA3", url: "https://www.rtiplay.ci/la3/direct", type: "iframe"},
+{name: "Węgry - Duna World HD", url: "http://88.212.15.19/live/duna_world_hun/index.m3u8", type: "hls"},
+{name: "Węgry - M1", url: "https://mediaklikk.hu/m1", type: "iframe"},
+{name: "Węgry - M2", url: "https://mediaklikk.hu/m2", type: "iframe"},
+{name: "Węgry - Duna", url: "https://mediaklikk.hu/duna", type: "iframe"},
+{name: "Węgry - M5", url: "https://mediaklikk.hu/m5/", type: "iframe"},
+{name: "Węgry - Duna World", url: "https://mediaklikk.hu/dunaworld", type: "iframe"},
+{name: "Włochy - La 7 HD", url: "https://d1chghleocc9sm.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-evfku205gqrtf/Live.m3u8", type: "hls"},
+{name: "Włochy - TMC", url: "https://stream10.xdevel.com/video17s975955-2173/stream/playlist.m3u8", type: "hls"},
+{name: "Włochy - Super TV Italia", url: "https://59d7d6f47d7fc.streamlock.net/supertv/supertv/playlist.m3u8", type: "hls"},
+{name: "Włochy - Telecolor", url: "https://antennasicilialive.cdn.netrw.it/antennasicilialive/hls/ccr/telecolor/master.m3u8", type: "hls"},
+{name: "Włochy - Canale 10", url: "https://nrvideo1.newradio.it:1936/desxcerbht/desxcerbht/playlist.m3u8", type: "hls"},
+{name: "Włochy - Canale 50", url: "https://load-balancer.azotosolutions.com/cdnedge37/canale50/playlist.m3u8", type: "hls"},
+{name: "Włochy - GRP TV", url: "https://webstream.multistream.it/memfs/a3195c96-f884-4c74-924f-2648814fc0b5.m3u8", type: "hls"},
+{name: "Włochy - VCO Azzurra TV", url: "https://wb.top-ix.org/redirect/avtvlive/azzurra/streaming?type=cdn_m3u8", type: "hls"},
+{name: "Włochy - Onda Novara TV", url: "https://585b674743bbb.streamlock.net/9006/9006/master.m3u8", type: "hls"},
+{name: "Włochy - Giallo", url: "https://streaming.aurora.enhanced.live/live/mpc/enl0eG1mLmVncmVzcy5mZDJ2eHI=/out/v1/IT_SIMULCAST/GIALLO/CMAF/index.m3u8", type: "hls"},
+{name: "Włochy - DMAX Italia", url: "https://streaming.aurora.enhanced.live/live/mpc/enl0eG1mLmVncmVzcy5mZDJ2eHI=/out/v1/IT_SIMULCAST/DMAX/CMAF/index.m3u8", type: "hls"},
+{name: "Włochy - Sport Italia", url: "https://edge-001.streamup.eu/sportitalia/sihd_abr/playlist.m3u8", type: "hls"},
+{name: "Włochy - LaC TV Calabria", url: "https://streamcdnf47-f5842579ff984c1c98d63b8d789673eb.msvdn.net/live/S47282891/JWjL3xqPf4bX/playlist.m3u8", type: "hls"},
+{name: "Włochy - L'altro corriere", url: "https://52ee6512fee4427889eba89957975fa0.msvdn.net/live/S24350460/BEj8ZmQiQ9UG/playlist.m3u8", type: "hls"},
+{name: "Włochy - Rete 8", url: "https://64b16f23efbee.streamlock.net/rete8/rete8/playlist.m3u8", type: "hls"},
+{name: "Włochy - Telemolise", url: "http://185.202.128.1:1935/TelemoliseStream/telemoliseTV.stream/playlist.m3u8", type: "hls"},
+{name: "Włochy - Super J", url: "https://59d39900ebfb8.streamlock.net/SuperJtv/SuperJtv/playlist.m3u8", type: "hls"}
 
-    {name:"WP TV",url:"https://pilot.wp.pl/tv/#telewizja-wp-hd",type:"iframe"},
-    {name:"CZWÓRKA PR WIDEO",url:"https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8",type:"hls"},
-    {name:"TV ASTA",url:"https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w1277744280_b5128000.m3u8",type:"hls"},
-    {name:"TVJ",url:"https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w431631781.m3u8",type:"hls"},
-    {name:"Telewizja Zabrze",url:"EVOt6OyHU9g",type:"youtube"},
-    {name:"TV DLA CIEBIE",url:"https://6034e09794f07.streamlock.net/tv/dlaCiebieTv/playlist.m3u8",type:"hls"},
-    {name:"SFERA TV",url:"https://stream.sferatv.pl/sferatvlive/live.m3u8",type:"hls"},
-    {name:"TV RELAX",url:"https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8.m3u8",type:"hls"},
-    {name:"IMPERIUM",url:"https://str10.imperiummedia.pl/TVIMPERIUM/tracks-v1a1/mono.m3u8",type:"hls"},
-    {name:"REMONTY TV",url:"https://prx-y5cf8.4vod.tv/playout/repl-abr67/index.m3u8",type:"hls"},
-
-    {name:"Radio RAM",url:"https://1888165924.rsc.cdn77.org/live/RadioRAM/playlist.m3u8",type:"hls",backgroundAudio:true},
-    {name:"RADIO ZET",url:"https://n-4-6.dcs.redcdn.pl/sc/o2/Eurozet/live/audio.livx",type:"audio",backgroundAudio:true},
-    {name:"RMF FM",url:"https://rs9-krk2.rmfstream.pl/rmf_fm",type:"audio",backgroundAudio:true},
-    {name:"RMF MAXXX",url:"https://rs201-krk.rmfstream.pl/rmf_maxxx",type:"audio",backgroundAudio:true},
-    {name:"MELORADIO",url:"https://r.dcs.redcdn.pl/sc/o2/Eurozet/live/meloradio.livx?audio=5",type:"audio",backgroundAudio:true},
-    {name:"ESKA",url:"https://ic2.smcdn.pl/2570-1.mp3",type:"audio",backgroundAudio:true},
-    {name:"TOK FM",url:"https://stream51.radiostream.pl:443/tuba10-1.mp3",type:"audio",backgroundAudio:true},
-    {name:"RADIO 357",url:"https://stream.rcs.revma.com/ye5kghkgcm0uv",type:"audio",backgroundAudio:true},
-    {name:"NOWY SWIAT",url:"https://stream.rcs.revma.com/ypqt40u0x1zuv",type:"audio",backgroundAudio:true},
-    {name:"RDN NOWY SACZ",url:"https://stream1.dabcom.pl/rdn_ns",type:"audio",backgroundAudio:true},
-    {name:"CHILLI ZET",url:"https://n-4-1.dcs.redcdn.pl/sc/o2/Eurozet/live/chillizet.livx",type:"audio",backgroundAudio:true},
-    {name:"ZŁOTE PRZEBOJE",url:"https://radiostream.pl/tuba8922-1.mp3",type:"audio",backgroundAudio:true},
-    {name:"ANTYRADIO",url:"https://n-4-4.dcs.redcdn.pl/sc/o2/Eurozet/live/antyradio.livx",type:"audio",backgroundAudio:true},
-    {name:"ESKA2",url:"https://waw.ic.smcdn.pl/1290-1.mp3",type:"audio",backgroundAudio:true},
-    {name:"ESKA ROCK",url:"https://liveradio.timesa.pl/2330-2.aac/playlist.m3u8",type:"audio",backgroundAudio:true},
-    {name:"RMF CLASSIC",url:"https://rs9-krk2.rmfstream.pl/RMFCLASSIC48",type:"audio",backgroundAudio:true},
-
-    {name:"Algieria - Echorouk News HD",url:"https://www.echoroukonline.com/live-news",type:"iframe"},
-    {name:"Algieria - AL24 News",url:"https://cdn.live.easybroadcast.io/abr_corp/66_al24_u4yga6h/corp/66_al24_u4yga6h_240p/chunks.m3u8",type:"hls"},
-    {name:"Algieria - Zahra TV",url:"https://live.al-zahratv.com/live/playlist.m3u8",type:"hls"},
-
-    {name:"Arabia S. - Al Arabiya Business",url:"https://live.alarabiya.net/alarabiapublish/aswaaq.smil/playlist.m3u8",type:"hls"},
-    {name:"Arabia S. - Thikrayat TV",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-thikrayat/8cfa8fe0c96275735745b89c683b27e3/index.m3u8",type:"hls"},
-    {name:"Arabia S. - Saudia Alaan TV",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-ksa-now/71ed3aa814c643306c0a8bc4fcc7d17f/index.m3u8",type:"hls"},
-    {name:"Arabia S. - MBC 5",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-5/ee6b000cee0629411b666ab26cb13e9b/index.m3u8",type:"hls"},
-    {name:"Arabia S. - Al Hadath",url:"https://av.alarabiya.net/alarabiapublish/alhadath.smil/playlist.m3u8",type:"hls"},
-    {name:"Arabia S. - Asharq News Channel",url:"https://live-news.asharq.com/asharq.m3u8",type:"hls"},
-    {name:"Arabia S. - Asharq Documentary",url:"https://svs.itworkscdn.net/asharqdocumentarylive/asharqdocumentary.smil/playlist_dvr.m3u8",type:"hls"},
-    {name:"Arabia S. - Asharq Discovery",url:"https://svs.itworkscdn.net/asharqdiscoverylive/asharqd.smil/playlist_dvr.m3u8",type:"hls"},
-    {name:"Arabia S. - Al Arabiya",url:"https://live.alarabiya.net/alarabiapublish/alarabiya.smil/playlist.m3u8",type:"hls"},
-    {name:"Arabia S. - MBC Drama",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-drama/2c28a458e2f3253e678b07ac7d13fe71/index.m3u8",type:"hls"},
-    {name:"Arabia S. - MBC 4",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-4/24f134f1cd63db9346439e96b86ca6ed/index.m3u8",type:"hls"},
-    {name:"Arabia S. - MBC 3",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-3-usa/5d58265a862a476dc7f97694addb5ded/index.m3u8",type:"hls"},
-    {name:"Arabia S. - MBC Persia HD",url:"https://hls.mbcpersia.live/hls/stream.m3u8",type:"hls"},
-
-    {name:"Bahrajn - Lualua TV",url:"https://vimeo.com/event/1117458/embed",type:"iframe"},
-    {name:"Białoruś - Belarus 24 HD",url:"https://edge50.dc.beltelecom.by/ngtrk/smil:belarus24.smil/playlist.m3u8",type:"hls"},
-    {name:"Bośnia i Hercegowina - BN TV HD",url:"https://stream2.rtvbn.tv:8080/live_1935/bnstream/index.m3u8",type:"hls"},
-    {name:"Bułgaria - Nova TV",url:"https://nova.bg/live/news",type:"iframe"},
-    {name:"Burkina Faso - RTB Télévision",url:"https://www.rtb.bf/television-en-direct/",type:"iframe"},
-    {name:"Chorwacja - HRT 4",url:"https://bpcdnmanprod.nexttv.ht.hr/bpk-tv/HRT4/default/index.mpd",type:"dash"},
-    {name:"Czechy - ČT24 HD",url:"https://dash2.antik.sk/live/ct24_avc_25p/playlist.m3u8",type:"hls"},
-    {name:"Egipt - Al Ghad HD",url:"https://eazyvwqssi.erbvr.com/alghadtv/alghadtv.m3u8",type:"hls"},
-    {name:"Francja - BFM TV HD",url:"https://abg3-xdn-edge-live01.pfd.sfr.net/bfm-ncdn-live-premium-pal1.pfd.sfr.net/shls/LIVE$BFM_TV/index.m3u8?start=LIVE&end=END",type:"hls"},
-    {name:"Francja - CNews HD",url:"https://hls-m015-live-aka-canalplus.akamaized.net/live/disk/cnews-clair-hd/hls-v3-hd-clair/cnews-clair-hd.m3u8",type:"hls"},
-    {name:"Francja - L´Equipe 21",url:"https://dq37unyetkpcz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-m04j89j7k5gtp/LEquipe_FR.m3u8",type:"hls"},
-    {name:"Francja - RMC Life",url:"https://d3dcdjv6dx07iz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-eaaww2dyp3iih/RMC_Life_FR.m3u8",type:"hls"},
-    {name:"Francja - RMC Découverte",url:"https://d16zzycxcd0m0r.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-hixvx5kymecr9/RMC_Decouverte_FR.m3u8",type:"hls"},
-    {name:"Francja - RMC Story",url:"https://d15aro46bnpfm8.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-fqkqiax1078up/RMC_Story_FR.m3u8",type:"hls"},
-    {name:"Francja - TV5MONDE Europe",url:"https://ert-ucdn.broadpeak-aas.com/bpk-tv/TV5/default/index.m3u8",type:"hls"},
-
-    {name:"Grecja - Kanali Voulis HD",url:"https://diavlos-cache.cnt.grnet.gr/parltv/webtv-1b.sdp/playlist.m3u8",type:"hls"},
-    {name:"Hiszpania - Television Castilla - La Mancha HD",url:"https://cdnapisec.kaltura.com/p/2288691/sp/228869100/playManifest/entryId/1_gnz6ity9/protocol/https/format/applehttp/a.m3u8",type:"hls"},
-    {name:"Indie - Aastha TV International",url:"https://aasthaott.akamaized.net/110923/smil:aasthatv.smil/index.m3u8",type:"hls"},
-    {name:"Indie - Pitaara",url:"https://mumt04.tangotv.in/m18aqlK4PITAARA/index.m3u8",type:"hls"},
-    {name:"Indie - NDTV 24x7",url:"https://ndtv24x7elemarchana.akamaized.net/hls/live/2003678/ndtv24x7/master.m3u8",type:"hls"},
-
-    {name:"Irak - Dijlah HD",url:"https://ghaasiflu.online/Dijlah/tracks-v1a1/playlist.m3u8",type:"hls"},
-    {name:"Irak - Karbala Documentary",url:"https://ktvlive.online/stream/hls/ch3.m3u8",type:"hls"},
-    {name:"Irak - Kirkuk TV",url:"https://live.kirkuklive.live/hls/stream/index.m3u8",type:"hls"},
-    {name:"Irak - Rudaw TV",url:"https://live.rudaw.net/hls/rudaw-tv/master.m3u8",type:"hls"},
-    {name:"Irak - Channel 8 Kurdish",url:"https://live.channel8.com/Channel8-Kurdish/index.fmp4.m3u8",type:"hls"},
-    {name:"Irak - Kurdistan TV HD",url:"https://5a3ed7a72ed4b.streamlock.net/live/SMIL:myStream.smil/playlist.m3u8",type:"hls"},
-    {name:"Irak - Kurdistan 24 HD",url:"https://hlspackager.akamaized.net/live/DB/K24/HLS/K24.m3u8",type:"hls"},
-    {name:"Irak - AVA TV HD",url:"https://ava2.store/upload/ava.m3u8",type:"hls"},
-    {name:"Irak - TRT Kurdi",url:"https://tv-trtkurdi.medya.trt.com.tr/master.m3u8",type:"hls"},
-    {name:"Irak - Payam HD",url:"https://media2.streambrothers.com:1936/8218/8218/playlist.m3u8",type:"hls"},
-
-    {name:"Iran - Hamoon TV",url:"https://live-aburayhan1104.telewebion.ir/ek/hamoon/live/1080p/index.m3u8",type:"hls"},
-    {name:"Iran - Iran TV Network",url:"https://itnhls.wns.live/hls/stream.m3u8",type:"hls"},
-    {name:"Iran - FX 1 MOVIES",url:"https://fxtvhls.wns.live/hls/stream.m3u8",type:"hls"},
-    {name:"Iran - DEJ TV",url:"https://rdejhls.wns.live/hls/stream.m3u8",type:"hls"},
-    {name:"Iran - Setareh TV",url:"https://setarehhls.wns.live/hls/stream.m3u8",type:"hls"},
-    {name:"Iran - Persiana HD",url:"https://euhls.persiana.live/hls/stream.m3u8",type:"hls"},
-    {name:"Iran - 4U TV Iranian",url:"https://hls.4utv.live/hls/stream.m3u8",type:"hls"},
-    {name:"Iran - VOA Persian HD",url:"https://voa-ingest.akamaized.net/hls/live/2033876/tvmc07/playlist.m3u8",type:"hls"},
-    {name:"Iran - Al Shams Satellite Channel",url:"https://stream.shams.tv/hls/stream.m3u8",type:"hls"},
-
-    {name:"Jemen - Yemen Today",url:"https://video.yementdy.com/hls/yementoday.m3u8",type:"hls"},
-    {name:"Jemen - Almahriah HD",url:"https://starmenajo.com/hls/almahriah/index.m3u8",type:"hls"},
-    {name:"Katar - Al Jazeera 2 HD",url:"https://live-hls-apps-aja2-gcp.thehlive.com/AJA2/01.m3u8",type:"hls"},
-    {name:"Kosowo - RTK 1 Sat",url:"https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/rtk-sat/index.m3u8",type:"hls"},
-
-    {name:"Liban - MTV Lebanon HD",url:"https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mtv-lebanon/b8ebb2a5affb812f1541712adde10e26/index.m3u8",type:"hls"},
-    {name:"Liban - ONE",url:"https://hms.pfs.gdn/v1/broadcast/one/playlist.m3u8",type:"hls"},
-
-    {name:"Litwa - LRT TELEVIZIJA",url:"https://www.lrt.lt/mediateka/tiesiogiai/lrt-televizija",type:"iframe"},
-    {name:"Litwa - LRT Plius",url:"https://www.lrt.lt/mediateka/tiesiogiai/lrt-plius",type:"iframe"},
-    {name:"Litwa - LRT Lituanica",url:"https://www.lrt.lt/mediateka/tiesiogiai/lrt-lituanica",type:"iframe"},
-
-    {name:"Maroko - Medi 1 TV Inter HD",url:"https://cdn.live.easybroadcast.io/abr_corp/83_medi1tv-arabic_g90v4ec/playlist.m3u8",type:"hls"},
-    {name:"Niemcy - Arte HD",url:"https://dash4.antik.sk/live/test_arte_avc_25p/playlist.m3u8",type:"hls"},
-    {name:"Niemcy - wedotv Movies",url:"https://watch4movies-samsunguk.amagi.tv/playlist.m3u8",type:"hls"},
-    {name:"Niger - Télé Sahel",url:"https://rtn.ne/direct.php",type:"iframe"},
-    {name:"Norwegia - Bedehuskanalen",url:"https://tv.bedehuskanalen.no/direkte/events/direkte",type:"iframe"},
-    {name:"Palestyna - Falestinona TV",url:"https://ffs3.gulfsat.com/Falestinona-TV/index.fmp4.m3u8",type:"hls"},
-    {name:"Portugalia - RTP International",url:"https://streaming-live.rtp.pt/liverepeater/smil:rtpi.smil/playlist.m3u8",type:"hls"},
-    {name:"Portugalia - Kuriakos TV HD",url:"https://w1.manasat.com/ktv/smil:ktv.smil/playlist.m3u8",type:"hls"},
-
-    {name:"Rosja - Euronews Russian",url:"lwYzwdBiaho",type:"youtube"},
-    {name:"Rosja - Perviy Kanal",url:"https://stream8.cinerama.uz/1214/tracks-v1a1/mono.m3u8",type:"hls"},
-    {name:"Rosja - RTR Planeta",url:"https://streaming.televizor24.cc/live/211.m3u8",type:"hls"},
-
-    {name:"Rumunia - TVR 3",url:"https://tvr-3.lg.mncdn.com/tvr3/smil:tvr3.smil/chunklist_b5160000.m3u8",type:"hls"},
-    {name:"Rumunia - TVR Moldova",url:"https://tvr-moldova.lg.mncdn.com/tvrmoldova/smil:tvrmoldova.smil/playlist.m3u8",type:"hls"},
-    {name:"Rumunia - TV Romania International",url:"https://tvr-international.lg.mncdn.com/tvrinternational/smil:tvrinternational.smil/playlist.m3u8",type:"hls"},
-    {name:"Rumunia - TVR Cluj",url:"https://tvr-cluj.lg.mncdn.com/tvrcluj/smil:tvrcluj.smil/chunklist_b5160000.m3u8",type:"hls"},
-    {name:"Rumunia - TVR Iasi",url:"https://tvr-iasi.lg.mncdn.com/tvriasi/smil:tvriasi.smil/chunklist_b5160000.m3u8",type:"hls"},
-    {name:"Rumunia - TVR 1 HD",url:"https://tvr-1.lg.mncdn.com/tvr1/smil:tvr1.smil/chunklist_b5160000.m3u8",type:"hls"},
-    {name:"Rumunia - TVR 2 HD",url:"https://tvr-2.lg.mncdn.com/tvr2/smil:tvr2.smil/chunklist_b5160000.m3u8",type:"hls"},
-    {name:"Rumunia - TVR Cultural",url:"https://tvr-cultural.lg.mncdn.com/tvrcultural/smil:tvrcultural.smil/chunklist_b5160000.m3u8",type:"hls"},
-    {name:"Rumunia - TVR Info",url:"https://tvr-info.lg.mncdn.com/tvrinfo/smil:tvrinfo.smil/chunklist_b5160000.m3u8",type:"hls"},
-
-    {name:"Serbia - RTS Svet HD",url:"https://webtvstream.bhtelecom.ba/rts_svet.m3u8",type:"hls"},
-    {name:"Serbia - Kurir TV",url:"https://static.am.mediaoutcast.com/storage/nQJnjJkO/nQJnjJkO/stream/O68x4o8g/720p/720p.m3u8",type:"hls"},
-    {name:"Serbia - Nova S HD",url:"https://best-str.umn.cdn.united.cloud/stream",type:"hls"}
-
+    
 ];
+
+
+
+
+    
+
+/* ============================================================
+   ELEMENTY
+   ============================================================ */
+
+const channelsUl =
+    document.getElementById('channels-ul');
+
+const videoTarget =
+    document.getElementById('video-target');
+
+const channelDisplay =
+    document.getElementById('channel-display');
+
+const streamStatus =
+    document.getElementById('stream-status');
+
+
+/* ============================================================
+   ZMIENNE ODTWARZACZA
+   ============================================================ */
 
 let currentHls = null;
 let currentDash = null;
 let ytPlayer = null;
 
-const videoTarget = document.getElementById('video-target');
-const channelsUl = document.getElementById('channels-ul');
-const channelDisplay = document.getElementById('channel-display');
-const streamStatus = document.getElementById('stream-status');
+let fadeTimeout;
+let displayTimeout;
 
-function renderChannels() {
-    channelsUl.innerHTML = '';
-    channels.forEach((ch, index) => {
-        const li = document.createElement('li');
-        li.className = 'channel-item';
-        li.innerHTML = `<span class="channel-number">${index + 1}</span><span>${ch.name}</span>`;
-        li.onclick = () => selectChannel(index);
-        channelsUl.appendChild(li);
-    });
-}
+let currentChannelIndex = 0;
 
-function selectChannel(index) {
-    document.querySelectorAll('.channel-item').forEach((el, idx) => {
-        if (idx === index) el.classList.add('active');
-        else el.classList.remove('active');
-    });
+let currentHlsUrls = [];
+let currentHlsIndex = 0;
 
-    const ch = channels[index];
-    showChannelDisplay(ch.name);
-    loadStream(ch);
-}
+let hlsAttempt = 0;
+let hlsFailTimer = null;
 
-function showChannelDisplay(name) {
-    channelDisplay.textContent = name;
-    channelDisplay.classList.add('show');
-    setTimeout(() => {
-        channelDisplay.classList.remove('show');
-    }, 3000);
-}
+let loadingChannelToken = 0;
 
-function showStatus(text, type = '') {
-    streamStatus.textContent = text;
-    streamStatus.className = `show ${type}`;
-    setTimeout(() => {
-        streamStatus.classList.remove('show');
-    }, 4000);
-}
 
-function cleanPlayer() {
-    if (currentHls) {
-        currentHls.destroy();
-        currentHls = null;
-    }
-    if (currentDash) {
-        currentDash.reset();
-        currentDash = null;
-    }
-    if (ytPlayer && typeof ytPlayer.destroy === 'function') {
-        ytPlayer.destroy();
-        ytPlayer = null;
-    }
-    videoTarget.innerHTML = '';
-}
+/* ============================================================
+   WEB AUDIO
+   ============================================================ */
 
-function loadStream(ch) {
-    cleanPlayer();
-    let streamUrl = ch.url;
+/*
+ * Web Audio pozostawiony w kodzie,
+ * ale ZEWNĘTRZNE STACJE RADIOWE NIE SĄ
+ * już przez niego przepuszczane.
+ *
+ * To eliminuje problemy z CORS,
+ * które mogą powodować ciszę.
+ */
 
-    if (ch.type === 'hls') {
-        const video = document.createElement('video');
-        video.controls = true;
-        video.autoplay = true;
-        videoTarget.appendChild(video);
+let audioCtx = null;
+let audioSourceNode = null;
+let gainNode = null;
+let compressorNode = null;
 
-        if (Hls.isSupported()) {
-            currentHls = new Hls();
-            currentHls.loadSource(streamUrl);
-            currentHls.attachMedia(video);
-            currentHls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(() => {});
-                showStatus("Strumień HLS załadowany", "ok");
-            });
-            currentHls.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) {
-                    showStatus("Błąd strumienia HLS", "error");
-                }
-            });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = streamUrl;
-            video.addEventListener('loadedmetadata', () => {
-                video.play().catch(() => {});
-            });
-        }
-    } else if (ch.type === 'dash') {
-        const video = document.createElement('video');
-        video.controls = true;
-        video.autoplay = true;
-        videoTarget.appendChild(video);
 
-        currentDash = dashjs.MediaPlayer().create();
-        currentDash.initialize(video, streamUrl, true);
-    } else if (ch.type === 'audio') {
-        const audio = document.createElement('audio');
-        audio.controls = true;
-        audio.autoplay = true;
-        audio.src = streamUrl;
-        videoTarget.appendChild(audio);
-        audio.play().catch(() => {});
-    } else if (ch.type === 'youtube') {
-        const div = document.createElement('div');
-        div.id = 'yt-player';
-        div.style.width = '100%';
-        div.style.height = '100%';
-        videoTarget.appendChild(div);
+/* ============================================================
+   KONFIGURACJA AUTOMATYCZNEGO HLS
+   ============================================================ */
 
-        ytPlayer = new YT.Player('yt-player', {
-            videoId: streamUrl,
-            playerVars: { 'autoplay': 1, 'controls': 1 },
-            events: {
-                'onReady': (event) => event.target.playVideo()
-            }
-        });
-    } else if (ch.type === 'iframe' || ch.type === 'iframe-dlhd') {
-        const iframe = document.createElement('iframe');
-        iframe.src = streamUrl;
-        iframe.allow = "autoplay; fullscreen";
-        videoTarget.appendChild(iframe);
-    }
-}
+const HLS_CONFIG = {
 
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
+    startupTimeout: 9000,
 
-window.onload = () => {
-    renderChannels();
-    if (channels.length > 0) {
-        selectChannel(0);
-    }
+    retriesPerUrl: 2,
+
+    retryDelay: 1200,
+
+    maxFatalErrorsPerUrl: 2
 };
 
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+
+function showStreamStatus(
+    text,
+    type = ''
+) {
+
+    streamStatus.textContent =
+        text;
+
+    streamStatus.classList.remove(
+        'show',
+        'error',
+        'ok'
+    );
+
+    if (type) {
+
+        streamStatus.classList.add(
+            type
+        );
+    }
+
+    streamStatus.classList.add(
+        'show'
+    );
+}
+
+
+function hideStreamStatus() {
+
+    streamStatus.classList.remove(
+        'show',
+        'error',
+        'ok'
+    );
+}
+
+
+/* ============================================================
+   CZYSZCZENIE ODTWARZACZA
+   ============================================================ */
+
+function destroyCurrentPlayer() {
+
+    clearTimeout(
+        hlsFailTimer
+    );
+
+    if (currentHls) {
+
+        try {
+
+            currentHls.destroy();
+
+        } catch (e) {
+
+            console.warn(
+                "HLS destroy error:",
+                e
+            );
+        }
+
+        currentHls = null;
+    }
+
+
+    if (currentDash) {
+
+        try {
+
+            currentDash.reset();
+
+        } catch (e) {
+
+            console.warn(
+                "DASH reset error:",
+                e
+            );
+        }
+
+        currentDash = null;
+    }
+
+
+    if (ytPlayer) {
+
+        try {
+
+            ytPlayer.destroy();
+
+        } catch (e) {}
+
+        ytPlayer = null;
+    }
+
+
+    /*
+     * Jeżeli gdzieś wcześniej został utworzony
+     * WebAudio source, odłączamy go.
+     *
+     * Nie dotyczy to obecnych stacji radiowych.
+     */
+
+    if (audioSourceNode) {
+
+        try {
+
+            audioSourceNode.disconnect();
+
+        } catch (e) {}
+
+        audioSourceNode = null;
+    }
+}
+
+
+/* ============================================================
+   WEB AUDIO
+   ============================================================ */
+
+function initAudioContext() {
+
+    if (!audioCtx) {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContext) {
+
+            return false;
+        }
+
+        audioCtx =
+            new AudioContext();
+
+
+        compressorNode =
+            audioCtx.createDynamicsCompressor();
+
+
+        compressorNode.threshold.setValueAtTime(
+            -12,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.knee.setValueAtTime(
+            3,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.ratio.setValueAtTime(
+            12,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.attack.setValueAtTime(
+            0.003,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.release.setValueAtTime(
+            0.25,
+            audioCtx.currentTime
+        );
+
+
+        gainNode =
+            audioCtx.createGain();
+
+
+        gainNode.gain.setValueAtTime(
+            0.2,
+            audioCtx.currentTime
+        );
+
+
+        compressorNode.connect(
+            gainNode
+        );
+
+
+        gainNode.connect(
+            audioCtx.destination
+        );
+    }
+
+
+    if (
+        audioCtx.state ===
+        'suspended'
+    ) {
+
+        audioCtx.resume().catch(
+            () => {}
+        );
+    }
+
+
+    return true;
+}
+
+
+/*
+ * WAŻNE:
+ *
+ * Funkcja została celowo wyłączona dla
+ * zewnętrznych streamów.
+ *
+ * createMediaElementSource() wymaga odpowiedniej
+ * polityki CORS po stronie serwera.
+ *
+ * Przy radiu mogło to powodować:
+ *
+ * - brak dźwięku,
+ * - ciszę po rozpoczęciu,
+ * - SecurityError,
+ * - problemy po zmianie stacji.
+ */
+
+function connectMediaElement(element) {
+
+    console.warn(
+        "WebAudio pominięte dla zewnętrznego streamu:",
+        element
+    );
+
+    return false;
+}
+
+
+/* ============================================================
+   BUDOWANIE LISTY HLS
+   ============================================================ */
+
+function buildHlsCandidates(ch) {
+
+    const urls = [];
+
+
+    /*
+     * Podstawowy URL.
+     */
+
+    if (ch.url) {
+
+        urls.push(
+            ch.url.trim()
+        );
+    }
+
+
+    /*
+     * Własne fallbackUrls.
+     */
+
+    if (
+        Array.isArray(
+            ch.fallbackUrls
+        )
+    ) {
+
+        ch.fallbackUrls.forEach(
+            url => {
+
+                if (
+                    url &&
+                    typeof url === 'string'
+                ) {
+
+                    urls.push(
+                        url.trim()
+                    );
+                }
+            }
+        );
+    }
+
+
+    /*
+     * Automatyczne warianty.
+     */
+
+    try {
+
+        const parsed =
+            new URL(ch.url);
+
+        const path =
+            parsed.pathname;
+
+
+        if (
+            path.endsWith('.m3u8') &&
+            !path.endsWith(
+                '/playlist.m3u8'
+            ) &&
+            !path.endsWith(
+                '/playlist720p.m3u8'
+            )
+        ) {
+
+            const directory =
+                path.substring(
+                    0,
+                    path.lastIndexOf('/') + 1
+                );
+
+
+            const origin =
+                parsed.origin;
+
+
+            urls.push(
+                origin +
+                directory +
+                'playlist.m3u8'
+            );
+
+
+            urls.push(
+                origin +
+                directory +
+                'playlist720p.m3u8'
+            );
+        }
+
+    } catch (e) {
+
+        console.warn(
+            "Nie można wygenerować wariantów HLS:",
+            e
+        );
+    }
+
+
+    return [
+        ...new Set(
+            urls.filter(Boolean)
+        )
+    ];
+}
+
+
+/* ============================================================
+   SPRAWDZENIE CZY URL WYGLĄDA NA HLS
+   ============================================================ */
+
+function isHlsUrl(url) {
+
+    if (!url) {
+
+        return false;
+    }
+
+    return (
+        url
+            .toLowerCase()
+            .includes('.m3u8')
+    );
+}
+
+
+/* ============================================================
+   CORS / FETCH TEST
+   ============================================================ */
+
+async function testCors(
+    url,
+    token
+) {
+
+    if (
+        token !==
+        loadingChannelToken
+    ) {
+
+        return {
+            ok: false,
+            cancelled: true
+        };
+    }
+
+
+    let controller = null;
+    let timeout = null;
+
+
+    try {
+
+        controller =
+            new AbortController();
+
+
+        timeout =
+            setTimeout(
+                () => {
+
+                    controller.abort();
+
+                },
+                4500
+            );
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-store',
+                    signal:
+                        controller.signal
+                }
+            );
+
+
+        clearTimeout(
+            timeout
+        );
+
+
+        if (!response.ok) {
+
+            return {
+                ok: false,
+                status:
+                    response.status,
+                cors: true
+            };
+        }
+
+
+        await response.text();
+
+
+        return {
+            ok: true,
+            cors: true
+        };
+
+
+    } catch (e) {
+
+        if (timeout) {
+
+            clearTimeout(
+                timeout
+            );
+        }
+
+
+        return {
+            ok: false,
+            cors: false,
+            error: e
+        };
+    }
+}
+
+
+/* ============================================================
+   PRÓBA HLS
+   ============================================================ */
+
+function tryHlsUrl(
+    url,
+    media,
+    token,
+    candidateIndex
+) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+
+                reject(
+                    new Error(
+                        "cancelled"
+                    )
+                );
+
+                return;
+            }
+
+
+            if (
+                !window.Hls ||
+                !Hls.isSupported()
+            ) {
+
+                reject(
+                    new Error(
+                        "HLS.js not supported"
+                    )
+                );
+
+                return;
+            }
+
+
+            showStreamStatus(
+                `HLS ${candidateIndex + 1}/${currentHlsUrls.length}: ładowanie...`
+            );
+
+
+            let resolved = false;
+
+            let fatalErrors = 0;
+
+
+            clearTimeout(
+                hlsFailTimer
+            );
+
+
+            const hls =
+                new Hls({
+
+                    enableWorker: true,
+
+                    lowLatencyMode: false,
+
+                    backBufferLength: 30,
+
+                    maxBufferLength: 30,
+
+                    maxMaxBufferLength: 60,
+
+                    manifestLoadingMaxRetry: 1,
+
+                    manifestLoadingRetryDelay: 1000,
+
+                    levelLoadingMaxRetry: 1,
+
+                    levelLoadingRetryDelay: 1000,
+
+                    fragLoadingMaxRetry: 2,
+
+                    fragLoadingRetryDelay: 1000,
+
+                    xhrSetup: function(xhr) {
+
+                        try {
+
+                            xhr.withCredentials =
+                                false;
+
+                        } catch (e) {}
+                    }
+                });
+
+
+            currentHls =
+                hls;
+
+
+            function cleanup() {
+
+                clearTimeout(
+                    hlsFailTimer
+                );
+
+
+                hls.off(
+                    Hls.Events.MANIFEST_PARSED,
+                    onManifest
+                );
+
+
+                hls.off(
+                    Hls.Events.ERROR,
+                    onError
+                );
+            }
+
+
+            function success() {
+
+                if (resolved) {
+
+                    return;
+                }
+
+
+                resolved = true;
+
+
+                cleanup();
+
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    3000
+                );
+
+
+                resolve(hls);
+            }
+
+
+            function failure(error) {
+
+                if (resolved) {
+
+                    return;
+                }
+
+
+                resolved = true;
+
+
+                cleanup();
+
+
+                try {
+
+                    hls.destroy();
+
+                } catch (e) {}
+
+
+                if (
+                    currentHls === hls
+                ) {
+
+                    currentHls = null;
+                }
+
+
+                reject(error);
+            }
+
+
+            function onManifest() {
+
+                if (
+                    token !==
+                    loadingChannelToken
+                ) {
+
+                    failure(
+                        new Error(
+                            "cancelled"
+                        )
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * Manifest jest poprawny.
+                 *
+                 * Teraz uruchamiamy media.
+                 */
+
+                media.play()
+                    .then(
+                        () => {
+
+                            success();
+
+                        }
+                    )
+                    .catch(
+                        () => {
+
+                            /*
+                             * Autoplay może być
+                             * zablokowany.
+                             *
+                             * Sam stream jest jednak
+                             * poprawnie załadowany.
+                             */
+
+                            success();
+                        }
+                    );
+            }
+
+
+            function onError(
+                event,
+                data
+            ) {
+
+                if (
+                    token !==
+                    loadingChannelToken
+                ) {
+
+                    failure(
+                        new Error(
+                            "cancelled"
+                        )
+                    );
+
+                    return;
+                }
+
+
+                console.warn(
+                    "HLS:",
+                    url,
+                    data
+                );
+
+
+                if (
+                    !data.fatal
+                ) {
+
+                    return;
+                }
+
+
+                fatalErrors++;
+
+
+                /*
+                 * Błąd sieci / manifestu.
+                 */
+
+                if (
+                    data.type ===
+                    Hls.ErrorTypes.NETWORK_ERROR
+                ) {
+
+                    showStreamStatus(
+                        `Błąd sieci/CORS — wariant ${candidateIndex + 1}`
+                    );
+
+
+                    if (
+                        fatalErrors >=
+                        HLS_CONFIG.maxFatalErrorsPerUrl
+                    ) {
+
+                        failure(
+                            new Error(
+                                "NETWORK_ERROR"
+                            )
+                        );
+
+                    } else {
+
+                        setTimeout(
+                            () => {
+
+                                if (
+                                    !resolved &&
+                                    token ===
+                                    loadingChannelToken
+                                ) {
+
+                                    try {
+
+                                        hls.startLoad();
+
+                                    } catch (e) {}
+                                }
+
+                            },
+                            HLS_CONFIG.retryDelay
+                        );
+                    }
+
+
+                    return;
+                }
+
+
+                /*
+                 * Błąd kodeka / media.
+                 */
+
+                if (
+                    data.type ===
+                    Hls.ErrorTypes.MEDIA_ERROR
+                ) {
+
+                    showStreamStatus(
+                        "Błąd media — próba naprawy"
+                    );
+
+
+                    try {
+
+                        hls.recoverMediaError();
+
+                    } catch (e) {
+
+                        failure(
+                            new Error(
+                                "MEDIA_ERROR"
+                            )
+                        );
+                    }
+
+
+                    return;
+                }
+
+
+                /*
+                 * Inny fatalny błąd.
+                 */
+
+                failure(
+                    new Error(
+                        data.details ||
+                        "HLS_FATAL_ERROR"
+                    )
+                );
+            }
+
+
+            hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                onManifest
+            );
+
+
+            hls.on(
+                Hls.Events.ERROR,
+                onError
+            );
+
+
+            /*
+             * Timeout.
+             */
+
+            hlsFailTimer =
+                setTimeout(
+                    () => {
+
+                        if (!resolved) {
+
+                            failure(
+                                new Error(
+                                    "HLS_TIMEOUT"
+                                )
+                            );
+                        }
+
+                    },
+                    HLS_CONFIG.startupTimeout
+                );
+
+
+            try {
+
+                hls.loadSource(
+                    url
+                );
+
+                hls.attachMedia(
+                    media
+                );
+
+            } catch (e) {
+
+                failure(e);
+            }
+        }
+    );
+}
+
+
+/* ============================================================
+   GŁÓWNA FUNKCJA HLS Z FALLBACKAMI
+   ============================================================ */
+
+async function loadHlsWithFallback(
+    ch,
+    media,
+    token
+) {
+
+    currentHlsUrls =
+        buildHlsCandidates(ch);
+
+    currentHlsIndex = 0;
+
+    hlsAttempt = 0;
+
+
+    console.log(
+        "HLS candidates:",
+        currentHlsUrls
+    );
+
+
+    /*
+     * Safari / iOS:
+     *
+     * Natomiast dla radia HLS używamy
+     * bezpośrednio elementu audio.
+     */
+
+    if (
+        media.canPlayType(
+            'application/vnd.apple.mpegurl'
+        )
+    ) {
+
+        for (
+            let i = 0;
+            i <
+            currentHlsUrls.length;
+            i++
+        ) {
+
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+
+                return;
+            }
+
+
+            const url =
+                currentHlsUrls[i];
+
+
+            showStreamStatus(
+                `Natywny HLS: wariant ${i + 1}/${currentHlsUrls.length}`
+            );
+
+
+            /*
+             * Czyścimy poprzedni HLS.
+             */
+
+            try {
+
+                media.pause();
+
+            } catch (e) {}
+
+
+            media.removeAttribute(
+                'src'
+            );
+
+
+            try {
+
+                media.load();
+
+            } catch (e) {}
+
+
+            media.src =
+                url;
+
+
+            try {
+
+                await media.play();
+
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    3000
+                );
+
+
+                return;
+
+
+            } catch (e) {
+
+                console.warn(
+                    "Natywny HLS nie działa:",
+                    url,
+                    e
+                );
+
+
+                media.removeAttribute(
+                    'src'
+                );
+
+
+                try {
+
+                    media.load();
+
+                } catch (x) {}
+            }
+        }
+    }
+
+
+    /*
+     * Chrome / Edge / Firefox:
+     *
+     * HLS.js.
+     */
+
+    if (
+        window.Hls &&
+        Hls.isSupported()
+    ) {
+
+        for (
+            let i = 0;
+            i <
+            currentHlsUrls.length;
+            i++
+        ) {
+
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+
+                return;
+            }
+
+
+            currentHlsIndex =
+                i;
+
+
+            const url =
+                currentHlsUrls[i];
+
+
+            /*
+             * Test CORS jest tylko informacyjny.
+             *
+             * Nawet jeżeli fetch nie przejdzie,
+             * nadal próbujemy HLS.js.
+             */
+
+            showStreamStatus(
+                `Sprawdzanie HLS ${i + 1}/${currentHlsUrls.length}...`
+            );
+
+
+            const corsResult =
+                await testCors(
+                    url,
+                    token
+                );
+
+
+            if (
+                token !==
+                loadingChannelToken
+            ) {
+
+                return;
+            }
+
+
+            if (
+                !corsResult.ok
+            ) {
+
+                console.warn(
+                    "Możliwy CORS:",
+                    url,
+                    corsResult
+                );
+
+
+                showStreamStatus(
+                    `CORS / brak dostępu — próbuję wariant ${i + 1}`
+                );
+
+            } else {
+
+                showStreamStatus(
+                    `CORS OK — wariant ${i + 1}`
+                );
+            }
+
+
+            /*
+             * Próba HLS.
+             */
+
+            try {
+
+                await tryHlsUrl(
+                    url,
+                    media,
+                    token,
+                    i
+                );
+
+
+                /*
+                 * Sukces.
+                 */
+
+                return;
+
+
+            } catch (e) {
+
+                console.warn(
+                    "Wariant HLS nie działa:",
+                    url,
+                    e
+                );
+
+
+                /*
+                 * Czyścimy HLS.
+                 */
+
+                if (currentHls) {
+
+                    try {
+
+                        currentHls.destroy();
+
+                    } catch (x) {}
+
+                    currentHls = null;
+                }
+
+
+                /*
+                 * Czyścimy element media.
+                 */
+
+                try {
+
+                    media.pause();
+
+                    media.removeAttribute(
+                        'src'
+                    );
+
+                    media.load();
+
+                } catch (x) {}
+            }
+        }
+    }
+
+
+    /*
+     * Nic nie zadziałało.
+     */
+
+    showStreamStatus(
+        "Brak działającego wariantu HLS",
+        "error"
+    );
+
+
+    console.error(
+        "Żaden wariant HLS nie działa:",
+        currentHlsUrls
+    );
+}
+
+
+/* ============================================================
+   LISTA KANAŁÓW
+   ============================================================ */
+
+channels.forEach(
+    (ch, i) => {
+
+        const li =
+            document.createElement(
+                'li'
+            );
+
+
+        li.className =
+            'channel-item';
+
+
+        li.dataset.index =
+            i;
+
+
+        li.innerHTML =
+            `<span class="channel-number">${i + 1}</span>${ch.name}`;
+
+
+        li.onclick = () =>
+            loadChannel(
+                ch,
+                i
+            );
+
+
+        channelsUl.appendChild(
+            li
+        );
+    }
+);
+
+
+/* ============================================================
+   LOAD CHANNEL
+   ============================================================ */
+
+function loadChannel(
+    ch,
+    index = currentChannelIndex
+) {
+
+    /*
+     * Token zabezpiecza przed sytuacją:
+     *
+     * kanał A zaczyna ładować
+     * ->
+     * klikamy kanał B
+     * ->
+     * A kończy ładowanie
+     *
+     * A nie nadpisze wtedy B.
+     */
+
+    loadingChannelToken++;
+
+
+    const token =
+        loadingChannelToken;
+
+
+    currentChannelIndex =
+        index;
+
+
+    destroyCurrentPlayer();
+
+
+    videoTarget.innerHTML =
+        "";
+
+
+    document
+        .querySelectorAll(
+            '.channel-item'
+        )
+        .forEach(
+            el =>
+                el.classList.remove(
+                    'active'
+                )
+        );
+
+
+    const activeItem =
+        document.querySelector(
+            `.channel-item[data-index="${index}"]`
+        );
+
+
+    if (activeItem) {
+
+        activeItem.classList.add(
+            'active'
+        );
+    }
+
+
+    channelDisplay.textContent =
+        ch.name;
+
+
+    channelDisplay.classList.add(
+        'show'
+    );
+
+
+    clearTimeout(
+        displayTimeout
+    );
+
+
+    displayTimeout =
+        setTimeout(
+            () => {
+
+                channelDisplay.classList.remove(
+                    'show'
+                );
+
+            },
+            7000
+        );
+
+
+    const isBackgroundAudio =
+        ch.backgroundAudio === true;
+
+
+    /* ========================================================
+       HLS
+       ======================================================== */
+
+    if (
+        ch.type === 'hls'
+    ) {
+
+        /*
+         * WAŻNA ZMIANA:
+         *
+         * HLS z backgroundAudio:
+         *
+         * <audio>
+         *
+         * Pozostałe:
+         *
+         * <video>
+         */
+
+        if (isBackgroundAudio) {
+
+            videoTarget.innerHTML =
+                `<audio
+                    id="v"
+                    autoplay
+                    playsinline
+                    preload="auto">
+                </audio>`;
+
+        } else {
+
+            videoTarget.innerHTML =
+                `<video
+                    id="v"
+                    controls
+                    autoplay
+                    playsinline>
+                </video>`;
+        }
+
+
+        const v =
+            document.getElementById(
+                'v'
+            );
+
+
+        if (isBackgroundAudio) {
+
+            /*
+             * Element jest aktywny,
+             * tylko niewidoczny.
+             */
+
+            v.style.display =
+                'none';
+        }
+
+
+        /*
+         * NIE podłączamy HLS do WebAudio.
+         *
+         * To jest kluczowa zmiana.
+         */
+
+        v.onerror =
+            () => {
+
+                console.warn(
+                    "HLS element error:",
+                    v.error
+                );
+            };
+
+
+        v.onplaying =
+            () => {
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
+                );
+            };
+
+
+        loadHlsWithFallback(
+            ch,
+            v,
+            token
+        );
+
+
+        return;
+    }
+
+
+    /* ========================================================
+       DASH
+       ======================================================== */
+
+    if (
+        ch.type === 'dash'
+    ) {
+
+        videoTarget.innerHTML =
+            `<video
+                id="v"
+                controls
+                autoplay
+                playsinline>
+            </video>`;
+
+
+        const v =
+            document.getElementById(
+                'v'
+            );
+
+
+        if (isBackgroundAudio) {
+
+            v.style.display =
+                'none';
+        }
+
+
+        currentDash =
+            dashjs
+                .MediaPlayer()
+                .create();
+
+
+        currentDash.initialize(
+            v,
+            ch.url,
+            true
+        );
+
+
+        v.onplaying =
+            () => {
+
+                showStreamStatus(
+                    "STREAM DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
+                );
+            };
+
+
+        v.onerror =
+            () => {
+
+                console.warn(
+                    "DASH element error:",
+                    v.error
+                );
+            };
+
+
+        return;
+    }
+
+
+    /* ========================================================
+       YOUTUBE
+       ======================================================== */
+
+    if (
+        ch.type === 'youtube'
+    ) {
+
+        videoTarget.innerHTML =
+            `<div id="yt-div"></div>`;
+
+
+        ytPlayer =
+            new YT.Player(
+                'yt-div',
+                {
+                    videoId:
+                        ch.url,
+
+                    playerVars: {
+                        autoplay: 1,
+                        playsinline: 1
+                    }
+                }
+            );
+
+
+        return;
+    }
+
+
+    /* ========================================================
+       IFRAME
+       ======================================================== */
+
+    if (
+        ch.type === 'iframe' ||
+        ch.type === 'iframe-dlhd'
+    ) {
+
+        videoTarget.innerHTML =
+            `<iframe
+                src="${ch.url}"
+                allow="autoplay; fullscreen"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+            </iframe>`;
+
+
+        return;
+    }
+
+
+    /* ========================================================
+       AUDIO
+       ======================================================== */
+
+    if (
+        ch.type === 'audio'
+    ) {
+
+        /*
+         * NAJWAŻNIEJSZA ZMIANA:
+         *
+         * Zewnętrzne radio jest odtwarzane
+         * bezpośrednio przez <audio>.
+         *
+         * NIE MA:
+         *
+         * crossorigin="anonymous"
+         *
+         * createMediaElementSource()
+         *
+         * compressora WebAudio
+         *
+         * Dzięki temu CORS streamu nie może
+         * wyciszyć odtwarzania.
+         */
+
+        videoTarget.innerHTML =
+            `<audio
+                id="radio-audio"
+                autoplay
+                playsinline
+                preload="none">
+            </audio>`;
+
+
+        const a =
+            document.getElementById(
+                'radio-audio'
+            );
+
+
+        a.src =
+            ch.url;
+
+
+        if (
+            isBackgroundAudio
+        ) {
+
+            a.style.display =
+                'none';
+
+        } else {
+
+            a.controls =
+                true;
+        }
+
+
+        /*
+         * Informacja o rozpoczęciu.
+         */
+
+        a.onplaying =
+            () => {
+
+                showStreamStatus(
+                    "RADIO DZIAŁA",
+                    "ok"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        if (
+                            token ===
+                            loadingChannelToken
+                        ) {
+
+                            hideStreamStatus();
+                        }
+
+                    },
+                    2500
+                );
+            };
+
+
+        /*
+         * Błąd radia.
+         */
+
+        a.onerror =
+            () => {
+
+                console.warn(
+                    "Radio audio error:",
+                    a.error,
+                    ch.url
+                );
+
+
+                showStreamStatus(
+                    "Błąd odtwarzania radia",
+                    "error"
+                );
+            };
+
+
+        /*
+         * Stany pośrednie.
+         */
+
+        a.onwaiting =
+            () => {
+
+                showStreamStatus(
+                    "Ładowanie radia..."
+                );
+            };
+
+
+        a.onstalled =
+            () => {
+
+                console.warn(
+                    "Radio stream stalled:",
+                    ch.url
+                );
+            };
+
+
+        /*
+         * Próba uruchomienia.
+         *
+         * Jeśli przeglądarka zablokuje autoplay,
+         * stream pozostaje przypisany do elementu.
+         */
+
+        a.play()
+            .catch(
+                err => {
+
+                    console.warn(
+                        "Autoplay radia zablokowany:",
+                        err
+                    );
+
+
+                    showStreamStatus(
+                        "Radio oczekuje na uruchomienie"
+                    );
+                }
+            );
+
+
+        return;
+    }
+}
+
+
+/* ============================================================
+   NEXT
+   ============================================================ */
+
+function nextChannel() {
+
+    currentChannelIndex =
+        (
+            currentChannelIndex + 1
+        ) %
+        channels.length;
+
+
+    loadChannel(
+        channels[
+            currentChannelIndex
+        ],
+        currentChannelIndex
+    );
+}
+
+
+/* ============================================================
+   PREVIOUS
+   ============================================================ */
+
+function previousChannel() {
+
+    currentChannelIndex =
+        (
+            currentChannelIndex - 1 +
+            channels.length
+        ) %
+        channels.length;
+
+
+    loadChannel(
+        channels[
+            currentChannelIndex
+        ],
+        currentChannelIndex
+    );
+}
+
+
+/* ============================================================
+   FULLSCREEN
+   ============================================================ */
+
+function toggleFullscreen() {
+
+    if (
+        !document.fullscreenElement
+    ) {
+
+        const container =
+            document.getElementById(
+                'player-container'
+            );
+
+
+        if (
+            container.requestFullscreen
+        ) {
+
+            container
+                .requestFullscreen()
+                .catch(
+                    () => {}
+                );
+        }
+
+    } else {
+
+        document
+            .exitFullscreen()
+            .catch(
+                () => {}
+            );
+    }
+}
+
+
+/* ============================================================
+   FADE PRZYCISKU
+   ============================================================ */
+
+function resetFade() {
+
+    const btn =
+        document.getElementById(
+            'fullscreen-btn'
+        );
+
+
+    btn.classList.remove(
+        'fade-out'
+    );
+
+
+    clearTimeout(
+        fadeTimeout
+    );
+
+
+    fadeTimeout =
+        setTimeout(
+            () => {
+
+                btn.classList.add(
+                    'fade-out'
+                );
+
+            },
+            3000
+        );
+}
+
+
+document.onmousemove =
+    resetFade;
+
+
+/* ============================================================
+   START
+   ============================================================ */
+
+loadChannel(
+    channels[0],
+    0
+);
+
+
+/* ============================================================
+   MYSZ
+   ============================================================ */
+
+document.addEventListener(
+    "contextmenu",
+    e =>
+        e.preventDefault()
+);
+
+
+document.addEventListener(
+    "mousedown",
+    function(e) {
+
+        /*
+         * Środkowy przycisk:
+         * następny kanał.
+         */
+
+        if (
+            e.button === 1
+        ) {
+
+            e.preventDefault();
+
+            nextChannel();
+        }
+
+
+        /*
+         * Prawy przycisk:
+         * poprzedni kanał.
+         */
+
+        else if (
+            e.button === 2
+        ) {
+
+            e.preventDefault();
+
+            previousChannel();
+        }
+    }
+);
+
+
+/* ============================================================
+   KLAWIATURA
+   ============================================================ */
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        if (
+            e.key === "ArrowRight"
+        ) {
+
+            nextChannel();
+        }
+
+
+        if (
+            e.key === "ArrowLeft"
+        ) {
+
+            previousChannel();
+        }
+
+
+        if (
+            e.key === "f" ||
+            e.key === "F"
+        ) {
+
+            toggleFullscreen();
+        }
+    }
+);
+
+
+/* ============================================================
+   URUCHOMIENIE RADIA PO PIERWSZEJ INTERAKCJI
+   ============================================================ */
+
+/*
+ * Niektóre przeglądarki blokują autoplay.
+ *
+ * Po pierwszym kliknięciu / dotknięciu próbujemy
+ * ponownie uruchomić aktualne radio.
+ */
+
+document.addEventListener(
+    "click",
+    function() {
+
+        const audio =
+            document.querySelector(
+                "#radio-audio"
+            );
+
+
+        if (audio) {
+
+            audio.play()
+                .catch(
+                    () => {}
+                );
+        }
+    }
+);
+
+
+/*
+ * Również dla urządzeń dotykowych.
+ */
+
+document.addEventListener(
+    "touchstart",
+    function() {
+
+        const audio =
+            document.querySelector(
+                "#radio-audio"
+            );
+
+
+        if (audio) {
+
+            audio.play()
+                .catch(
+                    () => {}
+                );
+        }
+    },
+    {
+        passive: true
+    }
+);
+
 </script>
+
 </body>
 </html>
+```
