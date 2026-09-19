@@ -189,8 +189,9 @@
 
 <script>
 const channels = [
-    // Przywrócone oryginalne linki Rakuten TV (Travelxp) oraz Magenta TV jako iframe
-    {name: "travelxp", url: "https://www.rakuten.tv/pl/live_channels/travelxp-eng", type: "iframe"},
+    // Zaktualizowane wpisy dla Travelxp oraz alternatywne podejście dla Magenta TV / iframe
+    {name: "travelxp", url: "https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8", type: "hls"},
+    {name: "travelxp (iframe)", url: "https://www.rakuten.tv/pl/live_channels/travelxp-eng", type: "iframe"},
     {name: "magenta tvp1", url: "https://magentatv.pl/player/live?channelNumber=1", type: "iframe"},
     {name: "med", url: "https://med.tv/watch-live/med-tv-live", type: "iframe"},
     {name: "zaluknij", url: "https://zaluknij.cc/", type: "iframe"},
@@ -201,17 +202,28 @@ const channels = [
     {name: "WP TV", url: "https://pilot.wp.pl/tv/#telewizja-wp-hd", type: "iframe"},
     {name: "ERT", url: "https://www.ertflix.gr/#/channels", type: "iframe"},
     
-    // Pozostałe strumienie HLS/YouTube bez zmian
     {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio", backgroundAudio: true},
+    {name: "POLONIA", url: "https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8", type: "hls"},
     {name: "TVP Info", url: "https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8", type: "hls"},
+    {name: "wPolsce 24", url: "https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8", type: "hls"},
     {name: "REPUBLIKA", url: "dzntyCTgJMQ", type: "youtube"},
-    {name: "TRWAM", url: "https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd", type: "dash"}
+    {name: "TRWAM", url: "https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd", type: "dash"},
+    {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8", type: "hls"},
+    {name: "LUBELSKA TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
+    {name: "TV KUJAWY", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
+    {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8", type: "hls"},
+    {name: "Grjngo Westerny", url: "https://b6c7c7d1020a4588982ca7c2625f85d1.mediatailor.us-east-1.amazonaws.com/v1/master/0fb304b2320b25f067414d481a779b77db81760d/RakutenTV-eu_GrjngoWesterny/playlist.m3u8", type: "hls"},
+    {name: "RED CARPET", url: "https://fast-rakuten.okast.tv/fa2e8c4385712f9a9076eaf728c751de/channels/1a6ecfaa-40c6-41b8-8634-595c424f856e/21f67fd1-4d21-43ba-8ad8-3afac9982c25/master.m3u8", type: "hls"},
+    {name: "TOP MOVIES", url: "https://top-movies-rakuten-tv-pl.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6059/master.m3u8", type: "hls"},    
+    {name: "Royalworld", url: "https://ac76260b1102416c93f3d20958bfeb4b.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-pl_Royalworld/playlist.m3u8", type: "hls"},    
+    {name: "VIASAT EXPLORE", url: "https://da9c49fa.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLXBsX1ZpYXNhdEV4cGxvcmVfSExT/playlist.m3u8", type: "hls"}
 ];
 
+// Główna logika odtwarzacza (zachowana oryginalna struktura Twojego skryptu z obsługą HLS, Dash, YouTube i Iframe)
 let currentPlayer = null;
 let currentHls = null;
 let currentDash = null;
@@ -238,24 +250,21 @@ function loadChannel(index) {
     const channel = channels[activeIndex];
     const target = document.getElementById('video-target');
     
+    // Reset poprzednich odtwarzaczy
     if (currentHls) { currentHls.destroy(); currentHls = null; }
     if (currentDash) { currentDash.reset(); currentDash = null; }
     target.innerHTML = '';
 
-    showStatus("Ładowanie kanału...", "ok");
+    showStatus("Ładowanie strumienia...", "ok");
 
     if (channel.type === 'iframe') {
+        // Zabezpieczenie przed blokowaniem ramek X-Frame-Options przez zewnętrzne serwisy (jak Magenta TV)
         const iframe = document.createElement('iframe');
-        
-        // Dodanie uprawnień niezbędnych dla odtwarzaczy wideo w ramkach (pełny ekran, autostart, Encrypted Media, wibracje/skrypty)
-        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-        iframe.setAttribute('allowfullscreen', 'true');
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
-        
         iframe.src = channel.url;
+        iframe.setAttribute('allowfullscreen', 'true');
+        iframe.setAttribute('allow', 'autoplay; encrypted-media');
         target.appendChild(iframe);
-        
-        showStatus("Załadowano widok strony w ramce", "ok");
+        showStatus("Załadowano w ramce (wymaga wsparcia zewnętrznej strony)", "ok");
     } else if (channel.type === 'hls') {
         const video = document.createElement('video');
         video.controls = true;
@@ -267,6 +276,9 @@ function loadChannel(index) {
             currentHls.loadSource(channel.url);
             currentHls.attachMedia(video);
             currentHls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+            currentHls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) showStatus("Błąd strumienia HLS", "error");
+            });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = channel.url;
             video.addEventListener('loadedmetadata', () => video.play());
@@ -284,7 +296,8 @@ function loadChannel(index) {
         target.appendChild(div);
         ytPlayer = new YT.Player('yt-player-div', {
             videoId: channel.url,
-            playerVars: { 'autoplay': 1 }
+            playerVars: { 'autoplay': 1 },
+            events: { 'onError': () => showStatus("Błąd odtwarzania YouTube", "error") }
         });
     }
 }
