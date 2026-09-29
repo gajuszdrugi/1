@@ -3,200 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream Player</title>
-    <!-- Tailwind CSS for full-screen resetting -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- HLS.js CDN for m3u8 streams -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <!-- Dash.js CDN for mpd streams -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.4/dash.all.min.js"></script>
+    <title></title>
     <style>
-        html, body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden;
             background-color: #000000;
+            overflow: hidden;
+            cursor: pointer; /* Pokazuje, że kliknięcie w ekran coś robi, jeśli dźwięk jest zablokowany */
         }
-        iframe, video, audio, div {
+        iframe, video, audio {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: none;
-            object-fit: contain;
+            object-fit: fill; /* Rozciąganie do całego okna */
             background-color: #000000;
         }
+        #error-msg {
+            color: #ff5555;
+            font-family: monospace;
+            padding: 20px;
+            display: none;
+            z-index: 999;
+            position: relative;
+        }
     </style>
+    <!-- HLS.js dla .m3u8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- Dash.js dla .mpd -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.4/dash.all.min.js"></script>
 </head>
-<body class="bg-black">
-    <div id="player-container"></div>
+<body>
+    <div id="error-msg"></div>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const container = document.getElementById('player-container');
-            const pathname = window.location.pathname;
-            const search = window.location.search;
-            const fullUrlString = window.location.href;
-
-            // Check if there is a YouTube video ID or list parameter in search or pathname
-            // Example: /fSUMKrxPEd8?list=... or similar
-            const urlParams = new URLSearchParams(search);
-            
-            // Extract potential YouTube ID from pathname (e.g. /repo/VIDEO_ID or just /VIDEO_ID)
-            const pathSegments = pathname.split('/').filter(Boolean);
-            let potentialYTId = null;
-            let streamPathParts = [];
-
-            // GitHub Pages often looks like username.github.io/repository/RESOURCE
-            // Let's inspect segments. If the first segment is the repo name and second is a YT id or domain.
-            // A standard YouTube ID is typically 11 characters long (alphanumeric, underscores, hyphens).
-            const ytIdRegex = /^[a-zA-Z0-9_-]{11}$/;
-
-            for (let i = 0; i < pathSegments.length; i++) {
-                if (ytIdRegex.test(pathSegments[i]) && !pathSegments[i].includes('.')) {
-                    potentialYTId = pathSegments[i];
-                    break;
-                }
+        function getTargetUrl() {
+            // 1. Sprawdź Hash (#)
+            if (window.location.hash) {
+                let h = window.location.hash.substring(1);
+                // Jeśli wewnątrz hasha jest zakodowany URL, odkoduj go
+                try { h = decodeURIComponent(h); } catch(e) {}
+                return h;
             }
 
-            // Check if search contains v= or if we found a YT ID in path or if there's a list parameter
-            const ytParamV = urlParams.get('v');
-            const ytParamList = urlParams.get('list');
-
-            if (ytParamV || (potentialYTId && (ytParamList || pathSegments.length <= 2)) && !pathname.includes('.')) {
-                const videoId = ytParamV || potentialYTId;
-                let ytEmbedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0`;
-                if (ytParamList) {
-                    ytEmbedUrl += `&list=${ytParamList}`;
-                }
-
-                container.innerHTML = `
-                    <iframe src="${ytEmbedUrl}" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                    </iframe>
-                `;
-                return;
+            // 2. Sprawdź parametr ?url=
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('url')) {
+                return urlParams.get('url');
             }
 
-            // Reconstruct stream URL from pathname if it contains domain/path like live-ch1.trwam.cf...
-            // Find where the actual stream domain/path starts in the full URL or pathname
-            // We want everything after the domain + repository prefix if applicable, or parse the remaining path.
-            
-            // Let's find index of protocol or domain in pathname or full URL
-            // If user enters: https://user.github.io/repo/stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8
-            // We can search for known extensions or keywords like .m3u8, .mpd, .sdp, .mp3, .aac, or web domains.
-            
-            let targetStreamUrl = '';
-            
-            // Look for http/https embedded inside or extract everything after root/repo
-            const matchIndex = fullUrlString.indexOf(':/{1,2}', 8); // find protocol after origin
-            if (matchIndex !== -1) {
-                // If there's an absolute URL embedded
-                targetStreamUrl = fullUrlString.substring(matchIndex + 1);
-                if (!targetStreamUrl.startsWith('http')) {
-                    targetStreamUrl = 'https:' + targetStreamUrl;
-                }
-            } else {
-                // Relative pathname parsing: strip leading slash and repo name if necessary
-                // Let's reconstruct by joining path segments that look like a URL path
-                // e.g. /repo/live-ch1.trwam.cf.insyscd.net/... -> live-ch1.trwam.cf.insyscd.net/...
+            // 3. Ścieżka po nazwie repozytorium
+            const pathSegments = window.location.pathname.split('/').filter(Boolean);
+            if (pathSegments.length > 1) {
+                pathSegments.shift(); // Usuwa nazwę repo
                 if (pathSegments.length > 0) {
-                    // Filter out common gh-pages repo name if it doesn't contain dots or slashes, 
-                    // but to be safe, let's stitch all segments after the first or second if it looks like a domain.
-                    let candidatePath = pathSegments.join('/');
-                    // If candidatePath contains a dot (domain name indicator), treat it as the URL host/path
-                    const firstDotIdx = candidatePath.indexOf('.');
-                    if (firstDotIdx !== -1) {
-                        // Find the start of the domain (could be preceded by repo name)
-                        // Let's find the segment that contains a dot
-                        const domainSegmentIdx = pathSegments.findIndex(seg => seg.includes('.'));
-                        if (domainSegmentIdx !== -1) {
-                            const actualPath = pathSegments.slice(domainSegmentIdx).join('/');
-                            targetStreamUrl = 'https://' + actualPath + search;
-                        }
+                    let reconstructed = pathSegments.join('/');
+                    if (window.location.search) {
+                        reconstructed += window.location.search;
+                    }
+                    return reconstructed;
+                }
+            }
+            return null;
+        }
+
+        const rawTarget = getTargetUrl();
+
+        if (!rawTarget) {
+            document.getElementById('error-msg').style.display = 'block';
+            document.getElementById('error-msg').innerText = 'Brak adresu strumienia w URL (użyj np. /#twoj-link)';
+        } else {
+            // Normalizacja: ZAWSZE wymuszaj https:// zamiast http:// żeby ominąć blokady przeglądarki
+            let targetUrl = rawTarget;
+            if (targetUrl.startsWith('http://')) {
+                targetUrl = targetUrl.replace('http://', 'https://');
+            } else if (!targetUrl.startsWith('https://')) {
+                targetUrl = 'https://' + targetUrl;
+            }
+
+            const lowerUrl = targetUrl.toLowerCase();
+            let mediaElement = null; // Do obsługi kliknięcia odblokowującego
+
+            // --- YOUTUBE ---
+            if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+                let ytEmbedUrl = targetUrl;
+                if (targetUrl.includes('watch?v=')) {
+                    const urlObj = new URL(targetUrl);
+                    const v = urlObj.searchParams.get('v');
+                    const list = urlObj.searchParams.get('list');
+                    ytEmbedUrl = `https://www.youtube.com/embed/${v}?autoplay=1`;
+                    if (list) ytEmbedUrl += `&list=${list}`;
+                } else if (!targetUrl.includes('/embed/')) {
+                    const match = targetUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                if (match && match[1]) {
+                        const urlObj = new URL(targetUrl);
+                        const list = urlObj.searchParams.get('list');
+                        ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
+                        if (list) ytEmbedUrl += `&list=${list}`;
+                    }
+                } else {
+                    if (!ytEmbedUrl.includes('autoplay=1')) {
+                        ytEmbedUrl += (ytEmbedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
                     }
                 }
-            }
 
-            if (!targetStreamUrl) {
-                // Fallback: if search has a stream query like ?url=...
-                targetStreamUrl = urlParams.get('url') || urlParams.get('src') || '';
-            }
+                const iframe = document.createElement('iframe');
+                iframe.src = ytEmbedUrl;
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                iframe.setAttribute('allowfullscreen', 'true');
+                document.body.appendChild(iframe);
 
-            if (!targetStreamUrl) {
-                // Default black screen if nothing matched
-                return;
-            }
-
-            const isAudioStream = targetStreamUrl.includes('.sdp') || 
-                                  targetStreamUrl.includes('.mp3') || 
-                                  targetStreamUrl.includes('.aac') || 
-                                  targetStreamUrl.includes('polskieradio.pl') ||
-                                  targetStreamUrl.includes('audio');
-
-            if (isAudioStream) {
-                const audio = document.createElement('audio');
-                audio.autoplay = true;
-                audio.controls = false;
-                audio.style.display = 'none';
-                document.body.appendChild(audio);
-
-                if (targetStreamUrl.includes('.m3u8') && window.Hls && Hls.isSupported()) {
-                    const hls = new Hls();
-                    hls.loadSource(targetStreamUrl);
-                    hls.attachMedia(audio);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        audio.play().catch(e => console.log("Autoplay blocked:", e));
-                    });
-                } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-                    audio.src = targetStreamUrl;
-                    audio.addEventListener('loadedmetadata', () => {
-                        audio.play().catch(e => console.log("Autoplay blocked:", e));
-                    });
-                } else {
-                    audio.src = targetStreamUrl;
-                    audio.play().catch(e => console.log("Autoplay blocked:", e));
-                }
-            } else {
+            } 
+            // --- DASH (.mpd) ---
+            else if (lowerUrl.includes('.mpd')) {
                 const video = document.createElement('video');
-                video.autoplay = true;
                 video.controls = false;
+                video.autoplay = true;
                 video.muted = false;
-                video.playsInline = true;
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.backgroundColor = '#000000';
-                container.appendChild(video);
+                document.body.appendChild(video);
+                mediaElement = video;
 
-                if (targetStreamUrl.endsWith('.m3u8') || targetStreamUrl.includes('.m3u8')) {
-                    if (window.Hls && Hls.isSupported()) {
+                if (typeof dashjs !== 'undefined') {
+                    const player = dashjs.MediaPlayer().create();
+                    player.initialize(video, targetUrl, true);
+                } else {
+                    video.src = targetUrl;
+                }
+            } 
+            // --- HLS / RADIO (.m3u8, .sdp) ---
+            else if (lowerUrl.includes('.m3u8') || lowerUrl.includes('.sdp') || lowerUrl.includes('playlist')) {
+                const isAudioOnly = lowerUrl.includes('.sdp') || lowerUrl.includes('polskieradio.pl') || lowerUrl.includes('radio');
+
+                if (isAudioOnly) {
+                    const audio = document.createElement('audio');
+                    audio.autoplay = true;
+                    audio.controls = false;
+                    document.body.appendChild(audio);
+                    mediaElement = audio;
+
+                    if (Hls.isSupported() && lowerUrl.includes('.m3u8')) {
                         const hls = new Hls();
-                        hls.loadSource(targetStreamUrl);
+                        hls.loadSource(targetUrl);
+                        hls.attachMedia(audio);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            audio.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                        });
+                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+                        audio.src = targetUrl;
+                        audio.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                    } else {
+                        audio.src = targetUrl;
+                        audio.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                    }
+                } else {
+                    const video = document.createElement('video');
+                    video.autoplay = true;
+                    video.controls = false;
+                    document.body.appendChild(video);
+                    mediaElement = video;
+
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(targetUrl);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            video.play().catch(e => console.log("Autoplay blocked:", e));
+                            video.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
                         });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                        video.src = targetStreamUrl;
-                        video.addEventListener('loadedmetadata', () => {
-                            video.play().catch(e => console.log("Autoplay blocked:", e));
-                        });
+                        video.src = targetUrl;
+                        video.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
                     }
-                } else if (targetStreamUrl.endsWith('.mpd') || targetStreamUrl.includes('.mpd')) {
-                    if (window.dashjs) {
-                        const player = dashjs.MediaPlayer().create();
-                        player.initialize(video, targetStreamUrl, true);
-                    }
-                } else {
-                    video.src = targetStreamUrl;
-                    video.play().catch(e => console.log("Autoplay blocked:", e));
                 }
+            } 
+            // --- INNE ---
+            else {
+                const video = document.createElement('video');
+                video.src = targetUrl;
+                video.autoplay = true;
+                video.controls = false;
+                document.body.appendChild(video);
+                mediaElement = video;
+                video.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
             }
-        });
+
+            // Awaryjne odblokowanie dźwięku/odtwarzania po pierwszym kliknięciu w czarny ekran (wymóg przeglądarek)
+            if (mediaElement) {
+                window.addEventListener('click', () => {
+                    if (mediaElement.paused) {
+                        mediaElement.play().catch(err => console.log("Błąd odtwarzania:", err));
+                    }
+                }, { once: true });
+            }
+        }
     </script>
 </body>
 </html>
