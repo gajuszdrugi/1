@@ -15,7 +15,7 @@
             height: 100%;
             background-color: #000000;
             overflow: hidden;
-            cursor: pointer; /* Pokazuje, że kliknięcie w ekran coś robi, jeśli dźwięk jest zablokowany */
+            cursor: pointer;
         }
         iframe, video, audio {
             position: absolute;
@@ -49,7 +49,6 @@
             // 1. Sprawdź Hash (#)
             if (window.location.hash) {
                 let h = window.location.hash.substring(1);
-                // Jeśli wewnątrz hasha jest zakodowany URL, odkoduj go
                 try { h = decodeURIComponent(h); } catch(e) {}
                 return h;
             }
@@ -75,13 +74,29 @@
             return null;
         }
 
-        const rawTarget = getTargetUrl();
+        let currentActiveElement = null;
+        let currentHlsInstance = null;
 
-        if (!rawTarget) {
-            document.getElementById('error-msg').style.display = 'block';
-            document.getElementById('error-msg').innerText = 'Brak adresu strumienia w URL (użyj np. /#twoj-link)';
-        } else {
-            // Normalizacja: ZAWSZE wymuszaj https:// zamiast http:// żeby ominąć blokady przeglądarki
+        function loadStream() {
+            // Usuń poprzednie elementy odtwarzacza, jeśli istnieją (zmiana z zakładki)
+            document.querySelectorAll('iframe, video, audio').forEach(el => el.remove());
+            if (currentHlsInstance) {
+                currentHlsInstance.destroy();
+                currentHlsInstance = null;
+            }
+
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.style.display = 'none';
+
+            const rawTarget = getTargetUrl();
+
+            if (!rawTarget) {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = 'Brak adresu strumienia w URL (użyj np. /#twoj-link)';
+                return;
+            }
+
+            // Normalizacja HTTPS
             let targetUrl = rawTarget;
             if (targetUrl.startsWith('http://')) {
                 targetUrl = targetUrl.replace('http://', 'https://');
@@ -90,7 +105,6 @@
             }
 
             const lowerUrl = targetUrl.toLowerCase();
-            let mediaElement = null; // Do obsługi kliknięcia odblokowującego
 
             // --- YOUTUBE ---
             if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
@@ -103,7 +117,7 @@
                     if (list) ytEmbedUrl += `&list=${list}`;
                 } else if (!targetUrl.includes('/embed/')) {
                     const match = targetUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                if (match && match[1]) {
+                    if (match && match[1]) {
                         const urlObj = new URL(targetUrl);
                         const list = urlObj.searchParams.get('list');
                         ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
@@ -120,6 +134,7 @@
                 iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
                 iframe.setAttribute('allowfullscreen', 'true');
                 document.body.appendChild(iframe);
+                currentActiveElement = iframe;
 
             } 
             // --- DASH (.mpd) ---
@@ -129,7 +144,7 @@
                 video.autoplay = true;
                 video.muted = false;
                 document.body.appendChild(video);
-                mediaElement = video;
+                currentActiveElement = video;
 
                 if (typeof dashjs !== 'undefined') {
                     const player = dashjs.MediaPlayer().create();
@@ -147,39 +162,41 @@
                     audio.autoplay = true;
                     audio.controls = false;
                     document.body.appendChild(audio);
-                    mediaElement = audio;
+                    currentActiveElement = audio;
 
                     if (Hls.isSupported() && lowerUrl.includes('.m3u8')) {
                         const hls = new Hls();
+                        currentHlsInstance = hls;
                         hls.loadSource(targetUrl);
                         hls.attachMedia(audio);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            audio.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                            audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                         });
                     } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
                         audio.src = targetUrl;
-                        audio.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     } else {
                         audio.src = targetUrl;
-                        audio.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     }
                 } else {
                     const video = document.createElement('video');
                     video.autoplay = true;
                     video.controls = false;
                     document.body.appendChild(video);
-                    mediaElement = video;
+                    currentActiveElement = video;
 
                     if (Hls.isSupported()) {
                         const hls = new Hls();
+                        currentHlsInstance = hls;
                         hls.loadSource(targetUrl);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            video.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                            video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                         });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         video.src = targetUrl;
-                        video.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
+                        video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     }
                 }
             } 
@@ -190,19 +207,25 @@
                 video.autoplay = true;
                 video.controls = false;
                 document.body.appendChild(video);
-                mediaElement = video;
-                video.play().catch(e => console.log("Autoplay zablokowany przez przeglądarkę, kliknij w ekran."));
-            }
-
-            // Awaryjne odblokowanie dźwięku/odtwarzania po pierwszym kliknięciu w czarny ekran (wymóg przeglądarek)
-            if (mediaElement) {
-                window.addEventListener('click', () => {
-                    if (mediaElement.paused) {
-                        mediaElement.play().catch(err => console.log("Błąd odtwarzania:", err));
-                    }
-                }, { once: true });
+                currentActiveElement = video;
+                video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
             }
         }
+
+        // Uruchomienie przy pierwszym załadowaniu strony
+        loadStream();
+
+        // Nasłuchiwanie zmian hasha w pasku adresu (np. kliknięcie w zakładkę)
+        window.addEventListener('hashchange', () => {
+            loadStream();
+        });
+
+        // Awaryjne odblokowanie dźwięku po kliknięciu w czarny ekran
+        window.addEventListener('click', () => {
+            if (currentActiveElement && typeof currentActiveElement.play === 'function' && currentActiveElement.paused) {
+                currentActiveElement.play().catch(err => console.log("Błąd odtwarzania:", err));
+            }
+        });
     </script>
 </body>
 </html>
