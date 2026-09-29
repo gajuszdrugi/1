@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Fullscreen Stream Player</title>
-    <!-- Tailwind CSS for modern, clean styling -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Stream Player</title>
+    <!-- Tailwind CSS for full-screen resetting -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HLS.js CDN for m3u8 streams -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- Dash.js CDN for mpd streams -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dashjs/4.7.4/dash.all.min.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -13,279 +17,186 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #000000;
         }
-        /* Custom custom notification box styles */
-        #notification-box {
-            transition: transform 0.3s ease, opacity 0.3s ease;
+        iframe, video, audio, div {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            object-fit: contain;
+            background-color: #000000;
         }
     </style>
 </head>
-<body class="relative w-full h-full bg-black">
-
-    <div id="player-container" class="absolute inset-0 w-full h-full z-0">
-        <iframe id="yt-player" 
-                class="w-full h-full border-0"
-                src="" 
-                title="YouTube video player" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                allowfullscreen>
-        </iframe>
-    </div>
-
-    <button id="toggle-ui" onclick="toggleUI()" class="absolute top-4 right-4 z-20 bg-zinc-900/80 hover:bg-zinc-800 text-white px-4 py-2 rounded-xl backdrop-blur-md border border-zinc-700/50 shadow-lg transition-all text-sm font-medium flex items-center gap-2 cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        <span id="toggle-text">Ukryj Panel</span>
-    </button>
-
-    <div id="control-panel" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-[95%] max-w-3xl bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-5 rounded-2xl shadow-2xl transition-all duration-300">
-        <h1 class="text-white text-lg font-semibold mb-3 flex items-center justify-between">
-            <span>Odtwarzacz Transmisji YouTube</span>
-            <span id="current-stream-badge" class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30">Brak aktywnego</span>
-        </h1>
-
-        <!-- Custom Link Input Bar -->
-        <div class="flex gap-2 mb-4">
-            <input type="text" id="custom-url" placeholder="Wklej dowolny link HTTPS YouTube (np. https://youtu.be/...)" 
-                   class="flex-1 bg-zinc-950/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500 transition-colors">
-            <button onclick="playCustomLink()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer shadow-lg shadow-red-600/20">
-                Odtwórz
-            </button>
-        </div>
-
-        <!-- Predefined Streams List with Individual Link Options -->
-        <div class="space-y-2.5">
-            <p class="text-xs text-zinc-400 font-medium uppercase tracking-wider mb-2">Domyślne transmisje i generowanie linków:</p>
-            
-            <!-- Stream 1 -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-3 rounded-xl hover:border-zinc-700 transition-all gap-3">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30 shrink-0">Stream 1</span>
-                    <span class="text-xs text-zinc-300 font-mono truncate">0i7n3r01L2U</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="copyAppShareLink('0i7n3r01L2U')" class="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                        🔗 Kopiuj link strony ze stremem
-                    </button>
-                    <button onclick="copyYouTubeLink('0i7n3r01L2U')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer" title="Kopiuj oryginalny link YouTube">
-                        YouTube ↗
-                    </button>
-                    <button onclick="loadVideo('0i7n3r01L2U', true)" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-md">
-                        Włącz
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stream 2 -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-3 rounded-xl hover:border-zinc-700 transition-all gap-3">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30 shrink-0">Stream 2</span>
-                    <span class="text-xs text-zinc-300 font-mono truncate">hvVlyZ5GiE8</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="copyAppShareLink('hvVlyZ5GiE8')" class="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                        🔗 Kopiuj link strony ze stremem
-                    </button>
-                    <button onclick="copyYouTubeLink('hvVlyZ5GiE8')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer" title="Kopiuj oryginalny link YouTube">
-                        YouTube ↗
-                    </button>
-                    <button onclick="loadVideo('hvVlyZ5GiE8', true)" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-md">
-                        Włącz
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stream 3 -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-3 rounded-xl hover:border-zinc-700 transition-all gap-3">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30 shrink-0">Stream 3</span>
-                    <span class="text-xs text-zinc-300 font-mono truncate">IimtbuqYIE8</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="copyAppShareLink('IimtbuqYIE8')" class="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                        🔗 Kopiuj link strony ze stremem
-                    </button>
-                    <button onclick="copyYouTubeLink('IimtbuqYIE8')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer" title="Kopiuj oryginalny link YouTube">
-                        YouTube ↗
-                    </button>
-                    <button onclick="loadVideo('IimtbuqYIE8', true)" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-md">
-                        Włącz
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="notification-box" class="fixed top-6 left-1/2 -translate-x-1/2 -translate-y-20 opacity-0 z-50 bg-zinc-900 border border-zinc-700 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-none">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        <span id="notification-text" class="text-sm font-medium">Pomyślnie skopiowano!</span>
-    </div>
+<body class="bg-black">
+    <div id="player-container"></div>
 
     <script>
-        // Custom non-blocking notification toast instead of alert()
-        function showNotification(message) {
-            const box = document.getElementById('notification-box');
-            const text = document.getElementById('notification-text');
-            text.textContent = message;
-            box.classList.remove('-translate-y-20', 'opacity-0');
-            box.classList.add('translate-y-0', 'opacity-100');
-            
-            setTimeout(() => {
-                box.classList.remove('translate-y-0', 'opacity-100');
-                box.classList.add('-translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('player-container');
+            const pathname = window.location.pathname;
+            const search = window.location.search;
+            const fullUrlString = window.location.href;
 
-        // Extracts YouTube Video ID from standard and short HTTPS URLs or direct IDs
-        function extractVideoId(urlOrId) {
-            if (!urlOrId) return "";
-            const trimmed = urlOrId.trim();
+            // Check if there is a YouTube video ID or list parameter in search or pathname
+            // Example: /fSUMKrxPEd8?list=... or similar
+            const urlParams = new URLSearchParams(search);
             
-            if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-                return trimmed;
-            }
+            // Extract potential YouTube ID from pathname (e.g. /repo/VIDEO_ID or just /VIDEO_ID)
+            const pathSegments = pathname.split('/').filter(Boolean);
+            let potentialYTId = null;
+            let streamPathParts = [];
 
-            try {
-                const parsedUrl = new URL(trimmed);
-                if (parsedUrl.hostname.includes('youtu.be')) {
-                    return parsedUrl.pathname.slice(1);
-                } else if (parsedUrl.searchParams.has('v')) {
-                    return parsedUrl.searchParams.get('v');
-                } else if (parsedUrl.pathname.includes('/embed/')) {
-                    return parsedUrl.pathname.split('/embed/')[1];
-                } else if (parsedUrl.pathname.includes('/live/')) {
-                    return parsedUrl.pathname.split('/live/')[1];
+            // GitHub Pages often looks like username.github.io/repository/RESOURCE
+            // Let's inspect segments. If the first segment is the repo name and second is a YT id or domain.
+            // A standard YouTube ID is typically 11 characters long (alphanumeric, underscores, hyphens).
+            const ytIdRegex = /^[a-zA-Z0-9_-]{11}$/;
+
+            for (let i = 0; i < pathSegments.length; i++) {
+                if (ytIdRegex.test(pathSegments[i]) && !pathSegments[i].includes('.')) {
+                    potentialYTId = pathSegments[i];
+                    break;
                 }
-            } catch (e) {
-                const match = trimmed.match(/(?:v=|\/embed\/|\/live\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-                if (match) return match[1];
             }
-            return trimmed;
-        }
 
-        // Loads the video into the iframe and optionally updates browser history URL
-        function loadVideo(input, updateHistory = false) {
-            const videoId = extractVideoId(input);
-            if (!videoId) {
-                showNotification("Nieprawidłowy identyfikator lub link transmisji!");
+            // Check if search contains v= or if we found a YT ID in path or if there's a list parameter
+            const ytParamV = urlParams.get('v');
+            const ytParamList = urlParams.get('list');
+
+            if (ytParamV || (potentialYTId && (ytParamList || pathSegments.length <= 2)) && !pathname.includes('.')) {
+                const videoId = ytParamV || potentialYTId;
+                let ytEmbedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0`;
+                if (ytParamList) {
+                    ytEmbedUrl += `&list=${ytParamList}`;
+                }
+
+                container.innerHTML = `
+                    <iframe src="${ytEmbedUrl}" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                `;
                 return;
             }
 
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1`;
-            document.getElementById('yt-player').src = embedUrl;
+            // Reconstruct stream URL from pathname if it contains domain/path like live-ch1.trwam.cf...
+            // Find where the actual stream domain/path starts in the full URL or pathname
+            // We want everything after the domain + repository prefix if applicable, or parse the remaining path.
             
-            // Update active stream badge
-            document.getElementById('current-stream-badge').textContent = `Aktywny: ${videoId}`;
-
-            // If triggered by user interaction, update the browser URL with query param ?v=ID without reloading
-            if (updateHistory) {
-                const newUrl = `${window.location.pathname}?v=${videoId}`;
-                window.history.pushState({ videoId }, '', newUrl);
-            }
-        }
-
-        // Handles custom link input field submission
-        function playCustomLink() {
-            const val = document.getElementById('custom-url').value;
-            if (val) {
-                loadVideo(val, true);
-            } else {
-                showNotification("Najpierw wklej link HTTPS!");
-            }
-        }
-
-        // Generates and copies a direct URL pointing to THIS application with the selected stream
-        function copyAppShareLink(id) {
-            const baseUrl = window.location.origin + window.location.pathname;
-            const shareableLink = `${baseUrl}?v=${id}`;
+            // Let's find index of protocol or domain in pathname or full URL
+            // If user enters: https://user.github.io/repo/stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8
+            // We can search for known extensions or keywords like .m3u8, .mpd, .sdp, .mp3, .aac, or web domains.
             
-            // Clipboard fallback mechanism safe for iframes
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(shareableLink).then(() => {
-                    showNotification("Skopiowano link strony ze stremem!");
-                }).catch(() => fallbackCopy(shareableLink));
-            } else {
-                fallbackCopy(shareableLink);
-            }
-        }
-
-        // Fallback text copier
-        function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showNotification("Skopiowano link strony ze stremem!");
-            } catch (err) {
-                showNotification("Nie udało się skopiować linku.");
-            }
-            document.body.removeChild(textArea);
-        }
-
-        // Copies original YouTube link
-        function copyYouTubeLink(id) {
-            const ytLink = `https://www.youtube.com/watch?v=${id}`;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(ytLink).then(() => {
-                    showNotification("Skopiowano oryginalny link YouTube!");
-                });
-            } else {
-                fallbackCopy(ytLink);
-            }
-        }
-
-        // Toggle UI visibility for cleaner fullscreen viewing
-        let isUIVisible = true;
-        function toggleUI() {
-            const panel = document.getElementById('control-panel');
-            const btnText = document.getElementById('toggle-text');
-            isUIVisible = !isUIVisible;
+            let targetStreamUrl = '';
             
-            if (isUIVisible) {
-                panel.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
-                btnText.textContent = "Ukryj Panel";
+            // Look for http/https embedded inside or extract everything after root/repo
+            const matchIndex = fullUrlString.indexOf(':/{1,2}', 8); // find protocol after origin
+            if (matchIndex !== -1) {
+                // If there's an absolute URL embedded
+                targetStreamUrl = fullUrlString.substring(matchIndex + 1);
+                if (!targetStreamUrl.startsWith('http')) {
+                    targetStreamUrl = 'https:' + targetStreamUrl;
+                }
             } else {
-                panel.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
-                btnText.textContent = "Pokaź Panel";
-            }
-        }
-
-        // Initialize application on window load (check URL parameters for pre-selected stream)
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const videoParam = urlParams.get('v');
-
-            if (videoParam) {
-                loadVideo(videoParam, false);
-            } else {
-                // Default stream fallback
-                loadVideo('0i7n3r01L2U', false);
-            }
-        };
-
-        // Handle browser back/forward navigation buttons
-        window.onpopstate = function(event) {
-            if (event.state && event.state.videoId) {
-                loadVideo(event.state.videoId, false);
-            } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                const videoParam = urlParams.get('v');
-                if (videoParam) {
-                    loadVideo(videoParam, false);
+                // Relative pathname parsing: strip leading slash and repo name if necessary
+                // Let's reconstruct by joining path segments that look like a URL path
+                // e.g. /repo/live-ch1.trwam.cf.insyscd.net/... -> live-ch1.trwam.cf.insyscd.net/...
+                if (pathSegments.length > 0) {
+                    // Filter out common gh-pages repo name if it doesn't contain dots or slashes, 
+                    // but to be safe, let's stitch all segments after the first or second if it looks like a domain.
+                    let candidatePath = pathSegments.join('/');
+                    // If candidatePath contains a dot (domain name indicator), treat it as the URL host/path
+                    const firstDotIdx = candidatePath.indexOf('.');
+                    if (firstDotIdx !== -1) {
+                        // Find the start of the domain (could be preceded by repo name)
+                        // Let's find the segment that contains a dot
+                        const domainSegmentIdx = pathSegments.findIndex(seg => seg.includes('.'));
+                        if (domainSegmentIdx !== -1) {
+                            const actualPath = pathSegments.slice(domainSegmentIdx).join('/');
+                            targetStreamUrl = 'https://' + actualPath + search;
+                        }
+                    }
                 }
             }
-        };
+
+            if (!targetStreamUrl) {
+                // Fallback: if search has a stream query like ?url=...
+                targetStreamUrl = urlParams.get('url') || urlParams.get('src') || '';
+            }
+
+            if (!targetStreamUrl) {
+                // Default black screen if nothing matched
+                return;
+            }
+
+            const isAudioStream = targetStreamUrl.includes('.sdp') || 
+                                  targetStreamUrl.includes('.mp3') || 
+                                  targetStreamUrl.includes('.aac') || 
+                                  targetStreamUrl.includes('polskieradio.pl') ||
+                                  targetStreamUrl.includes('audio');
+
+            if (isAudioStream) {
+                const audio = document.createElement('audio');
+                audio.autoplay = true;
+                audio.controls = false;
+                audio.style.display = 'none';
+                document.body.appendChild(audio);
+
+                if (targetStreamUrl.includes('.m3u8') && window.Hls && Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(targetStreamUrl);
+                    hls.attachMedia(audio);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        audio.play().catch(e => console.log("Autoplay blocked:", e));
+                    });
+                } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+                    audio.src = targetStreamUrl;
+                    audio.addEventListener('loadedmetadata', () => {
+                        audio.play().catch(e => console.log("Autoplay blocked:", e));
+                    });
+                } else {
+                    audio.src = targetStreamUrl;
+                    audio.play().catch(e => console.log("Autoplay blocked:", e));
+                }
+            } else {
+                const video = document.createElement('video');
+                video.autoplay = true;
+                video.controls = false;
+                video.muted = false;
+                video.playsInline = true;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.backgroundColor = '#000000';
+                container.appendChild(video);
+
+                if (targetStreamUrl.endsWith('.m3u8') || targetStreamUrl.includes('.m3u8')) {
+                    if (window.Hls && Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(targetStreamUrl);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            video.play().catch(e => console.log("Autoplay blocked:", e));
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = targetStreamUrl;
+                        video.addEventListener('loadedmetadata', () => {
+                            video.play().catch(e => console.log("Autoplay blocked:", e));
+                        });
+                    }
+                } else if (targetStreamUrl.endsWith('.mpd') || targetStreamUrl.includes('.mpd')) {
+                    if (window.dashjs) {
+                        const player = dashjs.MediaPlayer().create();
+                        player.initialize(video, targetStreamUrl, true);
+                    }
+                } else {
+                    video.src = targetStreamUrl;
+                    video.play().catch(e => console.log("Autoplay blocked:", e));
+                }
+            }
+        });
     </script>
 </body>
 </html>
