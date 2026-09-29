@@ -16,11 +16,14 @@
             background-color: #000;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
+        /* Custom custom notification box styles */
+        #notification-box {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
     </style>
 </head>
 <body class="relative w-full h-full bg-black">
 
-    <!-- Fullscreen Player Container -->
     <div id="player-container" class="absolute inset-0 w-full h-full z-0">
         <iframe id="yt-player" 
                 class="w-full h-full border-0"
@@ -31,7 +34,6 @@
         </iframe>
     </div>
 
-    <!-- Toggle Controls Button (Top Right) -->
     <button id="toggle-ui" onclick="toggleUI()" class="absolute top-4 right-4 z-20 bg-zinc-900/80 hover:bg-zinc-800 text-white px-4 py-2 rounded-xl backdrop-blur-md border border-zinc-700/50 shadow-lg transition-all text-sm font-medium flex items-center gap-2 cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -40,11 +42,10 @@
         <span id="toggle-text">Ukryj Panel</span>
     </button>
 
-    <!-- Floating Control Panel (Bottom/Center overlay) -->
-    <div id="control-panel" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-[90%] max-w-3xl bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-5 rounded-2xl shadow-2xl transition-all duration-300">
+    <div id="control-panel" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-[95%] max-w-3xl bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 p-5 rounded-2xl shadow-2xl transition-all duration-300">
         <h1 class="text-white text-lg font-semibold mb-3 flex items-center justify-between">
             <span>Odtwarzacz Transmisji YouTube</span>
-            <span class="text-xs text-zinc-400 font-normal">Tryb pełnoekranowy bez błędu 152</span>
+            <span id="current-stream-badge" class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30">Brak aktywnego</span>
         </h1>
 
         <!-- Custom Link Input Bar -->
@@ -57,61 +58,61 @@
         </div>
 
         <!-- Predefined Streams List with Individual Link Options -->
-        <div class="space-y-2">
-            <p class="text-xs text-zinc-400 font-medium uppercase tracking-wider mb-2">Domyślne transmisje:</p>
+        <div class="space-y-2.5">
+            <p class="text-xs text-zinc-400 font-medium uppercase tracking-wider mb-2">Domyślne transmisje i generowanie linków:</p>
             
             <!-- Stream 1 -->
-            <div class="flex items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-2.5 rounded-xl hover:border-zinc-700 transition-all">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-3 rounded-xl hover:border-zinc-700 transition-all gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30">Stream 1</span>
+                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30 shrink-0">Stream 1</span>
                     <span class="text-xs text-zinc-300 font-mono truncate">0i7n3r01L2U</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="copyStreamLink('0i7n3r01L2U')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                        Kopiuj link
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="copyAppShareLink('0i7n3r01L2U')" class="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                        🔗 Kopiuj link strony ze stremem
                     </button>
-                    <a href="https://www.youtube.com/watch?v=0i7n3r01L2U" target="_blank" rel="noopener noreferrer" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors">
-                        Otwórz ↗
-                    </a>
-                    <button onclick="loadVideo('0i7n3r01L2U')" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer">
+                    <button onclick="copyYouTubeLink('0i7n3r01L2U')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer" title="Kopiuj oryginalny link YouTube">
+                        YouTube ↗
+                    </button>
+                    <button onclick="loadVideo('0i7n3r01L2U', true)" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-md">
                         Włącz
                     </button>
                 </div>
             </div>
 
             <!-- Stream 2 -->
-            <div class="flex items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-2.5 rounded-xl hover:border-zinc-700 transition-all">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-3 rounded-xl hover:border-zinc-700 transition-all gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30">Stream 2</span>
+                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30 shrink-0">Stream 2</span>
                     <span class="text-xs text-zinc-300 font-mono truncate">hvVlyZ5GiE8</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="copyStreamLink('hvVlyZ5GiE8')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                        Kopiuj link
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="copyAppShareLink('hvVlyZ5GiE8')" class="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                        🔗 Kopiuj link strony ze stremem
                     </button>
-                    <a href="https://www.youtube.com/watch?v=hvVlyZ5GiE8" target="_blank" rel="noopener noreferrer" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors">
-                        Otwórz ↗
-                    </a>
-                    <button onclick="loadVideo('hvVlyZ5GiE8')" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer">
+                    <button onclick="copyYouTubeLink('hvVlyZ5GiE8')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer" title="Kopiuj oryginalny link YouTube">
+                        YouTube ↗
+                    </button>
+                    <button onclick="loadVideo('hvVlyZ5GiE8', true)" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-md">
                         Włącz
                     </button>
                 </div>
             </div>
 
             <!-- Stream 3 -->
-            <div class="flex items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-2.5 rounded-xl hover:border-zinc-700 transition-all">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-zinc-950/40 border border-zinc-800/80 px-4 py-3 rounded-xl hover:border-zinc-700 transition-all gap-3">
                 <div class="flex items-center gap-3 overflow-hidden">
-                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30">Stream 3</span>
+                    <span class="text-xs bg-red-600/20 text-red-400 font-mono px-2 py-0.5 rounded border border-red-500/30 shrink-0">Stream 3</span>
                     <span class="text-xs text-zinc-300 font-mono truncate">IimtbuqYIE8</span>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
-                    <button onclick="copyStreamLink('IimtbuqYIE8')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                        Kopiuj link
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="copyAppShareLink('IimtbuqYIE8')" class="text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                        🔗 Kopiuj link strony ze stremem
                     </button>
-                    <a href="https://www.youtube.com/watch?v=IimtbuqYIE8" target="_blank" rel="noopener noreferrer" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition-colors">
-                        Otwórz ↗
-                    </a>
-                    <button onclick="loadVideo('IimtbuqYIE8')" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer">
+                    <button onclick="copyYouTubeLink('IimtbuqYIE8')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer" title="Kopiuj oryginalny link YouTube">
+                        YouTube ↗
+                    </button>
+                    <button onclick="loadVideo('IimtbuqYIE8', true)" class="text-xs bg-red-600 hover:bg-red-500 text-white font-medium px-4 py-1.5 rounded-lg transition-colors cursor-pointer shadow-md">
                         Włącz
                     </button>
                 </div>
@@ -120,14 +121,33 @@
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <div id="notification-box" class="fixed top-6 left-1/2 -translate-x-1/2 -translate-y-20 opacity-0 z-50 bg-zinc-900 border border-zinc-700 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span id="notification-text" class="text-sm font-medium">Pomyślnie skopiowano!</span>
+    </div>
+
     <script>
+        // Custom non-blocking notification toast instead of alert()
+        function showNotification(message) {
+            const box = document.getElementById('notification-box');
+            const text = document.getElementById('notification-text');
+            text.textContent = message;
+            box.classList.remove('-translate-y-20', 'opacity-0');
+            box.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                box.classList.remove('translate-y-0', 'opacity-100');
+                box.classList.add('-translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
         // Extracts YouTube Video ID from standard and short HTTPS URLs or direct IDs
         function extractVideoId(urlOrId) {
             if (!urlOrId) return "";
             const trimmed = urlOrId.trim();
             
-            // If it's already a clean ID (like 11 characters alphanumeric)
             if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
                 return trimmed;
             }
@@ -144,44 +164,85 @@
                     return parsedUrl.pathname.split('/live/')[1];
                 }
             } catch (e) {
-                // Not a valid URL, fallback search regex
                 const match = trimmed.match(/(?:v=|\/embed\/|\/live\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
                 if (match) return match[1];
             }
             return trimmed;
         }
 
-        // Loads the video into the iframe with parameters to avoid restriction/152 issues
-        function loadVideo(input) {
+        // Loads the video into the iframe and optionally updates browser history URL
+        function loadVideo(input, updateHistory = false) {
             const videoId = extractVideoId(input);
             if (!videoId) {
-                alert("Nieprawidłowy identyfikator lub link transmisji!");
+                showNotification("Nieprawidłowy identyfikator lub link transmisji!");
                 return;
             }
 
-            // Using official embed parameters with autoplay and full api enablement
             const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1`;
             document.getElementById('yt-player').src = embedUrl;
+            
+            // Update active stream badge
+            document.getElementById('current-stream-badge').textContent = `Aktywny: ${videoId}`;
+
+            // If triggered by user interaction, update the browser URL with query param ?v=ID without reloading
+            if (updateHistory) {
+                const newUrl = `${window.location.pathname}?v=${videoId}`;
+                window.history.pushState({ videoId }, '', newUrl);
+            }
         }
 
         // Handles custom link input field submission
         function playCustomLink() {
             const val = document.getElementById('custom-url').value;
             if (val) {
-                loadVideo(val);
+                loadVideo(val, true);
             } else {
-                alert("Najpierw wklej link HTTPS!");
+                showNotification("Najpierw wklej link HTTPS!");
             }
         }
 
-        // Copies individual stream link to clipboard
-        function copyStreamLink(id) {
-            const fullLink = `https://www.youtube.com/watch?v=${id}`;
-            navigator.clipboard.writeText(fullLink).then(() => {
-                alert("Skopiowano link do schowka: " + fullLink);
-            }).catch(err => {
-                console.error("Błąd kopiowania", err);
-            });
+        // Generates and copies a direct URL pointing to THIS application with the selected stream
+        function copyAppShareLink(id) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareableLink = `${baseUrl}?v=${id}`;
+            
+            // Clipboard fallback mechanism safe for iframes
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareableLink).then(() => {
+                    showNotification("Skopiowano link strony ze stremem!");
+                }).catch(() => fallbackCopy(shareableLink));
+            } else {
+                fallbackCopy(shareableLink);
+            }
+        }
+
+        // Fallback text copier
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showNotification("Skopiowano link strony ze stremem!");
+            } catch (err) {
+                showNotification("Nie udało się skopiować linku.");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Copies original YouTube link
+        function copyYouTubeLink(id) {
+            const ytLink = `https://www.youtube.com/watch?v=${id}`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(ytLink).then(() => {
+                    showNotification("Skopiowano oryginalny link YouTube!");
+                });
+            } else {
+                fallbackCopy(ytLink);
+            }
         }
 
         // Toggle UI visibility for cleaner fullscreen viewing
@@ -200,9 +261,30 @@
             }
         }
 
-        // Automatically load the first stream on startup
+        // Initialize application on window load (check URL parameters for pre-selected stream)
         window.onload = function() {
-            loadVideo('0i7n3r01L2U');
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoParam = urlParams.get('v');
+
+            if (videoParam) {
+                loadVideo(videoParam, false);
+            } else {
+                // Default stream fallback
+                loadVideo('0i7n3r01L2U', false);
+            }
+        };
+
+        // Handle browser back/forward navigation buttons
+        window.onpopstate = function(event) {
+            if (event.state && event.state.videoId) {
+                loadVideo(event.state.videoId, false);
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const videoParam = urlParams.get('v');
+                if (videoParam) {
+                    loadVideo(videoParam, false);
+                }
+            }
         };
     </script>
 </body>
