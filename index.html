@@ -15,9 +15,8 @@
             height: 100%;
             background-color: #000000;
             overflow: hidden;
-            position: relative;
+            font-family: sans-serif;
         }
-        
         iframe, video, audio {
             position: absolute;
             top: 0;
@@ -25,17 +24,15 @@
             width: 100%;
             height: 100%;
             border: none;
-            /* Domyślnie zachowanie proporcji (contain) */
-            object-fit: contain;
             background-color: #000000;
             cursor: pointer;
         }
-
-        /* Tryb pełnoekranowy lub zmaksymalizowany - rozciąganie do krawędzi (fill) */
-        body.is-fullscreen video,
-        body.is-fullscreen iframe,
-        body.is-maximized video,
-        body.is-maximized iframe {
+        /* Domyślnie (niezmaksymalizowane) zachowujemy proporcje */
+        .fit-contain {
+            object-fit: contain !important;
+        }
+        /* Rozciąganie gdy okno jest zmaksymalizowane lub pełnoekranowe */
+        .fit-fill {
             object-fit: fill !important;
         }
 
@@ -48,34 +45,37 @@
             position: relative;
         }
 
-        #fullscreen-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
+        /* Przycisk maksymalizowania (tylko ikona, brak napisów) */
+        #fs-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
             width: 48px;
             height: 48px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            color: #ffffff;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.2s;
-            opacity: 0.7;
-        }
-
-        #fullscreen-btn:hover {
-            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
             opacity: 1;
+            transition: opacity 0.4s ease, background-color 0.2s ease, transform 0.2s ease;
+        }
+        #fs-btn:hover {
+            background-color: rgba(0, 0, 0, 0.85);
+            border-color: rgba(255, 255, 255, 0.8);
             transform: scale(1.05);
         }
-
-        #fullscreen-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: #ffffff;
+        #fs-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+        .hidden-cursor {
+            cursor: none !important;
         }
     </style>
     <!-- HLS.js dla .m3u8 -->
@@ -85,9 +85,7 @@
 </head>
 <body>
     <div id="error-msg"></div>
-
-    <!-- Przycisk maksymalizowania (tylko ikona SVG) -->
-    <button id="fullscreen-btn" title="Pełny ekran" aria-label="Pełny ekran">
+    <button id="fs-btn" title="Pełny ekran" style="display: none;">
         <svg viewBox="0 0 24 24">
             <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
         </svg>
@@ -95,23 +93,18 @@
 
     <script>
         function getTargetUrl() {
-            // 1. Sprawdź Hash (#)
             if (window.location.hash) {
                 let h = window.location.hash.substring(1);
                 try { h = decodeURIComponent(h); } catch(e) {}
                 return h;
             }
-
-            // 2. Sprawdź parametr ?url=
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('url')) {
                 return urlParams.get('url');
             }
-
-            // 3. Ścieżka po nazwie repozytorium
             const pathSegments = window.location.pathname.split('/').filter(Boolean);
             if (pathSegments.length > 1) {
-                pathSegments.shift(); // Usuwa nazwę repo
+                pathSegments.shift();
                 if (pathSegments.length > 0) {
                     let reconstructed = pathSegments.join('/');
                     if (window.location.search) {
@@ -125,25 +118,31 @@
 
         let currentActiveElement = null;
         let currentHlsInstance = null;
+        let isStreamM3u8OrMpd = false;
 
-        function checkWindowState() {
-            // Sprawdzenie czy okno przeglądarki wypełnia ekran (szerokość lub wysokość bliska rozdzielczości ekranu)
-            const isWindowMaximized = (
-                Math.abs(window.outerWidth - screen.availWidth) < 20 &&
-                Math.abs(window.outerHeight - screen.availHeight) < 20
-            );
+        // Funkcja sprawdzająca czy okno jest zmaksymalizowane lub w fullscreenie
+        function checkWindowMaximization() {
+            if (!currentActiveElement || currentActiveElement.tagName !== 'VIDEO') return;
 
-            if (isWindowMaximized || document.fullscreenElement) {
-                document.body.classList.add('is-maximized');
+            // Sprawdzamy czy okno zajmuje pełny ekran fizyczny ekranu (szacunkowo z marginesem paska zadań)
+            // lub czy jest włączone API Fullscreen, bądź okno pokrywa cały obszar ekranu monitora.
+            const isFullscreen = document.fullscreenElement !== null;
+            const isMaximized = (window.outerWidth >= screen.availWidth && window.outerHeight >= screen.availHeight) ||
+                                (window.innerWidth >= screen.width - 15 && window.innerHeight >= screen.height - 15);
+
+            if (isFullscreen || isMaximized) {
+                currentActiveElement.classList.remove('fit-contain');
+                currentActiveElement.classList.add('fit-fill');
             } else {
-                document.body.classList.remove('is-maximized');
+                currentActiveElement.classList.remove('fit-fill');
+                currentActiveElement.classList.add('fit-contain');
             }
         }
 
-        window.addEventListener('resize', checkWindowState);
+        window.addEventListener('resize', checkWindowMaximization);
+        document.addEventListener('fullscreenchange', checkWindowMaximization);
 
         function loadStream() {
-            // Usuń poprzednie elementy odtwarzacza, jeśli istnieją
             document.querySelectorAll('iframe, video, audio').forEach(el => el.remove());
             if (currentHlsInstance) {
                 currentHlsInstance.destroy();
@@ -152,16 +151,17 @@
 
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'none';
+            const fsBtn = document.getElementById('fs-btn');
+            fsBtn.style.display = 'none';
+            isStreamM3u8OrMpd = false;
 
             const rawTarget = getTargetUrl();
-
             if (!rawTarget) {
                 errorMsg.style.display = 'block';
                 errorMsg.innerText = 'Brak adresu strumienia w URL (użyj np. /#twoj-link)';
                 return;
             }
 
-            // Normalizacja HTTPS
             let targetUrl = rawTarget;
             if (targetUrl.startsWith('http://')) {
                 targetUrl = targetUrl.replace('http://', 'https://');
@@ -170,6 +170,11 @@
             }
 
             const lowerUrl = targetUrl.toLowerCase();
+            isStreamM3u8OrMpd = lowerUrl.includes('.m3u8') || lowerUrl.includes('.mpd');
+
+            if (isStreamM3u8OrMpd) {
+                fsBtn.style.display = 'flex';
+            }
 
             // --- YOUTUBE ---
             if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
@@ -208,6 +213,7 @@
                 video.controls = false;
                 video.autoplay = true;
                 video.muted = false;
+                video.className = 'fit-contain';
                 document.body.appendChild(video);
                 currentActiveElement = video;
 
@@ -217,12 +223,14 @@
                 } else {
                     video.src = targetUrl;
                 }
+                checkWindowMaximization();
             } 
             // --- HLS / RADIO (.m3u8, .sdp) ---
             else if (lowerUrl.includes('.m3u8') || lowerUrl.includes('.sdp') || lowerUrl.includes('playlist')) {
                 const isAudioOnly = lowerUrl.includes('.sdp') || lowerUrl.includes('polskieradio.pl') || lowerUrl.includes('radio');
 
                 if (isAudioOnly) {
+                    fsBtn.style.display = 'none'; // Ukryj przycisk pełnego ekranu dla audio
                     const audio = document.createElement('audio');
                     audio.autoplay = true;
                     audio.controls = false;
@@ -237,9 +245,6 @@
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
                             audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                         });
-                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-                        audio.src = targetUrl;
-                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     } else {
                         audio.src = targetUrl;
                         audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
@@ -248,6 +253,7 @@
                     const video = document.createElement('video');
                     video.autoplay = true;
                     video.controls = false;
+                    video.className = 'fit-contain';
                     document.body.appendChild(video);
                     currentActiveElement = video;
 
@@ -263,6 +269,7 @@
                         video.src = targetUrl;
                         video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     }
+                    checkWindowMaximization();
                 }
             } 
             // --- INNE ---
@@ -271,23 +278,24 @@
                 video.src = targetUrl;
                 video.autoplay = true;
                 video.controls = false;
+                video.className = 'fit-contain';
                 document.body.appendChild(video);
                 currentActiveElement = video;
                 video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                checkWindowMaximization();
             }
         }
 
         loadStream();
-        checkWindowState();
 
         window.addEventListener('hashchange', () => {
             loadStream();
         });
 
-        // Obsługa kliknięcia bezpośrednio w element video (pauza / odtwarzanie)
+        // Obsługa kliknięcia: pauza/odtwarzanie dla elementu wideo
         window.addEventListener('click', (e) => {
-            // Ignoruj kliknięcia w przycisk pełnego ekranu
-            if (e.target.closest('#fullscreen-btn')) return;
+            // Ignoruj kliknięcie w przycisk pełnego ekranu
+            if (e.target.closest('#fs-btn')) return;
 
             if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
                 if (currentActiveElement.paused) {
@@ -295,18 +303,16 @@
                 } else {
                     currentActiveElement.pause();
                 }
-            } else if (currentActiveElement && typeof currentActiveElement.play === 'function' && currentActiveElement.paused) {
-                currentActiveElement.play().catch(err => console.log("Błąd odtwarzania:", err));
             }
         });
 
-        // Obsługa przycisku pełnego ekranu
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-        fullscreenBtn.addEventListener('click', (e) => {
+        // Przycisk pełnego ekranu logika
+        const fsBtn = document.getElementById('fs-btn');
+        fsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.log("Błąd włączenia pełnego ekranu:", err);
+                    console.error("Błąd wejścia w tryb pełnoekranowy:", err);
                 });
             } else {
                 if (document.exitFullscreen) {
@@ -315,15 +321,24 @@
             }
         });
 
-        // Nasłuchiwanie zmian trybu pełnoekranowego (Fullscreen API)
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                document.body.classList.add('is-fullscreen');
-            } else {
-                document.body.classList.remove('is-fullscreen');
+        // Ukrywanie przycisku oraz kursora po 5 sekundach bezczynności myszy
+        let inactivityTimeout;
+        function resetInactivityTimer() {
+            if (isStreamM3u8OrMpd) {
+                fsBtn.style.opacity = '1';
+                document.body.classList.remove('hidden-cursor');
             }
-            checkWindowState();
-        });
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = setTimeout(() => {
+                if (isStreamM3u8OrMpd) {
+                    fsBtn.style.opacity = '0';
+                    document.body.classList.add('hidden-cursor');
+                }
+            }, 5000);
+        }
+
+        window.addEventListener('mousemove', resetInactivityTimer);
+        window.addEventListener('mousedown', resetInactivityTimer);
     </script>
 </body>
 </html>
