@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Odtwarzacz Strumieni</title>
     <style>
         * {
             margin: 0;
@@ -15,7 +15,7 @@
             height: 100%;
             background-color: #000000;
             overflow: hidden;
-            cursor: pointer;
+            font-family: Arial, sans-serif;
         }
         iframe, video, audio {
             position: absolute;
@@ -24,7 +24,7 @@
             width: 100%;
             height: 100%;
             border: none;
-            object-fit: fill; /* Rozciąganie do całego okna */
+            object-fit: contain; /* Zachowanie proporcji (letterbox/pillarbox) */
             background-color: #000000;
         }
         #error-msg {
@@ -35,6 +35,39 @@
             z-index: 999;
             position: relative;
         }
+
+        /* Pasek sterowania (widoczny po najechaniu myszką) */
+        .controls-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        body:hover .controls-overlay {
+            opacity: 1;
+        }
+        .controls-overlay button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .controls-overlay button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
     </style>
     <!-- HLS.js dla .m3u8 -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -44,25 +77,29 @@
 <body>
     <div id="error-msg"></div>
 
+    <!-- Pasek sterowania -->
+    <div class="controls-overlay" id="controls">
+        <button id="playPauseBtn" onclick="togglePlayPause()">Pauza</button>
+        <button id="stopBtn" onclick="stopStream()">Stop</button>
+        <button id="fullscreenBtn" onclick="toggleFullscreen()">Pełny ekran</button>
+    </div>
+
     <script>
         function getTargetUrl() {
-            // 1. Sprawdź Hash (#)
             if (window.location.hash) {
                 let h = window.location.hash.substring(1);
                 try { h = decodeURIComponent(h); } catch(e) {}
                 return h;
             }
 
-            // 2. Sprawdź parametr ?url=
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('url')) {
                 return urlParams.get('url');
             }
 
-            // 3. Ścieżka po nazwie repozytorium
             const pathSegments = window.location.pathname.split('/').filter(Boolean);
             if (pathSegments.length > 1) {
-                pathSegments.shift(); // Usuwa nazwę repo
+                pathSegments.shift();
                 if (pathSegments.length > 0) {
                     let reconstructed = pathSegments.join('/');
                     if (window.location.search) {
@@ -76,13 +113,17 @@
 
         let currentActiveElement = null;
         let currentHlsInstance = null;
+        let dashPlayerInstance = null;
 
         function loadStream() {
-            // Usuń poprzednie elementy odtwarzacza, jeśli istnieją (zmiana z zakładki)
             document.querySelectorAll('iframe, video, audio').forEach(el => el.remove());
             if (currentHlsInstance) {
                 currentHlsInstance.destroy();
                 currentHlsInstance = null;
+            }
+            if (dashPlayerInstance) {
+                dashPlayerInstance.reset();
+                dashPlayerInstance = null;
             }
 
             const errorMsg = document.getElementById('error-msg');
@@ -93,10 +134,10 @@
             if (!rawTarget) {
                 errorMsg.style.display = 'block';
                 errorMsg.innerText = 'Brak adresu strumienia w URL (użyj np. /#twoj-link)';
+                document.getElementById('controls').style.display = 'none';
                 return;
             }
 
-            // Normalizacja HTTPS
             let targetUrl = rawTarget;
             if (targetUrl.startsWith('http://')) {
                 targetUrl = targetUrl.replace('http://', 'https://');
@@ -135,7 +176,6 @@
                 iframe.setAttribute('allowfullscreen', 'true');
                 document.body.appendChild(iframe);
                 currentActiveElement = iframe;
-
             } 
             // --- DASH (.mpd) ---
             else if (lowerUrl.includes('.mpd')) {
@@ -147,8 +187,8 @@
                 currentActiveElement = video;
 
                 if (typeof dashjs !== 'undefined') {
-                    const player = dashjs.MediaPlayer().create();
-                    player.initialize(video, targetUrl, true);
+                    dashPlayerInstance = dashjs.MediaPlayer().create();
+                    dashPlayerInstance.initialize(video, targetUrl, true);
                 } else {
                     video.src = targetUrl;
                 }
@@ -170,14 +210,11 @@
                         hls.loadSource(targetUrl);
                         hls.attachMedia(audio);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                            audio.play().catch(e => console.log("Autoplay zablokowany."));
                         });
-                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-                        audio.src = targetUrl;
-                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     } else {
                         audio.src = targetUrl;
-                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                        audio.play().catch(e => console.log("Autoplay zablokowany."));
                     }
                 } else {
                     const video = document.createElement('video');
@@ -192,11 +229,11 @@
                         hls.loadSource(targetUrl);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                            video.play().catch(e => console.log("Autoplay zablokowany."));
                         });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         video.src = targetUrl;
-                        video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                        video.play().catch(e => console.log("Autoplay zablokowany."));
                     }
                 }
             } 
@@ -208,22 +245,79 @@
                 video.controls = false;
                 document.body.appendChild(video);
                 currentActiveElement = video;
-                video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                video.play().catch(e => console.log("Autoplay zablokowany."));
             }
         }
 
-        // Uruchomienie przy pierwszym załadowaniu strony
+        // Funkcje sterujące
+        function togglePlayPause() {
+            if (!currentActiveElement) return;
+            // Dla tagów video / audio HTML5
+            if (typeof currentActiveElement.paused === 'boolean') {
+                const btn = document.getElementById('playPauseBtn');
+                if (currentActiveElement.paused) {
+                    currentActiveElement.play();
+                    btn.innerText = 'Pauza';
+                } else {
+                    currentActiveElement.pause();
+                    btn.innerText = 'Start';
+                }
+            }
+        }
+
+        function stopStream() {
+            document.querySelectorAll('iframe, video, audio').forEach(el => el.remove());
+            if (currentHlsInstance) {
+                currentHlsInstance.destroy();
+                currentHlsInstance = null;
+            }
+            if (dashPlayerInstance) {
+                dashPlayerInstance.reset();
+                dashPlayerInstance = null;
+            }
+            currentActiveElement = null;
+            document.getElementById('playPauseBtn').innerText = 'Start';
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Błąd pełnego ekranu:", err);
+                });
+                document.getElementById('fullscreenBtn').innerText = 'Wyjdź z pełnego ekranu';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                document.getElementById('fullscreenBtn').innerText = 'Pełny ekran';
+            }
+        }
+
+        // Aktualizacja etykiety przycisku fullscreen w przypadku wyjścia klawiszem ESC
+        document.addEventListener('fullscreenchange', () => {
+            const btn = document.getElementById('fullscreenBtn');
+            if (!document.fullscreenElement) {
+                btn.innerText = 'Pełny ekran';
+            } else {
+                btn.innerText = 'Wyjdź z pełnego ekranu';
+            }
+        });
+
+        // Uruchomienie przy pierwszym załadowaniu
         loadStream();
 
-        // Nasłuchiwanie zmian hasha w pasku adresu (np. kliknięcie w zakładkę)
         window.addEventListener('hashchange', () => {
             loadStream();
         });
 
-        // Awaryjne odblokowanie dźwięku po kliknięciu w czarny ekran
-        window.addEventListener('click', () => {
+        // Kliknięcie w tło w celu wznowienia (jeśli zablokowany autoplay)
+        window.addEventListener('click', (e) => {
+            // Nie wyzwalaj kliknięcia, jeśli kliknięto w panel sterowania
+            if (e.target.closest('#controls')) return;
+
             if (currentActiveElement && typeof currentActiveElement.play === 'function' && currentActiveElement.paused) {
                 currentActiveElement.play().catch(err => console.log("Błąd odtwarzania:", err));
+                document.getElementById('playPauseBtn').innerText = 'Pauza';
             }
         });
     </script>
