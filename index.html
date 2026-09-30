@@ -15,8 +15,9 @@
             height: 100%;
             background-color: #000000;
             overflow: hidden;
-            font-family: sans-serif;
+            position: relative;
         }
+        
         iframe, video, audio {
             position: absolute;
             top: 0;
@@ -24,17 +25,20 @@
             width: 100%;
             height: 100%;
             border: none;
+            /* Domyślnie zachowanie proporcji (contain) */
+            object-fit: contain;
             background-color: #000000;
             cursor: pointer;
         }
-        /* Domyślnie zachowujemy proporcje (contain) */
-        .video-contain {
-            object-fit: contain !important;
-        }
-        /* Rozciąganie do krawędzi (fill) gdy spełnione warunki */
-        .video-fill {
+
+        /* Tryb pełnoekranowy lub zmaksymalizowany - rozciąganie do krawędzi (fill) */
+        body.is-fullscreen video,
+        body.is-fullscreen iframe,
+        body.is-maximized video,
+        body.is-maximized iframe {
             object-fit: fill !important;
         }
+
         #error-msg {
             color: #ff5555;
             font-family: monospace;
@@ -43,27 +47,31 @@
             z-index: 999;
             position: relative;
         }
-        /* Przycisk maksymalizowania wideo (tylko ikona SVG) */
+
         #fullscreen-btn {
             position: absolute;
             bottom: 20px;
             right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
             width: 48px;
             height: 48px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: 8px;
-            cursor: pointer;
-            display: none; /* Domyślnie ukryty, widoczny tylko dla m3u8/mpd */
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            transition: background-color 0.2s, border-color 0.2s;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            opacity: 0.7;
         }
+
         #fullscreen-btn:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.8);
+            opacity: 1;
+            transform: scale(1.05);
         }
+
         #fullscreen-btn svg {
             width: 24px;
             height: 24px;
@@ -77,7 +85,9 @@
 </head>
 <body>
     <div id="error-msg"></div>
-    <button id="fullscreen-btn" title="Pełny ekran">
+
+    <!-- Przycisk maksymalizowania (tylko ikona SVG) -->
+    <button id="fullscreen-btn" title="Pełny ekran" aria-label="Pełny ekran">
         <svg viewBox="0 0 24 24">
             <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
         </svg>
@@ -115,27 +125,22 @@
 
         let currentActiveElement = null;
         let currentHlsInstance = null;
-        let isStreamM3u8OrMpd = false;
 
-        function updateVideoScaling() {
-            if (!currentActiveElement || currentActiveElement.tagName !== 'VIDEO') return;
+        function checkWindowState() {
+            // Sprawdzenie czy okno przeglądarki wypełnia ekran (szerokość lub wysokość bliska rozdzielczości ekranu)
+            const isWindowMaximized = (
+                Math.abs(window.outerWidth - screen.availWidth) < 20 &&
+                Math.abs(window.outerHeight - screen.availHeight) < 20
+            );
 
-            // Sprawdzenie czy okno jest zmaksymalizowane oraz czy włączony jest tryb pełnoekranowy przeglądarki
-            const isWindowMaximized = window.outerWidth >= screen.availWidth && window.outerHeight >= screen.availHeight;
-            const isFullscreenActive = !!document.fullscreenElement;
-
-            if (isWindowMaximized && isFullscreenActive) {
-                currentActiveElement.classList.remove('video-contain');
-                currentActiveElement.classList.add('video-fill');
+            if (isWindowMaximized || document.fullscreenElement) {
+                document.body.classList.add('is-maximized');
             } else {
-                currentActiveElement.classList.remove('video-fill');
-                currentActiveElement.classList.add('video-contain');
+                document.body.classList.remove('is-maximized');
             }
         }
 
-        // Nasłuchiwanie zmian trybu pełnoekranowego oraz rozmiaru okna
-        document.addEventListener('fullscreenchange', updateVideoScaling);
-        window.addEventListener('resize', updateVideoScaling);
+        window.addEventListener('resize', checkWindowState);
 
         function loadStream() {
             // Usuń poprzednie elementy odtwarzacza, jeśli istnieją
@@ -147,9 +152,6 @@
 
             const errorMsg = document.getElementById('error-msg');
             errorMsg.style.display = 'none';
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-            fullscreenBtn.style.display = 'none';
-            isStreamM3u8OrMpd = false;
 
             const rawTarget = getTargetUrl();
 
@@ -202,15 +204,12 @@
             } 
             // --- DASH (.mpd) ---
             else if (lowerUrl.includes('.mpd')) {
-                isStreamM3u8OrMpd = true;
                 const video = document.createElement('video');
                 video.controls = false;
                 video.autoplay = true;
                 video.muted = false;
-                video.className = 'video-contain';
                 document.body.appendChild(video);
                 currentActiveElement = video;
-                fullscreenBtn.style.display = 'flex';
 
                 if (typeof dashjs !== 'undefined') {
                     const player = dashjs.MediaPlayer().create();
@@ -236,21 +235,21 @@
                         hls.loadSource(targetUrl);
                         hls.attachMedia(audio);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            audio.play().catch(e => console.log("Autoplay zablokowany."));
+                            audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                         });
+                    } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+                        audio.src = targetUrl;
+                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     } else {
                         audio.src = targetUrl;
-                        audio.play().catch(e => console.log("Autoplay zablokowany."));
+                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     }
                 } else {
-                    isStreamM3u8OrMpd = true;
                     const video = document.createElement('video');
                     video.autoplay = true;
                     video.controls = false;
-                    video.className = 'video-contain';
                     document.body.appendChild(video);
                     currentActiveElement = video;
-                    fullscreenBtn.style.display = 'flex';
 
                     if (Hls.isSupported()) {
                         const hls = new Hls();
@@ -258,39 +257,36 @@
                         hls.loadSource(targetUrl);
                         hls.attachMedia(video);
                         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                            video.play().catch(e => console.log("Autoplay zablokowany."));
+                            video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                         });
                     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                         video.src = targetUrl;
-                        video.play().catch(e => console.log("Autoplay zablokowany."));
+                        video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
                     }
                 }
             } 
             // --- INNE ---
             else {
-                isStreamM3u8OrMpd = true;
                 const video = document.createElement('video');
                 video.src = targetUrl;
                 video.autoplay = true;
                 video.controls = false;
-                video.className = 'video-contain';
                 document.body.appendChild(video);
                 currentActiveElement = video;
-                fullscreenBtn.style.display = 'flex';
-                video.play().catch(e => console.log("Autoplay zablokowany."));
+                video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
             }
-
-            updateVideoScaling();
         }
 
         loadStream();
+        checkWindowState();
 
         window.addEventListener('hashchange', () => {
             loadStream();
         });
 
-        // Obsługa kliknięcia w element wideo: pauza / odtwarzanie (z uwzględnieniem kliknięcia w przycisk pełnego ekranu)
+        // Obsługa kliknięcia bezpośrednio w element video (pauza / odtwarzanie)
         window.addEventListener('click', (e) => {
+            // Ignoruj kliknięcia w przycisk pełnego ekranu
             if (e.target.closest('#fullscreen-btn')) return;
 
             if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
@@ -304,8 +300,9 @@
             }
         });
 
-        // Obsługa przycisku maksymalizowania wideo (Fullscreen API) dla m3u8/mpd
-        document.getElementById('fullscreen-btn').addEventListener('click', (e) => {
+        // Obsługa przycisku pełnego ekranu
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        fullscreenBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -316,6 +313,16 @@
                     document.exitFullscreen();
                 }
             }
+        });
+
+        // Nasłuchiwanie zmian trybu pełnoekranowego (Fullscreen API)
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                document.body.classList.add('is-fullscreen');
+            } else {
+                document.body.classList.remove('is-fullscreen');
+            }
+            checkWindowState();
         });
     </script>
 </body>
