@@ -45,19 +45,11 @@
             position: relative;
         }
 
-        /* Kontener na przyciski nawigacyjne w prawym dolnym rogu */
-        .controls-container {
+        /* Przycisk maksymalizowania (tylko ikona, brak napisów) */
+        #fs-btn {
             position: fixed;
             bottom: 25px;
             right: 25px;
-            display: flex;
-            gap: 12px;
-            z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.4s ease;
-        }
-
-        .action-btn {
             width: 48px;
             height: 48px;
             background-color: rgba(0, 0, 0, 0.6);
@@ -68,14 +60,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.4s ease, background-color 0.2s ease, transform 0.2s ease;
         }
-        .action-btn:hover {
+        #fs-btn:hover {
             background-color: rgba(0, 0, 0, 0.85);
             border-color: rgba(255, 255, 255, 0.8);
             transform: scale(1.05);
         }
-        .action-btn svg {
+        #fs-btn svg {
             width: 22px;
             height: 22px;
             fill: currentColor;
@@ -91,14 +85,313 @@
 </head>
 <body>
     <div id="error-msg"></div>
+    <button id="fs-btn" title="Pełny ekran" style="display: none;">
+        <svg viewBox="0 0 24 24">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+        </svg>
+    </button>
 
-    <div class="controls-container" id="controls">
-        <!-- Przycisk Picture in Picture (Obraz w obrazie) -->
-        <button id="pip-btn" class="action-btn" title="Obraz w obrazie (PiP)" style="display: none;">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/>
-            </svg>
-        </button>
-        <!-- Przycisk Pełny ekran -->
-        <button id="fs-btn" class="action-btn" title="Pełny ekran" style="display: none;">
-            <svg viewBox="
+    <script>
+        function getTargetUrl() {
+            if (window.location.hash) {
+                let h = window.location.hash.substring(1);
+                try { h = decodeURIComponent(h); } catch(e) {}
+                return h;
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('url')) {
+                return urlParams.get('url');
+            }
+            const pathSegments = window.location.pathname.split('/').filter(Boolean);
+            if (pathSegments.length > 1) {
+                pathSegments.shift();
+                if (pathSegments.length > 0) {
+                    let reconstructed = pathSegments.join('/');
+                    if (window.location.search) {
+                        reconstructed += window.location.search;
+                    }
+                    return reconstructed;
+                }
+            }
+            return null;
+        }
+
+        let currentActiveElement = null;
+        let currentHlsInstance = null;
+        let isStreamM3u8OrMpd = false;
+        let isYouTube = false;
+
+        function checkWindowMaximization() {
+            if (!currentActiveElement || currentActiveElement.tagName !== 'VIDEO') return;
+
+            const isFullscreen = document.fullscreenElement !== null;
+            const isMaximized = (window.outerWidth >= screen.availWidth && window.outerHeight >= screen.availHeight) ||
+                                (window.innerWidth >= screen.width - 15 && window.innerHeight >= screen.height - 15);
+
+            if (isFullscreen || isMaximized) {
+                currentActiveElement.classList.remove('fit-contain');
+                currentActiveElement.classList.add('fit-fill');
+            } else {
+                currentActiveElement.classList.remove('fit-fill');
+                currentActiveElement.classList.add('fit-contain');
+            }
+        }
+
+        window.addEventListener('resize', checkWindowMaximization);
+        document.addEventListener('fullscreenchange', checkWindowMaximization);
+
+        function loadStream() {
+            document.querySelectorAll('iframe, video, audio').forEach(el => el.remove());
+            if (currentHlsInstance) {
+                currentHlsInstance.destroy();
+                currentHlsInstance = null;
+            }
+
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.style.display = 'none';
+            const fsBtn = document.getElementById('fs-btn');
+            fsBtn.style.display = 'none';
+            isStreamM3u8OrMpd = false;
+            isYouTube = false;
+
+            const rawTarget = getTargetUrl();
+            if (!rawTarget) {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = 'Brak adresu strumienia w URL (użyj np. /#twoj-link)';
+                return;
+            }
+
+            let targetUrl = rawTarget;
+            if (targetUrl.startsWith('http://')) {
+                targetUrl = targetUrl.replace('http://', 'https://');
+            } else if (!targetUrl.startsWith('https://')) {
+                targetUrl = 'https://' + targetUrl;
+            }
+
+            const lowerUrl = targetUrl.toLowerCase();
+            isStreamM3u8OrMpd = lowerUrl.includes('.m3u8') || lowerUrl.includes('.mpd');
+
+            if (isStreamM3u8OrMpd) {
+                fsBtn.style.display = 'flex';
+            }
+
+            // --- YOUTUBE ---
+            if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+                isYouTube = true;
+                let ytEmbedUrl = targetUrl;
+
+                if (targetUrl.includes('watch?v=')) {
+                    const urlObj = new URL(targetUrl);
+                    const v = urlObj.searchParams.get('v');
+                    const list = urlObj.searchParams.get('list');
+                    ytEmbedUrl = `https://www.youtube.com/embed/${v}?enablejsapi=1&autoplay=1`;
+                    if (list) ytEmbedUrl += `&list=${list}`;
+                } else if (!targetUrl.includes('/embed/')) {
+                    const match = targetUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                    if (match && match[1]) {
+                        const urlObj = new URL(targetUrl);
+                        const list = urlObj.searchParams.get('list');
+                        ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?enablejsapi=1&autoplay=1`;
+                        if (list) ytEmbedUrl += `&list=${list}`;
+                    }
+                } else {
+                    const params = [];
+                    if (!ytEmbedUrl.includes('enablejsapi=')) params.push('enablejsapi=1');
+                    if (!ytEmbedUrl.includes('autoplay=')) params.push('autoplay=1');
+                    if (params.length > 0) {
+                        ytEmbedUrl += (ytEmbedUrl.includes('?') ? '&' : '?') + params.join('&');
+                    }
+                }
+
+                const iframe = document.createElement('iframe');
+                iframe.src = ytEmbedUrl;
+                iframe.id = 'yt-player';
+                iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                iframe.setAttribute('allowfullscreen', 'true');
+                document.body.appendChild(iframe);
+                currentActiveElement = iframe;
+            } 
+            // --- DASH (.mpd) ---
+            else if (lowerUrl.includes('.mpd')) {
+                const video = document.createElement('video');
+                video.controls = false;
+                video.autoplay = true;
+                video.muted = false;
+                video.className = 'fit-contain';
+                document.body.appendChild(video);
+                currentActiveElement = video;
+
+                if (typeof dashjs !== 'undefined') {
+                    const player = dashjs.MediaPlayer().create();
+                    player.initialize(video, targetUrl, true);
+                } else {
+                    video.src = targetUrl;
+                }
+                checkWindowMaximization();
+            } 
+            // --- HLS / RADIO (.m3u8, .sdp) ---
+            else if (lowerUrl.includes('.m3u8') || lowerUrl.includes('.sdp') || lowerUrl.includes('playlist')) {
+                const isAudioOnly = lowerUrl.includes('.sdp') || lowerUrl.includes('polskieradio.pl') || lowerUrl.includes('radio');
+
+                if (isAudioOnly) {
+                    fsBtn.style.display = 'none';
+                    const audio = document.createElement('audio');
+                    audio.autoplay = true;
+                    audio.controls = false;
+                    document.body.appendChild(audio);
+                    currentActiveElement = audio;
+
+                    if (Hls.isSupported() && lowerUrl.includes('.m3u8')) {
+                        const hls = new Hls();
+                        currentHlsInstance = hls;
+                        hls.loadSource(targetUrl);
+                        hls.attachMedia(audio);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                        });
+                    } else {
+                        audio.src = targetUrl;
+                        audio.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                    }
+                } else {
+                    const video = document.createElement('video');
+                    video.autoplay = true;
+                    video.controls = false;
+                    video.className = 'fit-contain';
+                    document.body.appendChild(video);
+                    currentActiveElement = video;
+
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        currentHlsInstance = hls;
+                        hls.loadSource(targetUrl);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = targetUrl;
+                        video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                    }
+                    checkWindowMaximization();
+                }
+            } 
+            // --- INNE ---
+            else {
+                const video = document.createElement('video');
+                video.src = targetUrl;
+                video.autoplay = true;
+                video.controls = false;
+                video.className = 'fit-contain';
+                document.body.appendChild(video);
+                currentActiveElement = video;
+                video.play().catch(e => console.log("Autoplay zablokowany, kliknij w ekran."));
+                checkWindowMaximization();
+            }
+        }
+
+        loadStream();
+
+        window.addEventListener('hashchange', () => {
+            loadStream();
+        });
+
+        // Funkcja pomocnicza do wysyłania komend do iframe z YouTube
+        function sendYTCommand(command) {
+            const iframe = document.getElementById('yt-player');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage(JSON.stringify({
+                    "event": "command",
+                    "func": command,
+                    "args": []
+                }), "*");
+            }
+        }
+
+        // Obsługa klawiszy strzałek (Lewo / Prawo)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (isYouTube) {
+                    sendYTCommand('nextVideo');
+                } else if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
+                    currentActiveElement.currentTime = Math.min(currentActiveElement.duration || Infinity, currentActiveElement.currentTime + 5);
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (isYouTube) {
+                    sendYTCommand('previousVideo');
+                } else if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
+                    currentActiveElement.currentTime = Math.max(0, currentActiveElement.currentTime - 5);
+                }
+            }
+        });
+
+        // Nasłuchiwanie informacji o zmianie adresu z poziomu iframe YouTube (aktualizuje hash/URL w przeglądarce)
+        window.addEventListener('message', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.event === 'infoDelivery' && data.info && data.info.videoData) {
+                    const videoId = data.info.videoData.video_id;
+                    if (videoId) {
+                        const rawTarget = getTargetUrl();
+                        if (rawTarget && rawTarget.includes('list=')) {
+                            const urlObj = new URL(rawTarget.startsWith('http') ? rawTarget : 'https://' + rawTarget);
+                            const list = urlObj.searchParams.get('list');
+                            const newUrl = `https://www.youtube.com/watch?v=${videoId}&list=${list}`;
+                            if (window.location.hash) {
+                                history.replaceState(null, '', '#' + encodeURIComponent(newUrl));
+                            }
+                        }
+                    }
+                }
+            } catch (err) {}
+        });
+
+        // Obsługa kliknięcia: pauza/odtwarzanie dla elementu wideo
+        window.addEventListener('click', (e) => {
+            if (e.target.closest('#fs-btn')) return;
+
+            if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
+                if (currentActiveElement.paused) {
+                    currentActiveElement.play().catch(err => console.log("Błąd odtwarzania:", err));
+                } else {
+                    currentActiveElement.pause();
+                }
+            }
+        });
+
+        // Przycisk pełnego ekranu logika
+        const fsBtn = document.getElementById('fs-btn');
+        fsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Błąd wejścia w tryb pełnoekranowy:", err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Ukrywanie przycisku oraz kursora po 5 sekundach bezczynności myszy
+        let inactivityTimeout;
+        function resetInactivityTimer() {
+            if (isStreamM3u8OrMpd) {
+                fsBtn.style.opacity = '1';
+                document.body.classList.remove('hidden-cursor');
+            }
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = setTimeout(() => {
+                if (isStreamM3u8OrMpd) {
+                    fsBtn.style.opacity = '0';
+                    document.body.classList.add('hidden-cursor');
+                }
+            }, 5000);
+        }
+
+        window.addEventListener('mousemove', resetInactivityTimer);
+        window.addEventListener('mousedown', resetInactivityTimer);
+    </script>
+</body>
+</html>
