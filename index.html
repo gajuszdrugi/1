@@ -25,8 +25,19 @@
             height: 100%;
             border: none;
             background-color: #000000;
-            cursor: pointer;
         }
+        /* Przezroczysta nakładka nad iframe do chwytania kliknięć myszy na YouTube */
+        #iframe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            background: transparent;
+            display: none;
+        }
+
         /* Domyślnie (niezmaksymalizowane) zachowujemy proporcje */
         .fit-contain {
             object-fit: contain !important;
@@ -85,6 +96,7 @@
 </head>
 <body>
     <div id="error-msg"></div>
+    <div id="iframe-overlay"></div>
     <button id="fs-btn" title="Pełny ekran" style="display: none;">
         <svg viewBox="0 0 24 24">
             <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
@@ -92,6 +104,15 @@
     </button>
 
     <script>
+        // Funkcje Nawigacji po Strumieniach
+        function nextStream() {
+            window.history.forward();
+        }
+
+        function prevStream() {
+            window.history.back();
+        }
+
         function getTargetUrl() {
             if (window.location.hash) {
                 let h = window.location.hash.substring(1);
@@ -119,7 +140,6 @@
         let currentActiveElement = null;
         let currentHlsInstance = null;
         let isStreamM3u8OrMpd = false;
-        let isYouTube = false;
 
         function checkWindowMaximization() {
             if (!currentActiveElement || currentActiveElement.tagName !== 'VIDEO') return;
@@ -148,11 +168,12 @@
             }
 
             const errorMsg = document.getElementById('error-msg');
+            const iframeOverlay = document.getElementById('iframe-overlay');
             errorMsg.style.display = 'none';
+            iframeOverlay.style.display = 'none';
             const fsBtn = document.getElementById('fs-btn');
             fsBtn.style.display = 'none';
             isStreamM3u8OrMpd = false;
-            isYouTube = false;
 
             const rawTarget = getTargetUrl();
             if (!rawTarget) {
@@ -177,39 +198,37 @@
 
             // --- YOUTUBE ---
             if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
-                isYouTube = true;
                 let ytEmbedUrl = targetUrl;
-
                 if (targetUrl.includes('watch?v=')) {
                     const urlObj = new URL(targetUrl);
                     const v = urlObj.searchParams.get('v');
                     const list = urlObj.searchParams.get('list');
-                    ytEmbedUrl = `https://www.youtube.com/embed/${v}?enablejsapi=1&autoplay=1`;
+                    ytEmbedUrl = `https://www.youtube.com/embed/${v}?autoplay=1`;
                     if (list) ytEmbedUrl += `&list=${list}`;
                 } else if (!targetUrl.includes('/embed/')) {
                     const match = targetUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
                     if (match && match[1]) {
                         const urlObj = new URL(targetUrl);
                         const list = urlObj.searchParams.get('list');
-                        ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?enablejsapi=1&autoplay=1`;
+                        ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
                         if (list) ytEmbedUrl += `&list=${list}`;
                     }
                 } else {
-                    const params = [];
-                    if (!ytEmbedUrl.includes('enablejsapi=')) params.push('enablejsapi=1');
-                    if (!ytEmbedUrl.includes('autoplay=')) params.push('autoplay=1');
-                    if (params.length > 0) {
-                        ytEmbedUrl += (ytEmbedUrl.includes('?') ? '&' : '?') + params.join('&');
+                    if (!ytEmbedUrl.includes('autoplay=1')) {
+                        ytEmbedUrl += (ytEmbedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
                     }
                 }
 
                 const iframe = document.createElement('iframe');
                 iframe.src = ytEmbedUrl;
-                iframe.id = 'yt-player';
                 iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
                 iframe.setAttribute('allowfullscreen', 'true');
                 document.body.appendChild(iframe);
                 currentActiveElement = iframe;
+
+                // Włącz przezroczystą nakładkę nad iframe YouTube do obsługi myszy
+                iframeOverlay.style.display = 'block';
+
             } 
             // --- DASH (.mpd) ---
             else if (lowerUrl.includes('.mpd')) {
@@ -296,57 +315,32 @@
             loadStream();
         });
 
-        // Funkcja pomocnicza do wysyłania komend do iframe z YouTube
-        function sendYTCommand(command) {
-            const iframe = document.getElementById('yt-player');
-            if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.postMessage(JSON.stringify({
-                    "event": "command",
-                    "func": command,
-                    "args": []
-                }), "*");
-            }
-        }
+        // 1. Wyłączenie domyślnego menu kontekstowego (prawy przycisk myszy)
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            nextStream();
+        });
 
-        // Obsługa klawiszy strzałek (Lewo / Prawo)
+        // 2. Obsługa Środkowego Przycisku Myszy (AuxClick) -> Poprzedni Stream
+        window.addEventListener('auxclick', (e) => {
+            if (e.button === 1) { // 1 = Środkowy przycisk myszy (scroll)
+                e.preventDefault();
+                prevStream();
+            }
+        });
+
+        // 3. Obsługa Klawiatury: Strzałka w Górę (kolejny), Strzałka w Dół (poprzedni)
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') {
-                if (isYouTube) {
-                    sendYTCommand('nextVideo');
-                } else if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
-                    currentActiveElement.currentTime = Math.min(currentActiveElement.duration || Infinity, currentActiveElement.currentTime + 5);
-                }
-            } else if (e.key === 'ArrowLeft') {
-                if (isYouTube) {
-                    sendYTCommand('previousVideo');
-                } else if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
-                    currentActiveElement.currentTime = Math.max(0, currentActiveElement.currentTime - 5);
-                }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                nextStream();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                prevStream();
             }
         });
 
-        // Nasłuchiwanie informacji o zmianie adresu z poziomu iframe YouTube (aktualizuje hash/URL w przeglądarce)
-        window.addEventListener('message', (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.event === 'infoDelivery' && data.info && data.info.videoData) {
-                    const videoId = data.info.videoData.video_id;
-                    if (videoId) {
-                        const rawTarget = getTargetUrl();
-                        if (rawTarget && rawTarget.includes('list=')) {
-                            const urlObj = new URL(rawTarget.startsWith('http') ? rawTarget : 'https://' + rawTarget);
-                            const list = urlObj.searchParams.get('list');
-                            const newUrl = `https://www.youtube.com/watch?v=${videoId}&list=${list}`;
-                            if (window.location.hash) {
-                                history.replaceState(null, '', '#' + encodeURIComponent(newUrl));
-                            }
-                        }
-                    }
-                }
-            } catch (err) {}
-        });
-
-        // Obsługa kliknięcia: pauza/odtwarzanie dla elementu wideo
+        // Obsługa Lewego Kliknięcia (Pause / Play dla Video)
         window.addEventListener('click', (e) => {
             if (e.target.closest('#fs-btn')) return;
 
