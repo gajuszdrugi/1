@@ -119,13 +119,11 @@
         let currentActiveElement = null;
         let currentHlsInstance = null;
         let isStreamM3u8OrMpd = false;
+        let isYouTube = false;
 
-        // Funkcja sprawdzająca czy okno jest zmaksymalizowane lub w fullscreenie
         function checkWindowMaximization() {
             if (!currentActiveElement || currentActiveElement.tagName !== 'VIDEO') return;
 
-            // Sprawdzamy czy okno zajmuje pełny ekran fizyczny ekranu (szacunkowo z marginesem paska zadań)
-            // lub czy jest włączone API Fullscreen, bądź okno pokrywa cały obszar ekranu monitora.
             const isFullscreen = document.fullscreenElement !== null;
             const isMaximized = (window.outerWidth >= screen.availWidth && window.outerHeight >= screen.availHeight) ||
                                 (window.innerWidth >= screen.width - 15 && window.innerHeight >= screen.height - 15);
@@ -154,6 +152,7 @@
             const fsBtn = document.getElementById('fs-btn');
             fsBtn.style.display = 'none';
             isStreamM3u8OrMpd = false;
+            isYouTube = false;
 
             const rawTarget = getTargetUrl();
             if (!rawTarget) {
@@ -178,34 +177,39 @@
 
             // --- YOUTUBE ---
             if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+                isYouTube = true;
                 let ytEmbedUrl = targetUrl;
+
                 if (targetUrl.includes('watch?v=')) {
                     const urlObj = new URL(targetUrl);
                     const v = urlObj.searchParams.get('v');
                     const list = urlObj.searchParams.get('list');
-                    ytEmbedUrl = `https://www.youtube.com/embed/${v}?autoplay=1`;
+                    ytEmbedUrl = `https://www.youtube.com/embed/${v}?enablejsapi=1&autoplay=1`;
                     if (list) ytEmbedUrl += `&list=${list}`;
                 } else if (!targetUrl.includes('/embed/')) {
                     const match = targetUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
                     if (match && match[1]) {
                         const urlObj = new URL(targetUrl);
                         const list = urlObj.searchParams.get('list');
-                        ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`;
+                        ytEmbedUrl = `https://www.youtube.com/embed/${match[1]}?enablejsapi=1&autoplay=1`;
                         if (list) ytEmbedUrl += `&list=${list}`;
                     }
                 } else {
-                    if (!ytEmbedUrl.includes('autoplay=1')) {
-                        ytEmbedUrl += (ytEmbedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+                    const params = [];
+                    if (!ytEmbedUrl.includes('enablejsapi=')) params.push('enablejsapi=1');
+                    if (!ytEmbedUrl.includes('autoplay=')) params.push('autoplay=1');
+                    if (params.length > 0) {
+                        ytEmbedUrl += (ytEmbedUrl.includes('?') ? '&' : '?') + params.join('&');
                     }
                 }
 
                 const iframe = document.createElement('iframe');
                 iframe.src = ytEmbedUrl;
+                iframe.id = 'yt-player';
                 iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
                 iframe.setAttribute('allowfullscreen', 'true');
                 document.body.appendChild(iframe);
                 currentActiveElement = iframe;
-
             } 
             // --- DASH (.mpd) ---
             else if (lowerUrl.includes('.mpd')) {
@@ -230,7 +234,7 @@
                 const isAudioOnly = lowerUrl.includes('.sdp') || lowerUrl.includes('polskieradio.pl') || lowerUrl.includes('radio');
 
                 if (isAudioOnly) {
-                    fsBtn.style.display = 'none'; // Ukryj przycisk pełnego ekranu dla audio
+                    fsBtn.style.display = 'none';
                     const audio = document.createElement('audio');
                     audio.autoplay = true;
                     audio.controls = false;
@@ -292,9 +296,58 @@
             loadStream();
         });
 
+        // Funkcja pomocnicza do wysyłania komend do iframe z YouTube
+        function sendYTCommand(command) {
+            const iframe = document.getElementById('yt-player');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage(JSON.stringify({
+                    "event": "command",
+                    "func": command,
+                    "args": []
+                }), "*");
+            }
+        }
+
+        // Obsługa klawiszy strzałek (Lewo / Prawo)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (isYouTube) {
+                    sendYTCommand('nextVideo');
+                } else if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
+                    currentActiveElement.currentTime = Math.min(currentActiveElement.duration || Infinity, currentActiveElement.currentTime + 5);
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (isYouTube) {
+                    sendYTCommand('previousVideo');
+                } else if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
+                    currentActiveElement.currentTime = Math.max(0, currentActiveElement.currentTime - 5);
+                }
+            }
+        });
+
+        // Nasłuchiwanie informacji o zmianie adresu z poziomu iframe YouTube (aktualizuje hash/URL w przeglądarce)
+        window.addEventListener('message', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.event === 'infoDelivery' && data.info && data.info.videoData) {
+                    const videoId = data.info.videoData.video_id;
+                    if (videoId) {
+                        const rawTarget = getTargetUrl();
+                        if (rawTarget && rawTarget.includes('list=')) {
+                            const urlObj = new URL(rawTarget.startsWith('http') ? rawTarget : 'https://' + rawTarget);
+                            const list = urlObj.searchParams.get('list');
+                            const newUrl = `https://www.youtube.com/watch?v=${videoId}&list=${list}`;
+                            if (window.location.hash) {
+                                history.replaceState(null, '', '#' + encodeURIComponent(newUrl));
+                            }
+                        }
+                    }
+                }
+            } catch (err) {}
+        });
+
         // Obsługa kliknięcia: pauza/odtwarzanie dla elementu wideo
         window.addEventListener('click', (e) => {
-            // Ignoruj kliknięcie w przycisk pełnego ekranu
             if (e.target.closest('#fs-btn')) return;
 
             if (currentActiveElement && currentActiveElement.tagName === 'VIDEO') {
