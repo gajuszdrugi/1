@@ -608,7 +608,7 @@ function loadChannel(index) {
                 height: '100%',
                 width: '100%',
                 videoId: channel.url,
-                playerVars: { 'autoplay': 1, 'controls': 1 },
+                playerVars: { 'autoplay': 1, 'controls': 1, 'playsinline': 1 },
                 events: {
                     'onReady': (event) => event.target.playVideo()
                 }
@@ -643,21 +643,90 @@ function toggleFullscreen() {
     }
 }
 
+let youtubePipWindow = null;
+let youtubePipHome = null;
+let youtubePipPlaceholder = null;
+
 async function togglePictureInPicture() {
     const video = document.querySelector('#video-target video');
-    if (!video) {
-        showStatus('Funkcja PiP niedostępna dla tego odtwarzacza (np. YouTube/Iframe)', 'error');
-        return;
-    }
 
     try {
-        if (document.pictureInPictureElement) {
-            await document.exitPictureInPicture();
+        // Standardowy PiP dla strumieni HLS/DASH i zwykłych elementów <video>.
+        if (video) {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else if (document.pictureInPictureEnabled && video.requestPictureInPicture) {
+                await video.requestPictureInPicture();
+            } else {
+                showStatus('Ta przeglądarka nie obsługuje PiP dla tego wideo', 'error');
+            }
+            return;
+        }
+
+        // YouTube jest osadzony w iframe z innej domeny, więc nie można
+        // wywołać video.requestPictureInPicture() na jego wewnętrznym wideo.
+        // W Chrome/Edge używamy Document Picture-in-Picture i przenosimy
+        // cały osadzony odtwarzacz do pływającego okna.
+        const ytRoot = document.querySelector('#video-target #yt-player');
+        const ytFrame = ytRoot && ytRoot.querySelector('iframe');
+
+        if (ytRoot && ytFrame && 'documentPictureInPicture' in window) {
+            if (youtubePipWindow && !youtubePipWindow.closed) {
+                // Drugie kliknięcie przenosi odtwarzacz z powrotem.
+                youtubePipWindow.close();
+                return;
+            }
+
+            youtubePipHome = ytRoot.parentNode;
+            youtubePipPlaceholder = document.createComment('Miejsce odtwarzacza YouTube');
+            youtubePipHome.insertBefore(youtubePipPlaceholder, ytRoot);
+
+            youtubePipWindow = await window.documentPictureInPicture.requestWindow({
+                width: 640,
+                height: 360
+            });
+
+            const pipDoc = youtubePipWindow.document;
+            pipDoc.body.style.cssText =
+                'margin:0;background:#000;width:100vw;height:100vh;overflow:hidden;';
+            pipDoc.documentElement.style.cssText =
+                'margin:0;width:100%;height:100%;background:#000;';
+            ytRoot.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+            ytFrame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
+
+            pipDoc.body.appendChild(ytRoot);
+
+            youtubePipWindow.addEventListener('pagehide', () => {
+                if (youtubePipPlaceholder && youtubePipPlaceholder.parentNode) {
+                    youtubePipPlaceholder.parentNode.insertBefore(ytRoot, youtubePipPlaceholder);
+                    youtubePipPlaceholder.remove();
+                } else if (youtubePipHome && youtubePipHome.isConnected) {
+                    youtubePipHome.appendChild(ytRoot);
+                }
+
+                ytRoot.style.cssText = '';
+                ytFrame.style.cssText = '';
+                youtubePipWindow = null;
+                youtubePipHome = null;
+                youtubePipPlaceholder = null;
+            }, { once: true });
+
+            showStatus('YouTube otwarto w pływającym oknie PiP', 'ok');
+            return;
+        }
+
+        // Jeśli API okna PiP nie jest dostępne, podpowiadamy natywną funkcję YouTube.
+        if (ytFrame) {
+            showStatus(
+                'Ta przeglądarka nie obsługuje pływającego okna dla YouTube. Użyj przycisku PiP w odtwarzaczu YouTube, jeśli jest dostępny, lub otwórz stream bezpośrednio na YouTube.',
+                'error'
+            );
         } else {
-            await video.requestPictureInPicture();
+            showStatus('Brak aktywnego odtwarzacza wideo', 'error');
         }
     } catch (err) {
-        showStatus('Nie można uruchomić obrazu w obrazie', 'error');
+        console.error('PiP error:', err);
+        showStatus('Nie można uruchomić obrazu w obrazie. Sprawdź obsługę PiP w przeglądarce.', 'error');
     }
 }
 
