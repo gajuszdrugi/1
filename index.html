@@ -34,7 +34,6 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background-color: #000;
         }
 
         video, audio {
@@ -42,12 +41,6 @@
             height: 100%;
             border: none;
             background-color: #000;
-        }
-
-        /* Ukrycie elementów audio na kanałach radiowych */
-        .radio-mode video, 
-        .radio-mode audio {
-            display: none !important;
         }
 
         iframe {
@@ -82,16 +75,21 @@
 
         #sidebar {
             position: absolute;
-            left: -320px;
+            left: -300px;
             top: 0;
-            width: 320px;
+            width: 300px;
             height: 100%;
             background: rgba(0,0,0,0.95);
-            transition: left 0.3s ease;
+            transition: left 0.3s;
             z-index: 10000;
-            display: flex;
-            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px 10px;
             border-right: 1px solid #333;
+            scrollbar-width: none;
+        }
+
+        #sidebar::-webkit-scrollbar {
+            display: none;
         }
 
         #trigger-zone:hover + #sidebar,
@@ -99,28 +97,15 @@
             left: 0;
         }
 
-        #channels-ul {
-            list-style: none;
-            overflow-y: auto;
-            flex-grow: 1;
-            padding: 10px 10px 5px 10px;
-            scrollbar-width: none;
-        }
-
-        #channels-ul::-webkit-scrollbar {
-            display: none;
-        }
-
         .channel-item {
-            padding: 6px 10px;
-            margin-bottom: 2px;
+            padding: 12px;
+            margin-bottom: 5px;
             background: #1a1a1a;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            transition: background 0.15s;
-            font-size: 0.9rem;
+            transition: background 0.2s;
         }
 
         .channel-item:hover {
@@ -134,45 +119,8 @@
 
         .channel-number {
             font-weight: bold;
-            margin-right: 8px;
-            min-width: 26px;
-            font-size: 0.85rem;
-            color: #aaa;
-        }
-
-        .channel-item.active .channel-number {
-            color: #fff;
-        }
-
-        .sidebar-controls {
-            padding: 10px;
-            border-top: 1px solid #222;
-            background: rgba(0,0,0,0.98);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .sidebar-btn {
-            width: 100%;
-            padding: 9px 12px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: background 0.2s, border-color 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .sidebar-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #fff;
+            margin-right: 10px;
+            min-width: 30px;
         }
 
         #channel-display {
@@ -192,6 +140,20 @@
 
         #channel-display.show {
             opacity: 1;
+        }
+
+        #fullscreen-btn {
+            position: absolute;
+            right: 20px;
+            bottom: calc(20px + 57px);
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #fff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 9999;
+            transition: opacity 0.5s;
         }
 
         #stream-status {
@@ -230,16 +192,11 @@
     <div id="channel-display"></div>
     <div id="stream-status"></div>
     <div id="trigger-zone"></div>
-    
     <div id="sidebar">
         <ul id="channels-ul"></ul>
-        <div class="sidebar-controls">
-            <button class="sidebar-btn" onclick="togglePictureInPicture()">OBRAZ W OBRAZIE (PiP)</button>
-            <button class="sidebar-btn" onclick="toggleFullscreen()">PEŁNY EKRAN</button>
-        </div>
     </div>
-    
     <div id="video-target" style="width:100%; height:100%;"></div>
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">PEŁNY EKRAN</button>
 </div>
 
 <script>
@@ -263,7 +220,7 @@ const channels = [
     {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
     {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
-    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9119/radiokrakow", type: "audio", backgroundAudio: true},
+    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio", backgroundAudio: true},
     {name: "(ED) CGTN", url: "https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8", type: "hls"},
     {name: "(ED) CGTN", url: "0i7n3r01L2U", type: "youtube"},    
     {name: "(ED) Arirang TV World", url: "hvVlyZ5GiE8", type: "youtube"},
@@ -553,20 +510,11 @@ function loadChannel(index) {
     showChannelDisplay(channel.name);
 
     const container = document.getElementById('video-target');
-    const playerContainer = document.getElementById('player-container');
-
-    // Obsługa trybu radiowego (czarny ekran)
-    const isRadio = channel.type === 'audio' || channel.backgroundAudio === true;
-    if (isRadio) {
-        playerContainer.classList.add('radio-mode');
-    } else {
-        playerContainer.classList.remove('radio-mode');
-    }
 
     try {
         if (channel.type === 'hls') {
             const video = document.createElement('video');
-            video.controls = !isRadio;
+            video.controls = true;
             video.autoplay = true;
             container.appendChild(video);
 
@@ -594,7 +542,7 @@ function loadChannel(index) {
             dashPlayer.initialize(video, channel.url, true);
         } else if (channel.type === 'audio') {
             const audio = document.createElement('audio');
-            audio.controls = false;
+            audio.controls = true;
             audio.autoplay = true;
             audio.src = channel.url;
             container.appendChild(audio);
@@ -608,7 +556,7 @@ function loadChannel(index) {
                 height: '100%',
                 width: '100%',
                 videoId: channel.url,
-                playerVars: { 'autoplay': 1, 'controls': 1, 'playsinline': 1 },
+                playerVars: { 'autoplay': 1, 'controls': 1 },
                 events: {
                     'onReady': (event) => event.target.playVideo()
                 }
@@ -643,100 +591,11 @@ function toggleFullscreen() {
     }
 }
 
-let youtubePipWindow = null;
-let youtubePipHome = null;
-let youtubePipPlaceholder = null;
-
-async function togglePictureInPicture() {
-    const video = document.querySelector('#video-target video');
-
-    try {
-        // Standardowy PiP dla strumieni HLS/DASH i zwykłych elementów <video>.
-        if (video) {
-            if (document.pictureInPictureElement) {
-                await document.exitPictureInPicture();
-            } else if (document.pictureInPictureEnabled && video.requestPictureInPicture) {
-                await video.requestPictureInPicture();
-            } else {
-                showStatus('Ta przeglądarka nie obsługuje PiP dla tego wideo', 'error');
-            }
-            return;
-        }
-
-        // YouTube jest osadzony w iframe z innej domeny, więc nie można
-        // wywołać video.requestPictureInPicture() na jego wewnętrznym wideo.
-        // W Chrome/Edge używamy Document Picture-in-Picture i przenosimy
-        // cały osadzony odtwarzacz do pływającego okna.
-        const ytRoot = document.querySelector('#video-target #yt-player');
-        const ytFrame = ytRoot && ytRoot.querySelector('iframe');
-
-        if (ytRoot && ytFrame && 'documentPictureInPicture' in window) {
-            if (youtubePipWindow && !youtubePipWindow.closed) {
-                // Drugie kliknięcie przenosi odtwarzacz z powrotem.
-                youtubePipWindow.close();
-                return;
-            }
-
-            youtubePipHome = ytRoot.parentNode;
-            youtubePipPlaceholder = document.createComment('Miejsce odtwarzacza YouTube');
-            youtubePipHome.insertBefore(youtubePipPlaceholder, ytRoot);
-
-            youtubePipWindow = await window.documentPictureInPicture.requestWindow({
-                width: 640,
-                height: 360
-            });
-
-            const pipDoc = youtubePipWindow.document;
-            pipDoc.body.style.cssText =
-                'margin:0;background:#000;width:100vw;height:100vh;overflow:hidden;';
-            pipDoc.documentElement.style.cssText =
-                'margin:0;width:100%;height:100%;background:#000;';
-            ytRoot.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
-            ytFrame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
-
-            pipDoc.body.appendChild(ytRoot);
-
-            youtubePipWindow.addEventListener('pagehide', () => {
-                if (youtubePipPlaceholder && youtubePipPlaceholder.parentNode) {
-                    youtubePipPlaceholder.parentNode.insertBefore(ytRoot, youtubePipPlaceholder);
-                    youtubePipPlaceholder.remove();
-                } else if (youtubePipHome && youtubePipHome.isConnected) {
-                    youtubePipHome.appendChild(ytRoot);
-                }
-
-                ytRoot.style.cssText = '';
-                ytFrame.style.cssText = '';
-                youtubePipWindow = null;
-                youtubePipHome = null;
-                youtubePipPlaceholder = null;
-            }, { once: true });
-
-            showStatus('YouTube otwarto w pływającym oknie PiP', 'ok');
-            return;
-        }
-
-        // Jeśli API okna PiP nie jest dostępne, podpowiadamy natywną funkcję YouTube.
-        if (ytFrame) {
-            showStatus(
-                'Ta przeglądarka nie obsługuje pływającego okna dla YouTube. Użyj przycisku PiP w odtwarzaczu YouTube, jeśli jest dostępny, lub otwórz stream bezpośrednio na YouTube.',
-                'error'
-            );
-        } else {
-            showStatus('Brak aktywnego odtwarzacza wideo', 'error');
-        }
-    } catch (err) {
-        console.error('PiP error:', err);
-        showStatus('Nie można uruchomić obrazu w obrazie. Sprawdź obsługę PiP w przeglądarce.', 'error');
-    }
-}
-
-// Prawy przycisk myszy -> Następny stream
 window.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     nextChannel();
 });
 
-// Środkowy przycisk myszy -> Poprzedni stream
 window.addEventListener('auxclick', (e) => {
     if (e.button === 1) {
         e.preventDefault();
@@ -744,14 +603,12 @@ window.addEventListener('auxclick', (e) => {
     }
 });
 
-// Blokada domyślnego zachowania przycisków myszy
 window.addEventListener('mousedown', (e) => {
     if (e.button === 1 || e.button === 2) {
         e.preventDefault();
     }
 });
 
-// Sterowanie strzałkami na klawiaturze
 window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         nextChannel();
