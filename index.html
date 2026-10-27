@@ -20,7 +20,7 @@
             width: 100%;
             height: 100%;
             background-color: #000;
-            font-family: sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             overflow: hidden;
             color: #fff;
             user-select: none;
@@ -34,13 +34,24 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            background-color: #000;
         }
 
-        video, audio {
+        video {
             width: 100%;
             height: 100%;
             border: none;
             background-color: #000;
+            object-fit: contain;
+        }
+
+        /* Ukrycie widocznego elementu audio dla kanałów radiowych */
+        audio {
+            display: none !important;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
         }
 
         iframe {
@@ -75,21 +86,18 @@
 
         #sidebar {
             position: absolute;
-            left: -300px;
+            left: -320px;
             top: 0;
-            width: 300px;
+            width: 320px;
             height: 100%;
-            background: rgba(0,0,0,0.95);
-            transition: left 0.3s;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 10000;
-            overflow-y: auto;
-            padding: 20px 10px;
-            border-right: 1px solid #333;
-            scrollbar-width: none;
-        }
-
-        #sidebar::-webkit-scrollbar {
-            display: none;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
         }
 
         #trigger-zone:hover + #sidebar,
@@ -97,63 +105,124 @@
             left: 0;
         }
 
+        .sidebar-header {
+            padding: 20px 15px 10px 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e5e5;
+        }
+
+        #channels-ul {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            list-style: none;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #111;
+        }
+
+        #channels-ul::-webkit-scrollbar {
+            width: 6px;
+        }
+        #channels-ul::-webkit-scrollbar-track {
+            background: #111;
+        }
+        #channels-ul::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+
         .channel-item {
-            padding: 12px;
-            margin-bottom: 5px;
-            background: #1a1a1a;
-            border-radius: 5px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
         }
 
         .channel-item:hover {
-            background: #333;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(2px);
         }
 
         .channel-item.active {
             background: #ff333d;
             color: #fff;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 51, 61, 0.4);
         }
 
         .channel-number {
-            font-weight: bold;
-            margin-right: 10px;
-            min-width: 30px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-right: 12px;
+            min-width: 28px;
+            font-family: monospace;
+        }
+
+        .sidebar-controls {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .control-btn {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .control-btn:active {
+            transform: scale(0.98);
         }
 
         #channel-display {
             position: absolute;
             left: 20px;
             top: 20px;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.7);
+            padding: 10px 18px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
             color: white;
-            border-radius: 5px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 9998;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.5s;
+            transition: opacity 0.4s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
         #channel-display.show {
             opacity: 1;
-        }
-
-        #fullscreen-btn {
-            position: absolute;
-            right: 20px;
-            bottom: calc(20px + 57px);
-            padding: 12px 20px;
-            background: rgba(0,0,0,0.7);
-            border: 1px solid #fff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 9999;
-            transition: opacity 0.5s;
         }
 
         #stream-status {
@@ -162,13 +231,14 @@
             bottom: 20px;
             z-index: 9998;
             padding: 8px 14px;
-            background: rgba(0,0,0,0.75);
-            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 6px;
             font-size: 13px;
             color: #ddd;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.3s ease;
             pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #stream-status.show {
@@ -176,11 +246,13 @@
         }
 
         #stream-status.error {
-            color: #ff7777;
+            color: #ff6b6b;
+            border-color: rgba(255, 107, 107, 0.3);
         }
 
         #stream-status.ok {
-            color: #8cff8c;
+            color: #51cf66;
+            border-color: rgba(81, 207, 102, 0.3);
         }
     </style>
 </head>
@@ -192,11 +264,24 @@
     <div id="channel-display"></div>
     <div id="stream-status"></div>
     <div id="trigger-zone"></div>
+    
+    <!-- Panel boczny z listą oraz przyciskami kontrolek -->
     <div id="sidebar">
+        <div class="sidebar-header">KANAŁY TV / RADIO</div>
         <ul id="channels-ul"></ul>
+        <div class="sidebar-controls">
+            <button class="control-btn" onclick="togglePip()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7h-8v6h8V7z"/><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
+                OBRAZ W OBRAZIE
+            </button>
+            <button class="control-btn" onclick="toggleFullscreen()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                PEŁNY EKRAN
+            </button>
+        </div>
     </div>
+    
     <div id="video-target" style="width:100%; height:100%;"></div>
-    <button id="fullscreen-btn" onclick="toggleFullscreen()">PEŁNY EKRAN</button>
 </div>
 
 <script>
@@ -360,7 +445,6 @@ const channels = [
     {name: "Francja - BFM TV HD", url: "https://abg3-xdn-edge-live01.pfd.sfr.net/bfm-ncdn-live-premium-pal1.pfd.sfr.net/sid=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpcCI6IjM3LjQ3LjEwNC4yMzUiLCJzdWIiOiJCRk1fVFYiLCJleHAiOjE3ODg1OTA2NTQsImlzcyI6Im1pdDEtY2RuLXNyMDAiLCJqdGkiOiIwMG8ycGdqZDMxbjdzZzY5aXI3ZyIsImlhdCI6MTc4ODU0NzQ1NH0.cjcp3GCZbw_HM-DlI9-qzyc3ra1hUkcp10FxLhCHBqs/shls/LIVE$BFM_TV/index.m3u8?start=LIVE&end=END", type: "hls"},
     {name: "Francja - BFM TV HD", url: "https://www.bfmtv.com/en-direct/", type: "iframe"},
     {name: "Francja - CNews HD", url: "https://hls-m015-live-aka-canalplus.akamaized.net/live/disk/cnews-clair-hd/hls-v3-hd-clair/cnews-clair-hd.m3u8", type: "hls"},
-    {name: "Francja - L´Equipe 21", url: "https://dq37unyetkpcz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-m04j89j7k5gtp/LEquipe_FR.m3u8", type: "hls"},
     {name: "Francja - RMC Life", url: "https://d3dcdjv6dx07iz.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-eaaww2dyp3iih/RMC_Life_FR.m3u8", type: "hls"},
     {name: "Francja - RMC Découve", url: "https://d16zzycxcd0m0r.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-hixvx5kymecr9/RMC_Decouve_FR.m3u8", type: "hls"},
     {name: "Francja - RMC Story", url: "https://d15aro46bnpfm8.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-fqkqiax1078up/RMC_Story_FR.m3u8", type: "hls"},
@@ -418,6 +502,7 @@ let currentChannelIndex = 0;
 let hlsPlayer = null;
 let dashPlayer = null;
 let ytPlayer = null;
+let activeVideoElement = null;
 let channelDisplayTimeout = null;
 
 function initSidebar() {
@@ -429,7 +514,7 @@ function initSidebar() {
         
         const numSpan = document.createElement('span');
         numSpan.className = 'channel-number';
-        numSpan.textContent = index + 1;
+        numSpan.textContent = String(index + 1).padStart(2, '0');
 
         const nameSpan = document.createElement('span');
         nameSpan.textContent = channel.name;
@@ -494,6 +579,7 @@ function destroyPlayers() {
     } catch (e) {
         console.error(e);
     }
+    activeVideoElement = null;
     const container = document.getElementById('video-target');
     container.innerHTML = '';
 }
@@ -512,11 +598,38 @@ function loadChannel(index) {
     const container = document.getElementById('video-target');
 
     try {
-        if (channel.type === 'hls') {
+        // Obsługa stacji radiowych / audio na wyłącznym czarnym ekranie
+        if (channel.type === 'audio' || channel.backgroundAudio) {
+            const audio = document.createElement('audio');
+            audio.autoplay = true;
+            audio.style.display = 'none'; // Całkowite ukrycie kontrolek audio z widoku
+            container.appendChild(audio);
+
+            if (channel.type === 'hls') {
+                if (Hls.isSupported()) {
+                    hlsPlayer = new Hls();
+                    hlsPlayer.loadSource(channel.url);
+                    hlsPlayer.attachMedia(audio);
+                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+                        audio.play().catch(() => {});
+                    });
+                } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+                    audio.src = channel.url;
+                    audio.play().catch(() => {});
+                }
+            } else {
+                audio.src = channel.url;
+                audio.play().catch(() => {});
+            }
+        } 
+        // Standardowe kanały wideo
+        else if (channel.type === 'hls') {
             const video = document.createElement('video');
-            video.controls = true;
+            video.controls = false;
             video.autoplay = true;
+            video.playsInline = true;
             container.appendChild(video);
+            activeVideoElement = video;
 
             if (Hls.isSupported()) {
                 hlsPlayer = new Hls();
@@ -534,19 +647,14 @@ function loadChannel(index) {
             }
         } else if (channel.type === 'dash') {
             const video = document.createElement('video');
-            video.controls = true;
+            video.controls = false;
             video.autoplay = true;
+            video.playsInline = true;
             container.appendChild(video);
+            activeVideoElement = video;
 
             dashPlayer = dashjs.MediaPlayer().create();
             dashPlayer.initialize(video, channel.url, true);
-        } else if (channel.type === 'audio') {
-            const audio = document.createElement('audio');
-            audio.controls = true;
-            audio.autoplay = true;
-            audio.src = channel.url;
-            container.appendChild(audio);
-            audio.play().catch(() => {});
         } else if (channel.type === 'youtube') {
             const ytDiv = document.createElement('div');
             ytDiv.id = 'yt-player';
@@ -591,13 +699,28 @@ function toggleFullscreen() {
     }
 }
 
+async function togglePip() {
+    try {
+        if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+        } else if (activeVideoElement && document.pictureInPictureEnabled) {
+            await activeVideoElement.requestPictureInPicture();
+        } else {
+            showStatus('Obraz w obrazie niedostępny dla tego strumienia', 'error');
+        }
+    } catch (err) {
+        showStatus('Błąd aktywacji trybu Obraz w Obrazie', 'error');
+    }
+}
+
+// Nawigacja Myszki: Prawy przycisk -> Następny, Środkowy -> Poprzedni
 window.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     nextChannel();
 });
 
 window.addEventListener('auxclick', (e) => {
-    if (e.button === 1) {
+    if (e.button === 1) { // Środkowy przycisk myszy
         e.preventDefault();
         prevChannel();
     }
@@ -609,6 +732,7 @@ window.addEventListener('mousedown', (e) => {
     }
 });
 
+// Nawigacja Klawiaturą (strzałki)
 window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         nextChannel();
