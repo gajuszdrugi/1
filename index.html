@@ -1,54 +1,289 @@
-let pipWindow = null;
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odtwarzacz Streamów</title>
 
-async function togglePictureInPicture() {
-    const video = document.querySelector('#video-target video');
-    const container = document.getElementById('video-target');
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
-    // 1. Jeśli odtwarzany jest strumień wideo HLS / MP4 (znacznik <video>)
-    if (video) {
-        try {
-            if (document.pictureInPictureElement) {
-                await document.exitPictureInPicture();
-            } else {
-                await video.requestPictureInPicture();
-            }
-        } catch (err) {
-            showStatus('Nie można uruchomić obrazu w obrazie dla tego wideo', 'error');
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        return;
-    }
 
-    // 2. Jeśli odtwarzany jest YouTube / Iframe (wykorzystanie Document Picture-in-Picture API)
-    if ('documentPictureInPicture' in window) {
-        try {
-            if (pipWindow) {
-                pipWindow.close();
-                pipWindow = null;
-                return;
-            }
-
-            // Otwórz pływające okno o wymiarach odtwarzacza
-            pipWindow = await window.documentPictureInPicture.requestWindow({
-                width: 640,
-                height: 360
-            });
-
-            // Przenieś element wideo/iframe z kontenera do okna PiP
-            pipWindow.document.body.style.margin = '0';
-            pipWindow.document.body.style.backgroundColor = '#000';
-            pipWindow.document.body.appendChild(container);
-
-            // Po zamknięciu okienka PiP, przywróć odtwarzacz z powrotem na stronę
-            pipWindow.addEventListener('pagehide', () => {
-                const playerContainer = document.getElementById('player-container');
-                playerContainer.appendChild(container);
-                pipWindow = null;
-            });
-        } catch (err) {
-            showStatus('Błąd otwierania okna PiP', 'error');
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            font-family: sans-serif;
+            overflow: hidden;
+            color: #fff;
+            user-select: none;
         }
-    } else {
-        // Zapasowa informacja dla przeglądarek bez obsługi Document PiP (np. Firefox)
-        showStatus('Aby włączyć PiP na YouTube: kliknij 2 razy PRAWYM przyciskiem myszy na wideo i wybierz "Obraz w obrazie"', 'error');
-    }
-}
+
+        #player-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        video, audio {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #000;
+        }
+
+        /* Ukrycie elementów audio na kanałach radiowych */
+        .radio-mode video, 
+        .radio-mode audio {
+            display: none !important;
+        }
+
+        iframe {
+            width: 102%;
+            height: 102%;
+            border: none;
+            background-color: #000;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #click-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9990;
+            background: transparent;
+        }
+
+        #trigger-zone {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 100%;
+            z-index: 9999;
+        }
+
+        #sidebar {
+            position: absolute;
+            left: -320px;
+            top: 0;
+            width: 320px;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            transition: left 0.3s ease;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+
+        #trigger-zone:hover + #sidebar,
+        #sidebar:hover {
+            left: 0;
+        }
+
+        #channels-ul {
+            list-style: none;
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 10px 10px 5px 10px;
+            scrollbar-width: none;
+        }
+
+        #channels-ul::-webkit-scrollbar {
+            display: none;
+        }
+
+        .channel-item {
+            padding: 6px 10px;
+            margin-bottom: 2px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.15s;
+            font-size: 0.9rem;
+        }
+
+        .channel-item:hover {
+            background: #333;
+        }
+
+        .channel-item.active {
+            background: #ff333d;
+            color: #fff;
+        }
+
+        .channel-number {
+            font-weight: bold;
+            margin-right: 8px;
+            min-width: 26px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .channel-item.active .channel-number {
+            color: #fff;
+        }
+
+        .sidebar-controls {
+            padding: 10px;
+            border-top: 1px solid #222;
+            background: rgba(0,0,0,0.98);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-btn {
+            width: 100%;
+            padding: 9px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: background 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+        }
+
+        #channel-display {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border-radius: 5px;
+            z-index: 9998;
+            font-size: 1.2rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        #channel-display.show {
+            opacity: 1;
+        }
+
+        #stream-status {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            z-index: 9998;
+            padding: 8px 14px;
+            background: rgba(0,0,0,0.75);
+            border-radius: 5px;
+            font-size: 13px;
+            color: #ddd;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        #stream-status.show {
+            opacity: 1;
+        }
+
+        #stream-status.error {
+            color: #ff7777;
+        }
+
+        #stream-status.ok {
+            color: #8cff8c;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="player-container">
+    <div id="click-overlay"></div>
+    <div id="channel-display"></div>
+    <div id="stream-status"></div>
+    <div id="trigger-zone"></div>
+    
+    <div id="sidebar">
+        <ul id="channels-ul"></ul>
+        <div class="sidebar-controls">
+            <button class="sidebar-btn" onclick="togglePictureInPicture()">OBRAZ W OBRAZIE (PiP)</button>
+            <button class="sidebar-btn" onclick="toggleFullscreen()">PEŁNY EKRAN</button>
+        </div>
+    </div>
+    
+    <div id="video-target" style="width:100%; height:100%;"></div>
+</div>
+
+<script>
+const channels = [
+    {name: "CityNews Calgary", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888153001", type: "iframe"},
+    {name: "CityNews Vancouver", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272887411001", type: "iframe"},
+    {name: "CityNews Toronto", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888148001", type: "iframe"},
+    {name: "ABC NEWS AUSTRALIA", url: "https://abc-news-dmd-streams-1.akamaized.net/out/v1/701126012d044971b3fa89406a440133/index.m3u8", type: "hls"},
+    {name: "ABC NEWS", url: "iipR5yUp36o", type: "youtube"},
+    {name: "CNA Originals", url: "fSUMKrxPEd8", type: "youtube"},    
+    {name: "POLONIA", url: "https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8", type: "hls"},
+    {name: "TVP Info", url: "https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8", type: "hls"},
+    {name: "wPolsce 24", url: "https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8", type: "hls"},
+    {name: "REPUBLIKA", url: "dzntyCTgJMQ", type: "youtube"},
+    {name: "TRWAM", url: "https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd", type: "dash"},
+    {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8", type: "hls"},
+    {name: "LUBELSKA TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
+    {name: "TV KUJAWY", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
+    {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8", type: "hls"},
+    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9119/radiokrakow", type: "audio", backgroundAudio: true},
+    {name: "(ED) CGTN", url: "https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8", type: "hls"},
+    {name: "(ED) CGTN", url: "0i7n3r01L2U", type: "youtube"},    
+    {name: "(ED) Arirang TV World", url: "hvVlyZ5GiE8", type: "youtube"},
+    {name: "(ED) NHK World-Japan", url: "https://media-tyo.hls.nhkworld.jp/hls/w/live/master.m3u8", type: "hls"},
+    {name: "(ED) NHK World-Japan", url: "IimtbuqYIE8", type: "youtube"},
+    {name: "(ED) DW English", url: "https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8", type: "hls"},
+    {name: "(ED) DW English", url: "LuKwFajn37U", type: "youtube"},    
+    {name: "(ED) France 24", url: "https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master_5000.m3u8", type: "hls"},
+    {name: "(ED) France 24", url: "HvZt-nh9sGg", type: "youtube"},    
+    {name: "(ED) ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"},
+    {name: "(ED) Silk Way", url: "https://ikomg-static-content.akamaized.net/players/kazakh/index.html", type: "iframe"},
+    {name: "(ED) Wild TV (Kanada)", url: "https://dfhsahpa45kk2.cloudfront.net/scheduler/scheduleMaster/476.m3u8", type: "hls"},
+    {name: "(ED) Al Jazeera English", url: "https://dash4.antik.sk/live/test_aljazeera_eng/playlist.m3u8", type: "hls"},
+    {name: "(ED) Al Jazeera English", url: "gCNeDWCI0vo", type: "youtube"},    
+    {name: "(ED) Sports First TV", url: "https://d4ddgdmj1cvnm.cloudfront.net/scheduler/scheduleMaster/409.m3u8", type: "hls"},
+    {name: "(ED) DocuBay TV", url: "https://cc-mgr91yrk4pehy.akamaized.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-mgr91yrk4pehy/playlist.m3u8", type: "hls"},
+    {name: "(ED) WildEarth", url: "https://dqga3jatxofgx.cloudfront.net/WildEarth.m3u8", type: "hls"},
+    {name: "(ED) WaterBear", url: "https://amg01415-waterbearnetwor-waterbear-samsunguk-1h0y8.amagi.tv/playlist/amg01415-waterbearnetwor-waterbear-samsunguk/playlist.m3u8", type: "hls"},
+    {name: "(ED) Dateline 24/7", url: "https://dz59iptwz5rxs.cloudfront.net/live/master.m3u8", type: "hls"},
+    {name: "(ED) AP TV Ghana", url: "https://59nyqg8elwap-hls-live.5centscdn.com/APTV/85c20905211659d143febd7c32592ee0.sdp/playlist.m3u8", type: "hls"},
+    {name: "(ED) TeleSUR English eng", url: "aMUIOgHCrf0", type: "youtube"},
+    {name: "(ED) Outdoor Channel", url: "https://amg00718-outdoorchannela-outdoortvnz-samsungnz-lylq4.amagi.tv/playlist/amg00718-outdoorchannela-outdoortvnz-samsungnz/playlist.m3u8", type: "hls"},
+    {name: "(ED) TVRI World
