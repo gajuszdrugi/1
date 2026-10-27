@@ -54,7 +54,6 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Przezroczysta nakładka przechwytująca zdarzenia myszy nad wideo/iframe */
         #click-overlay {
             position: absolute;
             top: 0;
@@ -198,3 +197,31 @@
     </div>
     <div id="video-target" style="width:100%; height:100%;"></div>
     <button id="fullscreen-btn" onclick="toggleFullscreen()">PEŁNY EKRAN</button>
+</div>
+
+<script>
+const channels = [
+    {name: "CityNews Calgary", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888153001", type: "iframe"},
+    {name: "CityNews Vancouver", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272887411001", type: "iframe"},
+    {name: "CityNews Toronto", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888148001", type: "iframe"},
+    {name: "ABC NEWS AUSTRALIA", url: "https://abc-news-dmd-streams-1.akamaized.net/out/v1/701126012d044971b3fa89406a440133/index.m3u8", type: "hls"},
+    {name: "ABC NEWS", url: "iipR5yUp36o", type: "youtube"},
+    {name: "CNA Originals", url: "fSUMKrxPEd8", type: "youtube"},    
+    {name: "POLONIA", url: "https://dash2.antik.sk/live/test_tvp_polonia/playlist.m3u8", type: "hls"},
+    {name: "TVP Info", url: "https://dash4.antik.sk/live/test_tvp_info/playlist.m3u8", type: "hls"},
+    {name: "wPolsce 24", url: "https://str.onnetwork.tv/hls/onnet-358726_hi/index.m3u8", type: "hls"},
+    {name: "REPUBLIKA", url: "dzntyCTgJMQ", type: "youtube"},
+    {name: "TRWAM", url: "https://live-ch1.trwam.cf.insyscd.net/out/v1/b99041a282774d4a8fe84a54243af5de/trwamtv-live-ch1.mpd", type: "dash"},
+    {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/360/chunklist.m3u8", type: "hls"},
+    {name: "LUBELSKA TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
+    {name: "TV KUJAWY", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
+    {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8", type: "hls"},
+    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls", backgroundAudio: true},
+    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio", backgroundAudio: true},
+    {name: "(ED) CGTN", url: "https://amg00405-rakutentv-cgtn-rakuten-i9tar.amagi.tv/master.m3u8", type: "hls"},
+    {name: "(ED) CGTN", url: "0i7n3r01L2U", type: "youtube"},    
+    {name: "(ED) Arirang TV World", url: "hvVlyZ5GiE8", type: "youtube"},
+    {name: "(ED) NHK World-Japan", url: "
