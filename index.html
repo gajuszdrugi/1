@@ -590,7 +590,8 @@ function playChannel(index) {
     } else if (channel.type === 'youtube') {
         const iframe = document.createElement('iframe');
         iframe.src = getYouTubeEmbedUrl(channel.url);
-        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        // Usunięto picture-in-picture z uprawnień iframe dla YouTube
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share";
         iframe.allowFullscreen = true;
         container.appendChild(iframe);
     }
@@ -626,9 +627,15 @@ function toggleYTControls() {
     btn.classList.toggle('active-control');
 }
 
-// Funkcja Picture-in-Picture (PiP) dla odtwarzaczy HTML5 oraz informacja dla YouTube
+// Funkcja Picture-in-Picture (PiP) obsługuje tylko standardowe elementy wideo (poza YouTube)
 async function togglePictureInPicture() {
     try {
+        const channel = channels[currentIndex];
+        if (channel.type === 'youtube') {
+            showStatus("Tryb Picture-in-Picture jest wyłączony dla strumieni YouTube.", true);
+            return;
+        }
+
         const video = document.querySelector('video');
         if (video) {
             if (document.pictureInPictureElement) {
@@ -636,12 +643,6 @@ async function togglePictureInPicture() {
             } else {
                 await video.requestPictureInPicture();
             }
-            return;
-        }
-
-        const channel = channels[currentIndex];
-        if (channel.type === 'youtube') {
-            showStatus("Aby włączyć PiP dla YouTube: wyłącz nakładkę przyciskiem, a następnie kliknij DWUKROTNIE prawym przyciskiem myszy w film.", false);
             return;
         }
 
