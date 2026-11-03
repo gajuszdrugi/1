@@ -252,7 +252,6 @@
 
 <script>
 const channels = [
-    {name: "MagentaTV (Kanał 611)", url: "https://magentatv.pl/player/live?channelNumber=611", type: "iframe"},
     {name: "CityNews Calgary", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888153001", type: "iframe"},
     {name: "CityNews Vancouver", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272887411001", type: "iframe"},
     {name: "CityNews Toronto", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888148001", type: "iframe"},
@@ -591,6 +590,7 @@ function playChannel(index) {
     } else if (channel.type === 'youtube') {
         const iframe = document.createElement('iframe');
         iframe.src = getYouTubeEmbedUrl(channel.url);
+        // Usunięto picture-in-picture z uprawnień iframe dla YouTube
         iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share";
         iframe.allowFullscreen = true;
         container.appendChild(iframe);
@@ -627,7 +627,7 @@ function toggleYTControls() {
     btn.classList.toggle('active-control');
 }
 
-// Funkcja Picture-in-Picture (PiP) obsługuje tylko standardowe elementy wideo
+// Funkcja Picture-in-Picture (PiP) obsługuje tylko standardowe elementy wideo (poza YouTube)
 async function togglePictureInPicture() {
     try {
         const channel = channels[currentIndex];
