@@ -463,7 +463,6 @@ let dashInstance = null;
 let displayTimeout = null;
 let statusTimeout = null;
 
-// Pomocnicza funkcja wyciągająca czyste ID filmu z różnych formatów linków YouTube (np. pełny URL, youtu.be lub samo ID)
 function getYouTubeEmbedUrl(url) {
     let videoId = url;
     if (url.includes('youtube.com/watch?v=')) {
@@ -627,7 +626,7 @@ function toggleYTControls() {
     btn.classList.toggle('active-control');
 }
 
-// Funkcja Picture-in-Picture (PiP)
+// Funkcja Picture-in-Picture (PiP) dla odtwarzaczy HTML5 oraz informacja dla YouTube
 async function togglePictureInPicture() {
     try {
         const video = document.querySelector('video');
@@ -640,36 +639,12 @@ async function togglePictureInPicture() {
             return;
         }
 
-        const iframe = document.querySelector('iframe');
-        if (iframe) {
-            try {
-                const iframeVideo = iframe.contentWindow.document.querySelector('video');
-                if (iframeVideo) {
-                    if (document.pictureInPictureElement) {
-                        await document.exitPictureInPicture();
-                    } else {
-                        await iframeVideo.requestPictureInPicture();
-                    }
-                    return;
-                }
-            } catch (err) {
-                if ('documentPictureInPicture' in window) {
-                    if (window.documentPictureInPicture.window) {
-                        window.documentPictureInPicture.window.close();
-                    } else {
-                        const pipWindow = await window.documentPictureInPicture.requestWindow({
-                            width: iframe.clientWidth,
-                            height: iframe.clientHeight,
-                        });
-                        pipWindow.document.body.appendChild(iframe);
-                        pipWindow.addEventListener("pagehide", () => {
-                            document.getElementById('video-target').appendChild(iframe);
-                        });
-                    }
-                    return;
-                }
-            }
+        const channel = channels[currentIndex];
+        if (channel.type === 'youtube') {
+            showStatus("Aby włączyć PiP dla YouTube: wyłącz nakładkę przyciskiem, a następnie kliknij DWUKROTNIE prawym przyciskiem myszy w film.", false);
+            return;
         }
+
         showStatus("Picture-in-Picture niedostępne dla bieżącego odtwarzacza.", true);
     } catch (err) {
         showStatus("Błąd trybu Obraz w obrazie: " + err.message, true);
