@@ -273,23 +273,25 @@ const channels = [
         type: "hls-split"
     },
 
-{name: "AP TV Ghana", url: "https://59nyqg8elwap-hls-live.5centscdn.com/APTV/85c20905211659d143febd7c32592ee0.sdp/chunks.m3u8", type: "iframe"},
-{name: "CNA Originals", url: "https://www.youtube.com/watch?v=9Y4kOQk_K3Y", type: "iframe"},
+    
+{name: "France 24", url: "https://www.youtube.com/watch?v=HvZt-nh9sGg", type: "youtube"},
+{name: "AP TV Ghana", url: "https://59nyqg8elwap-hls-live.5centscdn.com/APTV/85c20905211659d143febd7c32592ee0.sdp/chunks.m3u8", type: "hls"},
+{name: "CNA Originals", url: "https://www.youtube.com/watch?v=9Y4kOQk_K3Y", type: "youtube"},
 {name: "Arirang TV World", url: "https://www.youtube.com/watch?v=hvVlyZ5GiE8", type: "youtube"},
 {name: "NHK World-Japan", url: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/45ae6bf6dcf644cfbf5fe0e13dc72d6333bcfdbb60a040d574b3fd4f93c64313/v2.m3u8 https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/447d4a8b8bab173949465f755c1df49b12ade29f8820e3378f271e2df9a8df1d/a1.m3u8", type: "hls"},
 {name: "DW English", url: "https://www.youtube.com/watch?v=LuKwFajn37U", type: "youtube"},
 {name: "ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"},
 {name: "Silk Way", url: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-avc1_4500000=10002.m3u8 https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-mp4a_128000_eng=20003.m3u8", type: "hls"},
-{name: "med..tv", url: "https://d1f2y296jj795l.cloudfront.net/hls/hls-1280x720p50/playlist.m3u8", type: "hls"},
+{name: "med.tv", url: "https://d1f2y296jj795l.cloudfront.net/hls/hls-1280x720p50/playlist.m3u8", type: "hls"},
 {name: "TeleSUR English eng", url: "https://www.youtube.com/watch?v=V2mWl3OLft4", type: "youtube"},
 {name: "TVRI World", url: "https://ott-balancer.tvri.go.id/live/eds/NTT/hls/NTT.m3u8", type: "hls"},
 {name: "Persiana Travel", url: "https://ptravelhls.persiana.live/hls/stream.m3u8", type: "hls"},
 {name: "Red Bull TV", url: "https://freqsyndlin.redbull.com/1723/rbtv/hls/master/playlist_1920x1080.m3u8", type: "hls"},
-{name: "SKY News", url: "https://www.youtube.com/live/WUTDiO_fXdE", type: ""},
-{name: "GB News", url: "https://www.youtube.com/live/3Lbp0LntJi4", type: ""},
+{name: "SKY News", url: "https://www.youtube.com/live/WUTDiO_fXdE", type: "youtube"},
+{name: "GB News", url: "https://www.youtube.com/live/3Lbp0LntJi4", type: "youtube"},
 {name: "Al Jazeera English", url: "https://www.youtube.com/watch?v=gCNeDWCI0vo", type: "youtube"},
-{name: "ABC News", url: "https://www.youtube.com/watch?v=zccuUPk7dO0", type: "iframe"},
-{name: "PressTV", url: "https://live.presstv.co.uk/hls/presstv.m3u8", type: "iframe"},
+{name: "ABC News", url: "https://www.youtube.com/watch?v=zccuUPk7dO0", type: "youtube"},
+{name: "PressTV", url: "https://live.presstv.co.uk/hls/presstv.m3u8", type: "hls"},
 {name: "TRT World", url: "https://www.youtube.com/watch?v=adUSssjOCLY", type: "youtube"},
 {name: "BBC News HD", url: "https://www.youtube.com/watch?v=sc21UUjyLaw", type: "youtube"},
 {name: "WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},
@@ -306,14 +308,19 @@ const channels = [
 {name: "Belarus 24 HD", url: "https://edge52.dc.beltelecom.by/ngtrk/_definst_/smil:belarus24.smil/chunklist_b5160000_sleng.m3u8", type: "hls"},
 {name: "NBC", url: "https://prodamdnewsencoding.akamaized.net/out/v1/9ed4736508174cdcbed80e3f18019847/43b6f121beb24ffaa1509325e7e23fb2/15bb94d4cae942ed8a198cc8f63db8ed/0d34fec6ff9d429cb1a93c7d3bc93bba/f8fdd6ff3a2a47d6ad0e7c243092b4e7/index_2.m3u8", type: "hls"},
 {name: "NatureTime", url: "https://www.youtube.com/watch?v=a7yy5UT7aZg", type: "youtube"},
-{name: "Euronews Polska", url: "https://www.youtube.com/watch?v=fG7PjdiKaBY", type: "hls"},
+{name: "Euronews Polska", url: "https://www.youtube.com/watch?v=fG7PjdiKaBY", type: "youtube"},
 {name: "Lubelska.TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
 {name: "Republika+", url: "https://www.youtube.com/watch?v=vcQ05GitXUM", type: "youtube"},
 {name: "Radio Czwórka", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
 {name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
 {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
 {name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-{name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls"}
+{name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls, backgroundAudio: true"},
+{name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls, backgroundAudio: true"},
+{name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls, backgroundAudio: true"},
+{name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls, backgroundAudio: true"},
+{name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "hls, backgroundAudio: true"}
+
 
     
 ];
