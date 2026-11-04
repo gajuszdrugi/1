@@ -43,13 +43,14 @@
             background-color: #000;
         }
 
-        /* Ukrywanie elementu audio w trybie rozdzielonym (odtwarza się w tle pod wideo) */
+        /* Ukrywanie elementu audio w trybie rozdzielonym */
         audio.split-audio {
             display: none;
         }
 
-        .radio-mode video, 
-        .radio-mode audio {
+        /* Ukrywanie kontrolek/odbiórników wideo/audio dla trybu radiowego */
+        body.radio-mode video, 
+        body.radio-mode audio {
             display: none !important;
         }
 
@@ -257,7 +258,6 @@
 
 <script>
 const channels = [
-    // Kanały rozdzielone na osobny strumień wideo i audio:
     {
         name: "NHK World-Japan", 
         videoUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/45ae6bf6dcf644cfbf5fe0e13dc72d6333bcfdbb60a040d574b3fd4f93c64313/v2.m3u8", 
@@ -307,11 +307,10 @@ const channels = [
     {name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
     {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
     {name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-    // Poprawione formatowanie typu stacji radiowych:
-    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "hls"},
-    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "hls"},
-    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "hls"},
-    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "hls"},
+    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "audio"},
+    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "audio"},
+    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "audio"},
+    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "audio"},
     {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio"}
 ];
 
@@ -321,6 +320,7 @@ let hlsAudioInstance = null;
 let dashInstance = null;
 let displayTimeout = null;
 let statusTimeout = null;
+let audioRetryTimeout = null;
 
 function getYouTubeEmbedUrl(url) {
     let videoId = url;
@@ -387,6 +387,10 @@ function cleanupPlayer() {
         dashInstance.reset();
         dashInstance = null;
     }
+    if (audioRetryTimeout) {
+        clearTimeout(audioRetryTimeout);
+        audioRetryTimeout = null;
+    }
     const container = document.getElementById('video-target');
     container.innerHTML = '';
     document.body.classList.remove('radio-mode');
@@ -413,6 +417,10 @@ function playChannel(index) {
     showStatus(`Ładowanie: ${channel.name}...`);
 
     const container = document.getElementById('video-target');
+
+    if (channel.type === 'audio') {
+        document.body.classList.add('radio-mode');
+    }
 
     if (channel.type === 'hls') {
         const video = document.createElement('video');
@@ -448,13 +456,11 @@ function playChannel(index) {
         container.appendChild(audio);
 
         if (Hls.isSupported()) {
-            // Wideo HLS
             hlsInstance = new Hls(getHlsConfig());
             hlsInstance.loadSource(channel.videoUrl);
             hlsInstance.attachMedia(video);
             hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
 
-            // Audio HLS (Ochrona przed wyciszaniem przy przełączaniu kart)
             hlsAudioInstance = new Hls(getHlsConfig());
             hlsAudioInstance.loadSource(channel.audioUrl);
             hlsAudioInstance.attachMedia(audio);
@@ -462,18 +468,10 @@ function playChannel(index) {
 
             video.onplay = () => audio.play().catch(() => {});
             video.onpause = () => {
-                // Po przełączeniu karty przeglądarka może wstrzymać wideo – pozwalamy grać samemu audio
                 if (!document.hidden) {
                     audio.pause();
                 }
             };
-
-            hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) showStatus(`Błąd strumienia wideo: ${channel.name}`, true);
-            });
-            hlsAudioInstance.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) showStatus(`Błąd strumienia audio: ${channel.name}`, true);
-            });
         }
     }
     else if (channel.type === 'dash') {
@@ -489,9 +487,31 @@ function playChannel(index) {
         const audio = document.createElement('audio');
         audio.controls = true;
         audio.autoplay = true;
+        audio.preload = "auto";
         audio.src = channel.url;
         container.appendChild(audio);
-        audio.play().catch(() => {});
+
+        const playAudioStream = () => {
+            audio.play().then(() => {
+                showStatus(`Odtwarzanie: ${channel.name}`, false);
+            }).catch(() => {
+                // Jeśli przeglądarka blokuje lub serwer odpowiada wolniej, ponów za chwilę
+                audioRetryTimeout = setTimeout(() => {
+                    audio.load();
+                    audio.play().catch(() => {
+                        showStatus(`Błąd ładowania stacji: ${channel.name}`, true);
+                    });
+                }, 2000);
+            });
+        };
+
+        audio.addEventListener('canplay', playAudioStream, { once: true });
+        audio.addEventListener('error', () => {
+            showStatus(`Błąd strumienia audio: ${channel.name}`, true);
+        });
+
+        // Awaryjne uruchomienie na wypadek gdyby event 'canplay' się nie wywołał
+        setTimeout(playAudioStream, 500);
     } 
     else if (channel.type === 'iframe' || channel.type === 'youtube') {
         const iframe = document.createElement('iframe');
@@ -533,7 +553,7 @@ function toggleYTControls() {
 async function togglePictureInPicture() {
     try {
         const channel = channels[currentIndex];
-        if (channel.type === 'youtube' || channel.type === 'iframe') {
+        if (channel.type === 'youtube' || channel.type === 'iframe' || channel.type === 'audio') {
             showStatus("Tryb Picture-in-Picture jest niedostępny dla tego typu strumienia.", true);
             return;
         }
