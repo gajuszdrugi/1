@@ -48,7 +48,7 @@
             display: none;
         }
 
-        /* Ukrywanie kontrolek/odbiórników wideo/audio dla trybu radiowego */
+        /* Ukrywanie kontrolek wideo/audio dla trybu radiowego (czarny ekran) */
         body.radio-mode video, 
         body.radio-mode audio {
             display: none !important;
@@ -307,10 +307,12 @@ const channels = [
     {name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
     {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
     {name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "audio"},
-    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "audio"},
-    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "audio"},
-    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "audio"},
+    // Polskie Radio obsługiwane przez HLS Audio:
+    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "audio-hls"},
+    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "audio-hls"},
+    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "audio-hls"},
+    {name: "CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "audio-hls"},
+    // Radio Kraków to tradycyjny strumień audio (MP3):
     {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio"}
 ];
 
@@ -418,7 +420,8 @@ function playChannel(index) {
 
     const container = document.getElementById('video-target');
 
-    if (channel.type === 'audio') {
+    // Włączenie czarnego ekranu (trybu radiowego) dla każdego typu audio
+    if (channel.type === 'audio' || channel.type === 'audio-hls') {
         document.body.classList.add('radio-mode');
     }
 
@@ -474,6 +477,33 @@ function playChannel(index) {
             };
         }
     }
+    else if (channel.type === 'audio-hls') {
+        // Obsługa stacji radiowych w formacie HLS (.m3u8) puszczanych przez tag audio
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.autoplay = true;
+        audio.preload = "auto";
+        container.appendChild(audio);
+
+        if (Hls.isSupported()) {
+            hlsAudioInstance = new Hls(getHlsConfig());
+            hlsAudioInstance.loadSource(channel.url);
+            hlsAudioInstance.attachMedia(audio);
+            hlsAudioInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                audio.play().then(() => {
+                    showStatus(`Odtwarzanie: ${channel.name}`, false);
+                }).catch(() => {});
+            });
+            hlsAudioInstance.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    showStatus(`Błąd ładowania radia HLS: ${channel.name}`, true);
+                }
+            });
+        } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+            audio.src = channel.url;
+            audio.play().catch(() => {});
+        }
+    }
     else if (channel.type === 'dash') {
         const video = document.createElement('video');
         video.controls = true;
@@ -495,7 +525,6 @@ function playChannel(index) {
             audio.play().then(() => {
                 showStatus(`Odtwarzanie: ${channel.name}`, false);
             }).catch(() => {
-                // Jeśli przeglądarka blokuje lub serwer odpowiada wolniej, ponów za chwilę
                 audioRetryTimeout = setTimeout(() => {
                     audio.load();
                     audio.play().catch(() => {
@@ -510,7 +539,6 @@ function playChannel(index) {
             showStatus(`Błąd strumienia audio: ${channel.name}`, true);
         });
 
-        // Awaryjne uruchomienie na wypadek gdyby event 'canplay' się nie wywołał
         setTimeout(playAudioStream, 500);
     } 
     else if (channel.type === 'iframe' || channel.type === 'youtube') {
@@ -553,7 +581,7 @@ function toggleYTControls() {
 async function togglePictureInPicture() {
     try {
         const channel = channels[currentIndex];
-        if (channel.type === 'youtube' || channel.type === 'iframe' || channel.type === 'audio') {
+        if (channel.type === 'youtube' || channel.type === 'iframe' || channel.type === 'audio' || channel.type === 'audio-hls') {
             showStatus("Tryb Picture-in-Picture jest niedostępny dla tego typu strumienia.", true);
             return;
         }
