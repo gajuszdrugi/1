@@ -257,6 +257,7 @@
 
 <script>
 const channels = [
+
     
     // Kanały rozdzielone na osobny strumień wideo i audio:
     {
@@ -311,8 +312,8 @@ const channels = [
 {name: "Radio Czwórka", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
 {name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
 {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
-{name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-
+{name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"}
+    
 ];
 
 let currentIndex = 0;
@@ -508,4 +509,56 @@ window.addEventListener('contextmenu', (e) => {
 window.addEventListener('auxclick', (e) => {
     if (e.button === 1) {
         e.preventDefault();
-        prevStream
+        prevStream();
+    }
+});
+
+function toggleYTControls() {
+    const overlay = document.getElementById('click-overlay');
+    const btn = document.getElementById('toggle-yt-controls-btn');
+    overlay.classList.toggle('disabled');
+    btn.classList.toggle('active-control');
+}
+
+async function togglePictureInPicture() {
+    try {
+        const channel = channels[currentIndex];
+        if (channel.type === 'youtube' || channel.type === 'iframe') {
+            showStatus("Tryb Picture-in-Picture jest niedostępny dla tego typu strumienia.", true);
+            return;
+        }
+
+        const video = document.querySelector('video');
+        if (video) {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await video.requestPictureInPicture();
+            }
+            return;
+        }
+
+        showStatus("Picture-in-Picture niedostępne dla bieżącego odtwarzacza.", true);
+    } catch (err) {
+        showStatus("Błąd trybu Obraz w obrazie: " + err.message, true);
+    }
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        }
+    }
+}
+
+window.onload = () => {
+    initSidebar();
+    playChannel(0);
+};
+</script>
+
+</body>
+</html>
