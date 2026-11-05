@@ -258,30 +258,7 @@
 
 <script>
 const channels = [
-    {
-        name: "NHK World-Japan", 
-        videoUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/45ae6bf6dcf644cfbf5fe0e13dc72d6333bcfdbb60a040d574b3fd4f93c64313/v2.m3u8", 
-        audioUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/447d4a8b8bab173949465f755c1df49b12ade29f8820e3378f271e2df9a8df1d/a1.m3u8", 
-        type: "hls-split"
-    },
-    {
-        name: "Silk Way", 
-        videoUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-avc1_4500000=10002.m3u8", 
-        audioUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-mp4a_128000_eng=20003.m3u8", 
-        type: "hls-split"
-    },
-
     
-/*        {
-        name: "Sky News", 
-        videoUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream04/streamPlaylist.m3u8", 
-        audioUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream08/streamPlaylist.m3u8", 
-        type: "hls-split"
-    },
-*/
-
-    
-{name: "SkyNews", videoUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream04/streamPlaylist.m3u8", audioUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream08/streamPlaylist.m3u8", type: "hls-split"},
 {name: "AP TV Ghana", url: "https://59nyqg8elwap-hls-live.5centscdn.com/APTV/85c20905211659d143febd7c32592ee0.sdp/chunks.m3u8", type: "hls"},
 {name: "Arirang TV World", url: "https://www.youtube.com/watch?v=hvVlyZ5GiE8", type: "youtube"},
 {name: "CNA Originals", url: "https://www.youtube.com/watch?v=9Y4kOQk_K3Y", type: "youtube"},
@@ -291,10 +268,13 @@ const channels = [
 {name: "med.tv", url: "https://d1f2y296jj795l.cloudfront.net/hls/hls-1280x720p50/playlist.m3u8", type: "hls"},
 {name: "NDTV UK", url: "https://web-ndtv24x7-uk.akamaized.net/hls/live/2109290/ndtv24x7uk/masterp_720p@3.m3u8", type: "hls"},
 {name: "NDTV US", url: "https://web-ndtv24x7-us.akamaized.net/hls/live/2109282/ndtv24x7us/masterp_720p@3.m3u8", type: "hls"},
+{name: "NHK World-Japan", videoUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/45ae6bf6dcf644cfbf5fe0e13dc72d6333bcfdbb60a040d574b3fd4f93c64313/v2.m3u8", audioUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/447d4a8b8bab173949465f755c1df49b12ade29f8820e3378f271e2df9a8df1d/a1.m3u8", type: "hls-split"},
 {name: "Persiana Travel", url: "https://ptravelhls.persiana.live/hls/stream.m3u8", type: "hls"},
 {name: "Red Bull TV", url: "https://freqsyndlin.redbull.com/1723/rbtv/hls/master/playlist_1920x1080.m3u8", type: "hls"},
+{name: "Silk Way", videoUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-avc1_4500000=10002.m3u8", audioUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-mp4a_128000_eng=20003.m3u8", type: "hls-split"},
+{name: "SkyNews", videoUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream04/streamPlaylist.m3u8", audioUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream08/streamPlaylist.m3u8", type: "hls-split"},
 {name: "TeleSUR English", url: "https://mblenmain01.telesur.ultrabase.net/mblivev3/480p/playlist.m3u8", type: "hls"},
-{name: "travelxp", url: "https://27c980761ff9437d929e64647afe183a.mediatailor.us-east-1.amazonaws.com/v1/manifest/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-eu_TravelXP/d046a801-427f-4bc9-8a04-f147335749b3/2.m3u8", type: ""},
+{name: "travelxp", url: "https://27c980761ff9437d929e64647afe183a.mediatailor.us-east-1.amazonaws.com/v1/manifest/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/RakutenTV-eu_TravelXP/d046a801-427f-4bc9-8a04-f147335749b3/2.m3u8", type: "hls"},
 {name: "TVRI World", url: "https://ott-balancer.tvri.go.id/live/eds/TVRIWorld/hls/TVRIWorld.m3u8", type: "hls"},
 {name: "Africanews English", url: "https://www.youtube.com/watch?v=NQjabLGdP5g", type: "youtube"},
 {name: "Al Jazeera English", url: "https://www.youtube.com/watch?v=gCNeDWCI0vo", type: "youtube"},
@@ -353,24 +333,24 @@ const channels = [
 {name: "24h", url: "https://www.youtube.com/watch?v=b4tE5aKhtlg", type: "youtube"},
 {name: "Belarus 24 HD", url: "https://edge52.dc.beltelecom.by/ngtrk/_definst_/smil:belarus24.smil/chunklist_b5160000_sleng.m3u8", type: "hls"},
 {name: "BFM", url: "https://live-cdn-stream-euw1.bfmtv.bct.nextradiotv.com/m5/media.m3u8?bpkio_serviceid=7de32147a4f1055b7ea82c2886420955&bpkio_sessionid=10f0e234f194-877be01b-d70a-45de-b7f8-35381ea28517&category=all&channel_name=BFMTV_all-desktop-Live-undefined&content_id=6346069778112&env=desktop&extra_eids=1S-first-id.fr,1ID-489f050257ec4d00a5a29af4e1a077e5,1ATYPE-1!&gdpr=1&gdpr_consent=CQqBGQAQqBGQAAHABBENCuFsAP_gAAAAAAqILzsB7C5cQClhcDJlYKskaQRdxxBCYEAwBAAAAAAFABoAIIQElGEAAAgAACACAAAAAEBBIQAhCAAABAAAIAAAICCEAEAAABAAIKAAAAABQgBACAABCAAAGAAQgAAEAgQAgAIACAqIQFAAAgAACAAAAAABAICBAAAAAAAgAAAQAAAAAGgAAIAAAAIAEAAMABAIEABAAAEAAAAAAAAAAAAAQAAAAAAAAACAAAAAgAQAAAAAAAAAAAgAAAAAAAAAAAgBxABABwAMWgAwABBmYJABgACDMxKADAAEGZiEAGAAIMzDoAMAAQZmKQAYAAgzMAAA.ILzsB7C5cQCllcDJlYKskaQRdxxBCYEAwBAAAAAAFABoAIIQElGEAAAgAACACAAAAAEBBIQAhCAAABAAAIAAAICCEAEAAABAAIKAAAAABQgBACAABCAAAGAAQgAAEAgQAgAIACAqIQFAAAgAACAAAAAABAICBAAAAAAAgAAAQAAAAAGgAAIAAAAIAEAAMABAIEABAAAEAAAAAAAAAAAAAQAAAAAAAAACAAAAAgAQAAAAAAAAAAAgAAAAAAAAAAAg.YQAAAAAAAAAA&h=449&mm_sp&ssid=00000000-0000-0000-0000-000000000000&url=https%3A%2F%2Fwww.bfmtv.com%2Fen-direct%2F&w=798", type: "hls"},
+{name: "CNEWS", videoUrl: "https://live.eu-north-1a.cf.dmcdn.net/sec2(RgGqc7ZvHgDKr_miXCIseOinc3EZNffgg7nOkMRg1fg0DeAy9SMDnP20aDQuqw6lKbeLOVEqpFJS5_cpPpP5ZpgMPZgkjX5MzgXF15Asqp4l91l-e8QxJWjy3bLn2f8iICRbeelka194jf7H8GDB4rCqIrQ-Upi3hiBsR5qaydsJkSpKHIEJmQ9SoII9R29c)/dm/3/x3b68jn/d/live-h264-1080@60.m3u8", audioUrl: "https://live.eu-north-1a.cf.dmcdn.net/sec2(RgGqc7ZvHgDKr_miXCIseOinc3EZNffgg7nOkMRg1fg0DeAy9SMDnP20aDQuqw6lKbeLOVEqpFJS5_cpPpP5ZpgMPZgkjX5MzgXF15Asqp4l91l-e8QxJWjy3bLn2f8iICRbeelka194jf7H8GDB4rCqIrQ-Upi3hiBsR5qaydsJkSpKHIEJmQ9SoII9R29c)/dm/3/x3b68jn/d/live-aac-64.m3u8?startdate=2026-07-07T08%3A07%3A42%2B0000", type: "hls-split"},
 {name: "DRTV", url: "https://drlivedrtvahls.akamaized.net/hls/live/2113613/drlivedrtva/5.m3u8", type: "hls"},
+{name: "Duna M1", videoUrl: "https://c202-node62-cdn.connectmedia.hu/110301/dff270b4edca73f8b46042a5357f5f7d/6aec62b4/301-M1_NOGEO-avc1_3699968=10005.m3u8", audioUrl: "https://c202-node62-cdn.connectmedia.hu/110301/dff270b4edca73f8b46042a5357f5f7d/6aec62b4/301-M1_NOGEO-mp4a_140800_hun=20000.m3u8", type: "hls-split"},
 {name: "Duna World", url: "https://c202-node61-cdn.connectmedia.hu/110306/71250fac4e27565bbe5b6dd1d589e637/6aeb8bef/306-DunaWorld_NOGEO-avc1_3699968=10005.m3u8", type: "hls"},
+{name: "Duna World", videoUrl: "https://c202-node61-cdn.connectmedia.hu/110306/71250fac4e27565bbe5b6dd1d589e637/6aeb8bef/306-DunaWorld_NOGEO-avc1_3699968=10005.m3u8", audioUrl: "https://c801-node63-cdn.connectmedia.hu/110306/5aa92bd3a5973e424e22f960c214877d/6aec5eb4/306-DunaWorld_NOGEO-mp4a_140800_hun=20000.m3u8", type: "hls-split"},
 {name: "ERT News", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTNews/default/index.m3u8", type: "hls"},
 {name: "FRANCE 24", url: "https://www.youtube.com/watch?v=a47ckXKZjxI", type: "youtube"},
 {name: "HRT 4", url: "https://www.youtube.com/watch?v=_n1zk0VMyLA", type: "youtube"},
+{name: "Lituanica", videoUrl: "https://stream-live.lrt.lt/lituanica/stream03/streamPlaylist.m3u8", audioUrl: "https://stream-live.lrt.lt/lituanica/stream04/streamPlaylist.m3u8", type: "hls-split"},
 {name: "NRK Nyheter", url: "https://nrk-live-world.akamaized.net/nrktv8/sc-gaFEEA/m41_index.m3u8?adap=small", type: "hls"},
 {name: "OE24.TV", url: "https://www.youtube.com/watch?v=RbRSSfXZqh0", type: "youtube"},
 {name: "RTP Mundo", url: "https://streaming-live.rtp.pt/liverepeater/smil:rtpi.smil/chunklist_b1290000_slpt.m3u8", type: "hls"},
 {name: "RTP Noticias", url: "https://streaming-live.rtp.pt/livetvhlsDVR/rtpnHDdvr.smil/chunklist_b2540000_DVR_slpor.m3u8", type: "hls"},
+{name: "Suspilne News", url: "https://www.youtube.com/watch?v=EHiuKvFUr2w", type: "youtube"},
 {name: "tagesschau24", url: "https://tagesschau.akamaized.net/hls/live/2020115/tagesschau/tagesschau_1/master-720p-3328.m3u8", type: "hls"}
 
 
-
-
-
-
-
-
+    
     
 ];
 
