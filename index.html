@@ -282,7 +282,6 @@ const channels = [
 {name: "TVRI World", url: "https://ott-balancer.tvri.go.id/live/eds/TVRIWorld/hls/TVRIWorld.m3u8", type: "hls"},
 {name: "Africanews English", url: "https://www.youtube.com/watch?v=NQjabLGdP5g", type: "youtube"},
 {name: "AnewZ", url: "https://www.youtube.com/watch?v=8YaJcaMqRwA", type: "youtube"},
-{name: "AriseNews", url: "https://www.youtube.com/watch?v=wqAwGhKnkjc", type: "youtube"},
 {name: "BBC News HD", url: "https://www.youtube.com/watch?v=sc21UUjyLaw", type: "youtube"},
 {name: "Bloomberg", url: "https://liveprodeuwest.global.ssl.fastly.net/eu1/Channel-EUTVqvs-AWS-ireland-2/Source-EUTVqvs-10000-1-sknn1p-BP-HD-4-KZVY3t6YToC2_live.m3u8", type: "hls"},
 {name: "Bloomberg Television", url: "https://www.youtube.com/watch?v=QB5BNdBFujE", type: "youtube"},
@@ -344,10 +343,14 @@ const channels = [
 {name: "Lubelska.TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
 {name: "NatureTime", url: "https://www.youtube.com/watch?v=a7yy5UT7aZg", type: "youtube"},
 {name: "Radio Czwórka", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
+{name: "SFERA TV", url: "https://stream.sferatv.pl/sferatvlive/live.m3u8", type: "hls"},
 {name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
 {name: "Telewizja Żary", url: "https://m.youtube.com/watch?v=Dm84cfP2mYk&pp=uAQw", type: "youtube"},
 {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
 {name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
+{name: "TV LUBAŃ", url: "http://stream.herissons.cloud/hls/tvluban.m3u8", type: "hls"},
+{name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8?session=gzYWTsvqwWn7hXDneK82Lc", type: "hls"},
+{name: "TV RELAX", url: "https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8_output_0.m3u8?session=fPef5BBooY4jNnUyPGdBeC", type: "hls"},
 {name: "--- RADIO --- CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "audio-hls"},
 {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "audio-hls"},
 {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "audio-hls"},
@@ -374,7 +377,20 @@ const channels = [
 {name: "COSTA RICA - Canal 8", url: "https://us-b4-p-e-pb13.cdn.mdstrm.com/live-stream/5a7b1e63a8da282c34d65445/publish/media_2000.m3u8?aid=579bd29dc99290cf08362c3b&uid=Fv0ghhodw5kmeRtGPZqIauM15crg2G5Z&sid=mxnvWCNL9Mj5KdMLzhc5OHVvR15uLLcZ&pid=PffWlijD7X4MqHH71PqzDq5lDwncVD7Y&pid_dvr=UxVtKv6CXW76iNDPQkEPc2XURfJwLo2D&ref=https%3A%2F%2Fwww.telediario.cr%2F&without_cookies=false&listenerid=&dnt=true&es=us-b4-p-e-pb13.cdn.mdstrm.com&ote=1794501413368&ot=kIXlLWh4vz_TSShipa7eRA&proto=https&pz=us&CMCD=cid%3D%225a7b1e63a8da282c34d65445%22%2Cmtp%3D12000%2Cot%3Dm%2Csf%3Dh%2Csid%3D%22PffWlijD7X4MqHH71PqzDq5lDwncVD7Y%22", type: "hls"},
 {name: "CZARNOGÓRA - TVCG MNE", videoUrl: "https://rtcg-live-open.morescreens.com/RTCG_1_004/media_3.m3u8", audioUrl: "https://rtcg-live-open.morescreens.com/RTCG_1_004/media_4.m3u8", type: "hls-split"},
 {name: "DANIA - DRTV", url: "https://drlivedrtvahls.akamaized.net/hls/live/2113613/drlivedrtva/5.m3u8", type: "hls"},
+"{name: ""DOMINIKANA - Canal 8
+Telemedios"", videoUrl: ""https://live.eu-north-1a.cf.dmcdn.net/sec2(S34qlhWzbec0QIyjwZF-IZkywGW219WPTIErQZBnOHLcwyvHARaCvL_CMLNPH9MQaRdUw5Q2r_8vtJCzrHNGXwPPPwvabWWfO--nNOn6uoo8xlCa2kRQZx6SLNsjs38S9DUETd-tZe36EFkc2llbuMknPJmO6RwTGfBCi9sGramvmJnySaMnTJghEVgaqTIt)/dm/3/x9hvyy0/d/live-h264-720.m3u8?startdate=2026-10-26T21%3A53%3A17%2B0000"", audioUrl: ""https://live.eu-north-1a.cf.dmcdn.net/sec2(S34qlhWzbec0QIyjwZF-IZkywGW219WPTIErQZBnOHLcwyvHARaCvL_CMLNPH9MQaRdUw5Q2r_8vtJCzrHNGXwPPPwvabWWfO--nNOn6uoo8xlCa2kRQZx6SLNsjs38S9DUETd-tZe36EFkc2llbuMknPJmO6RwTGfBCi9sGramvmJnySaMnTJghEVgaqTIt)/dm/3/x9hvyy0/d/live-aac-128.m3u8?startdate=2026-10-26T21%3A53%3A17%2B0000"", type: ""hls-split""},"
 {name: "DOMINIKANA - Canal del Sol", url: "https://stream.canaldelsol.com/sol26/live_1080.m3u8", type: "hls"},
+{name: "DOMINIKANA - CDN", videoUrl: "J6AI1JE86RWDNqzq4vqEhfB5sfZnFYNOIJ9l9BdYFu_S6jlJs0bujbxLDi9CLO8xyvysUCpA--Vel49MACZipzLZqRMtxzr8Va3f8Vor8l1Kt1jpej3N_OJYvuQuG6BA5ey4ZKRWYUT0XJjovqPidEOkSgBQckHBAumL1wmPAKnFx52-T9Zk9BuFtMHmvIi)/dm/3/xb1ndqm/d/live-h264-720.m3u8", audioUrl: "https://live.eu-north-1b.cf.dmcdn.net/sec2(XJ6AI1JE86RWDNqzq4vqEhfB5sfZnFYNOIJ9l9BdYFu_S6jlJs0bujbxLDi9CLO8xyvysUCpA--Vel49MACZipzLZqRMtxzr8Va3f8Vor8l1Kt1jpej3N_OJYvuQuG6BA5ey4ZKRWYUT0XJjovqPidEOkSgBQckHBAumL1wmPAKnFx52-T9Zk9BuFtMHmvIi)/dm/3/xb1ndqm/d/live-aac-128.m3u8", type: "hls-split"},
+{name: "DOMINIKANA - CDN Deportes", videoUrl: "https://live.eu-north-1b.cf.dmcdn.net/sec2(SeI_jvLgLZ30Uv7Jeb4chG6lxyJ9YZjrhmcqZ2xEocw_7IMCSX-Yaf79P0_iCVUwrD0YuhGRBm3zwSgCkkl6m6T4_ezsfr5-nMKQpp8MOrWwloSYbVEjz0Pf2DIy6-ODuBKE2WGe0XC5KQvHRVUCzg0XVzhVmNANJ9FSdpxgSYWL9msXQ_wDUAFoq2tCghSa)/dm/3/xar1qcu/d/live-h264-720.m3u8", audioUrl: "https://live.eu-north-1b.cf.dmcdn.net/sec2(SeI_jvLgLZ30Uv7Jeb4chG6lxyJ9YZjrhmcqZ2xEocw_7IMCSX-Yaf79P0_iCVUwrD0YuhGRBm3zwSgCkkl6m6T4_ezsfr5-nMKQpp8MOrWwloSYbVEjz0Pf2DIy6-ODuBKE2WGe0XC5KQvHRVUCzg0XVzhVmNANJ9FSdpxgSYWL9msXQ_wDUAFoq2tCghSa)/dm/3/xar1qcu/d/live-aac-128.m3u8", type: "hls-split"},
+{name: "DOMINIKANA - Color Visión 9", videoUrl: "https://live.eu-north-1b.cf.dmcdn.net/sec2(eSl5-9TFbkNSn0mOu5fxxFhIQGhjtwgVOWIy87-h5uW2ezZZhR3BbLr8Fdd9A10BD_3BOCZE3NnabM-Y108VBxpKiT3STsssrqNFgHkBAfoVdhMFDDUJ9PxTc0uh27lZgGZhp0_2Cr6yFPU4wHkEvBq9-gq6HwXxWA02WsglXlzB10Ybdcftk6WZqKW0O8iX)/dm/3/x7gy059/d/live-h264-480.m3u8?startdate=2026-10-26T12%3A01%3A16%2B0000", audioUrl: "https://live.eu-north-1b.cf.dmcdn.net/sec2(eSl5-9TFbkNSn0mOu5fxxFhIQGhjtwgVOWIy87-h5uW2ezZZhR3BbLr8Fdd9A10BD_3BOCZE3NnabM-Y108VBxpKiT3STsssrqNFgHkBAfoVdhMFDDUJ9PxTc0uh27lZgGZhp0_2Cr6yFPU4wHkEvBq9-gq6HwXxWA02WsglXlzB10Ybdcftk6WZqKW0O8iX)/dm/3/x7gy059/d/live-aac-128.m3u8?startdate=2026-10-26T12%3A01%3A16%2B0000", type: "hls-split"},
+{name: "DOMINIKANA - Digital 15", url: "https://72.251.5.171:8443/live/digital15cast_1080p/playlist.m3u8", type: "hls"},
+{name: "DOMINIKANA - En TV", url: "https://stream.haislin.com/play/eyJzdHJlYW0iOiJlbnRlbGV2aXNpb24iLCJleHAiOjE3OTQ1MTA1NDB9.G5-efF-XLr5DBYEMN1HCxzh83Jg3W9MzpqzS_dW6e7E/hls/entelevision/index.m3u8", type: "hls"},
+{name: "DOMINIKANA - La Voz de María", url: "https://live.lavozdemaria.com:3436/live/lavozdemarialive.m3u8", type: "hls"},
+{name: "DOMINIKANA - Telecentro Canal 13", url: "https://72.251.5.171:8443/live/telecentrocast_1080p/playlist.m3u8", type: "hls"},
+{name: "DOMINIKANA - Telemicro 5", url: "https://72.251.5.171:8443/live/telemicrocast_1080p/playlist.m3u8", type: "hls"},
+{name: "DOMINIKANA - Telesistema", url: "https://live2.eu-north-1b.cf.dmcdn.net/sec2(0pE5AxnOpe6QLgn6k__7i2hbJrMYQUtXOSKag419zR9psMaYMzRmJCSJ3dGL3jHdkHostQJdlxqghfcKwFbkDGuup9KEFnz7W8LkkyOQ5dWeT0LEzxa8oR60w1-HjwGB)/cloud/3/x80ac48/d/live-720.m3u8", type: "hls"},
+{name: "DOMINIKANA - Teleuniverso", url: "https://live2.eu-north-1a.cf.dmcdn.net/sec2(39qNl0PO0GLNC890BqMCyHDL5ICwfuTTTYGUyyJBhwK2zeJ6MR82Ee9lTvtwl1CSEtWWD29HspVwI4LvxKcQXUJwL2oNq04CAVL0KfofIeIRKd81fCE_nnS4FwHArcVI)/cloud/3/xaio352/s/live-720@60.m3u8", type: "hls"},
+{name: "DOMINIKANA - Televida", url: "https://cdnfox.hostlagarto.com/televida/index.m3u8", type: "hls"},
 {name: "FRANCJA - BFM", url: "https://live-cdn-stream-euw1.bfmtv.bct.nextradiotv.com/master.m3u8", type: "hls"},
 {name: "FRANCJA - FRANCE 24", url: "https://www.youtube.com/watch?v=a47ckXKZjxI", type: "youtube"},
 {name: "GRECJA - ERT News", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTNews/default/index.m3u8", type: "hls"},
@@ -482,6 +498,8 @@ const channels = [
 {name: "WŁOCHY - Telebari", url: "https://w1.mediastreaming.it/telebari/livestream/chunklist_w1471743426.m3u8", type: "hls"},
 {name: "WŁOCHY - Telecity Liguria", url: "https://64b16f23efbee.streamlock.net/telecitylombardia/telecitylombardia/chunklist_w1748771632.m3u8", type: "hls"},
 {name: "WŁOCHY - TeleClub", url: "https://teleclubitalia.iostream.it/tci1080.m3u8", type: "hls"}
+
+
 
 
 
