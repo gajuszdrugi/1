@@ -111,20 +111,17 @@
             list-style: none;
             overflow-y: auto;
             flex-grow: 1;
-            padding: 10px 10px 5px 10px;
-            /* Stylizacja paska przewijania (Firefox) */
+            padding: 10px 6px 5px 10px;
             scrollbar-width: thin;
-            scrollbar-color: #555 rgba(0,0,0,0.2);
+            scrollbar-color: #555 #111;
         }
 
-        /* Stylizacja paska przewijania dla przeglądarek WebKit (Chrome, Edge, Safari) */
         #channels-ul::-webkit-scrollbar {
             width: 8px;
-            display: block;
         }
 
         #channels-ul::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.2);
+            background: #111;
             border-radius: 4px;
         }
 
@@ -134,7 +131,7 @@
         }
 
         #channels-ul::-webkit-scrollbar-thumb:hover {
-            background: #666;
+            background: #ff333d;
         }
 
         .channel-item {
@@ -276,141 +273,717 @@
 
 <script>
 const channels = [
-    {name: "ABC NEWS Australia", url: "https://www.youtube.com/watch?v=vOTiJkg1voo", type: "youtube"},
-    {name: "AFGANISTAN - RTA World", videoUrl: "https://rta-tv.akamaized.net/live/SD/RTA-5/RTA/RTA-5-avc1_5800000=10002.m3u8", audioUrl: "https://rta-tv.akamaized.net/live/SD/RTA-5/RTA/RTA-5-mp4a_179600=20000.m3u8", type: "hls-split"},
-    {name: "Al Jazeera English", url: "https://www.youtube.com/watch?v=gCNeDWCI0vo", type: "youtube"},
-    {name: "Arirang TV World", url: "https://www.youtube.com/watch?v=hvVlyZ5GiE8", type: "youtube"},
-    {name: "CHINY - CGTN Documentary", url: "https://english-livebkali.cgtn.com/live/doccgtn_0.m3u8", type: "hls"},
-    {name: "CNA Originals", url: "https://www.youtube.com/watch?v=9Y4kOQk_K3Y", type: "youtube"},
-    {name: "DW", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream04/streamPlaylist.m3u8", type: "hls"},
-    {name: "DW English", url: "https://www.youtube.com/watch?v=LuKwFajn37U", type: "youtube"},
-    {name: "ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"},
-    {name: "France 24", url: "https://www.youtube.com/watch?v=HvZt-nh9sGg", type: "youtube"},
-    {name: "KBS WORLD", url: "https://www.youtube.com/watch?v=-rleEnGt__s", type: "youtube"},
-    {name: "med.tv", url: "https://d1f2y296jj795l.cloudfront.net/hls/hls-1280x720p50/playlist.m3u8", type: "hls"},
-    {name: "NHK World-Japan", videoUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/45ae6bf6dcf644cfbf5fe0e13dc72d6333bcfdbb60a040d574b3fd4f93c64313/v2.m3u8", audioUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/447d4a8b8bab173949465f755c1df49b12ade29f8820e3378f271e2df9a8df1d/a1.m3u8", type: "hls-split"},
-    {name: "PAKISTAN - M Sports", url: "https://cdn.rabta.stream/M-Sports/tracks-v1a1/mono.ts.m3u8", type: "hls"},
-    {name: "PAKISTAN - Madani Channel English", url: "https://streaming.madanichannel.tv/static/streaming-playlists/hls/c6a600b0-82cb-454a-8953-2bb2bb372edc/3.m3u8", type: "hls"},
-    {name: "Persiana Travel", url: "https://ptravelhls.persiana.live/hls/stream.m3u8", type: "hls"},
-    {name: "Red Bull TV", url: "https://freqsyndlin.redbull.com/1723/rbtv/hls/master/playlist_1920x1080.m3u8", type: "hls"},
-    {name: "Silk Way", videoUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-avc1_4500000=10002.m3u8", audioUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-mp4a_128000_eng=20003.m3u8", type: "hls-split"},
-    {name: "SINGAPUR - CNA Asia", videoUrl: "mediacorp-nca-prod-videos-bclive.akamaized.net/6379472319112/ap-southeast-1/6057994443001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoicGE2ODB1LmVncmVzcy5wcHRpOHciLCJhY2NvdW50X2lkIjoiNjA1Nzk5NDQ0MzAwMSIsImVobiI6Im1lZGlhY29ycC1uY2EtcHJvZC12aWRlb3MtYmNsaXZlLmFrYW1haXplZC5uZXQiLCJpc3MiOiJibGl2ZS1wbGF5YmFjay1zb3VyY2UtYXBpIiwic3ViIjoicGF0aG1hcHRva2VuIiwiYXVkIjpbIjYwNTc5OTQ0NDMwMDEiXSwianRpIjoiNjM3OTQ3MjMxOTExMiJ9.Cw77amOc6efNO32Sw9nD0SOhjQUc5ewKN8ZWJOPt15Y/chunklist_hls1080p.m3u8", audioUrl: "mediacorp-nca-prod-videos-bclive.akamaized.net/6379472319112/ap-southeast-1/6057994443001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoicGE2ODB1LmVncmVzcy5wcHRpOHciLCJhY2NvdW50X2lkIjoiNjA1Nzk5NDQ0MzAwMSIsImVobiI6Im1lZGlhY29ycC1uY2EtcHJvZC12aWRlb3MtYmNsaXZlLmFrYW1haXplZC5uZXQiLCJpc3MiOiJibGl2ZS1wbGF5YmFjay1zb3VyY2UtYXBpIiwic3ViIjoicGF0aG1hcHRva2VuIiwiYXVkIjpbIjYwNTc5OTQ0NDMwMDEiXSwianRpIjoiNjM3OTQ3MjMxOTExMiJ9.Cw77amOc6efNO32Sw9nD0SOhjQUc5ewKN8ZWJOPt15Y/chunklist_audio0.m3u8", type: "hls-split"},
-    {name: "TeleSUR English", url: "https://mblenmain01.telesur.ultrabase.net/mblivev3/480p/playlist.m3u8", type: "hls"},
-    {name: "TRT World", url: "https://tv-trtworld.medya.trt.com.tr/master_1080.m3u8", type: "hls"},
-    {name: "TVRI World", url: "https://ott-balancer.tvri.go.id/live/eds/TVRIWorld/hls/TVRIWorld.m3u8", type: "hls"},
-    {name: "Africanews English", url: "https://www.youtube.com/watch?v=NQjabLGdP5g", type: "youtube"},
-    {name: "AnewZ", url: "https://www.youtube.com/watch?v=8YaJcaMqRwA", type: "youtube"},
-    {name: "BBC News HD", url: "https://www.youtube.com/watch?v=sc21UUjyLaw", type: "youtube"},
-    {name: "Bloomberg", url: "https://liveprodeuwest.global.ssl.fastly.net/eu1/Channel-EUTVqvs-AWS-ireland-2/Source-EUTVqvs-10000-1-sknn1p-BP-HD-4-KZVY3t6YToC2_live.m3u8", type: "hls"},
-    {name: "Bloomberg Television", url: "https://www.youtube.com/watch?v=QB5BNdBFujE", type: "youtube"},
-    {name: "CGTN", url: "https://www.youtube.com/watch?v=0i7n3r01L2U", type: "youtube"},
-    {name: "CHANNELS TELEVISION NIGERIA", url: "https://www.youtube.com/watch?v=W8nThq62Vb4", type: "youtube"},
-    {name: "CityNews Calgary", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888153001", type: "iframe"},
-    {name: "CityNews Toronto", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888148001", type: "iframe"},
-    {name: "CityNews Vancouver", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272887411001", type: "iframe"},
-    {name: "DM News", url: "https://www.youtube.com/watch?v=BQpw8_I7gNo", type: "youtube"},
-    {name: "EURONEWS", url: "https://www.youtube.com/watch?v=pykpO5kQJ98", type: "youtube"},
-    {name: "i24NEWS", url: "https://i24newsenglish-cdn.encoders.immergo.tv/master.m3u8", type: "hls"},
-    {name: "NDTV", url: "https://web-ndtv24x7-uk.akamaized.net/hls/live/2109290/ndtv24x7uk/masterp_720p@3.m3u8", type: "hls"},
-    {name: "NTD", url: "https://amg17596-amg17596c1-ntdtv-worldwide-3276.playouts.now.amagi.tv/ts-us-e2-n2/playlist/amg17596-newtangdynastytelevision-ntdtv-ntdtvworldwide/cb7f3e4f7b726fd89ecb3563d8f245aad20233805d38d06665fc579026cb1c5083effbcbee42bd4a11e24094385631004262d519ce64669e802ef716776c69108a99b265d992026eeb86092e21a3321855e71e6490650f77eeec18238c29fa2c5644a65a38167aa6953dd00a4ed5dc53d02a39fcf88e3a66644a2cc71f02b8f541a2fae74345c66cbfb10c2bc47914a5db5dccd71ba583d24beb17d169f0119b8cf095d30e8294856aad04e7660a0821309dd92fc3840ce7dccb24619a75290b4803b4f7c5a74c6fdf461404a295a1dc69f207bcea4fe0306dc76afb5a963cf81ec07aaff55ab0bee1900d562eb38a557523eee6af87a14159d773e89df9cf7a6a98f50d0a21a309891b0516ca97a17780cd01e4d549e4e5337652a496418b8fc0e085d1dd78824fb8af44266d322f196632aa1fc4aa62d728d37cdabf7943797834611ec8a6fcbf7b257040968524b97be92b07eaf1b92529cb6b144daa17b199d038be563d2e9f40d59f2f7f8c344ab53a31fa5631ca2a96de7fa4ea8fb45569f6b69533f13b0f622ab8df22d04049b52839667f7f0f2158c5fc691d3536f444f6c0cbf64dae6186eae0f1da5a340b38580742dba2af479280c4260a05817d1220254059c65f965ed60e1f5475890685f84034a4163121e3903a5f71658287e4d2d0989912f537f8e7c9140377196fb438006649d6b58656b478687668528d0a2b12e8511412a4c587b5d9b36fc89d76a3773747348ba341012c56742c5bcec6268710b2dd4dcbeea036fbe683164a922fe35040ecb7f258b8bcd1891f75dfc03e346e94c128d67c2bd365bd0681d162d7a35a0008462e6dc68951bf12f9e893c92f953bbe0d645aef6bb088eca3dc0507b0c7aa52e98586a019d8ba8a590d94d0abfe9a0eea17fbc61c/176/1920x1080_6046040/index.m3u8", type: "hls"},
-    {name: "PAKISTAN - Asia One News", url: "https://www.youtube.com/watch?v=rMq8YZBxFkg", type: "youtube"},
-    {name: "PAKISTAN - M World", url: "https://cdn.rabta.stream/M-World/tracks-v1a1/mono.ts.m3u8", type: "hls"},
-    {name: "PAKISTAN - Pakistan TV", url: "https://www.youtube.com/watch?v=wWb0pMdIZzQ", type: "youtube"},
-    {name: "PressTV", url: "https://live.presstv.co.uk/hls/presstv.m3u8", type: "hls"},
-    {name: "Russia Today", url: "https://hugh.cdn.rumble.cloud/live/hr6yv36f/live-hls/mxtm-wdfe/chunklist_i0_DVR.m3u8", type: "hls"},
-    {name: "SkyNews", videoUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream04/streamPlaylist.m3u8", audioUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream08/streamPlaylist.m3u8", type: "hls-split"},
-    {name: "TVC News", url: "https://www.youtube.com/watch?v=5qZKM7m1Moc", type: "youtube"},
-    {name: "TVP World", url: "https://www.youtube.com/watch?v=tvXWIgsWuK0", type: "youtube"},
-    {name: "WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},
-    {name: "--- MUZYKA --- 4FUN TV", url: "https://stream.4fun.tv:8888/hd/4fun_hd_med.m3u8", type: "hls"},
-    {name: "City TV", url: "https://tv.city.bg/play/tshls/citytv/3.m3u8", type: "hls"},
-    {name: "Deejay TV", url: "https://streamcdnf24-4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/chunklist_b1728000.m3u8", type: "hls"},
-    {name: "folxplay ADRIA", url: "https://adriaapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
-    {name: "folxplay ONE ADRIA", url: "https://oneadriaapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
-    {name: "Globo TV", url: "https://nrvideo1.newradio.it:1936/awrgaebshj/awrgaebshj/chunklist_w1266857982.m3u8", type: "hls"},
-    {name: "Kiss TV Romania", url: "https://tv.broadcasting.ro/kisstv/a629c031-2170-4ee9-a36d-87a891aa3131_output_0.m3u8", type: "hls"},
-    {name: "Kronehit", url: "https://bitcdn-kronehit.bitmovin.com/v2/hls/chunklist_b3128000.m3u8", type: "hls"},
-    {name: "Magic TV Bulgaria", url: "https://bss1.neterra.tv/magictv/stream_1.m3u8", type: "hls"},
-    {name: "Magic TV Romania", url: "https://tv.broadcasting.ro/magictv/925f90db-5c88-4190-a53d-5163cdffe6f4_output_0.m3u8", type: "hls"},
-    {name: "Óčko", url: "https://ocko-live.ssl.cdn.cra.cz/channels/ocko/playlist/cze/live_lq.m3u8", type: "hls"},
-    {name: "Óčko Expres", url: "https://ocko-live.ssl.cdn.cra.cz/channels/ocko_expres/playlist/cze/live_lq.m3u8", type: "hls"},
-    {name: "Óčko Star", url: "https://ocko-live.ssl.cdn.cra.cz/channels/ocko_gold/playlist/cze/live_lq.m3u8", type: "hls"},
-    {name: "RADIO DISCOunt TV", url: "https://585b674743bbb.streamlock.net/9030/9030/chunklist_w887713057.m3u8", type: "hls"},
-    {name: "Radio Kiss Kiss TV", url: "https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/chunklist_w717255783_b3128000_slita.m3u8", type: "hls"},
-    {name: "Radio Norba TV", url: "https://stream12.xdevel.com/video0s975885-2349/stream/chunks_dvr.m3u8", type: "hls"},
-    {name: "Radiofreccia HD", url: "https://streamcdnf27-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/chunklist_b3256000.m3u8", type: "hls"},
-    {name: "Retro Music Television", url: "https://newstream.mediawork.cz/retrotv/smil:retrotv_new.smil/chunklist_w1546477181_b3256000.m3u8", type: "hls"},
-    {name: "Rock TV Romania", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb_output_0.m3u8", type: "hls"},
-    {name: "RTL 102.5", url: "https://streamcdnf43-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/chunklist_b3256000.m3u8", type: "hls"},
-    {name: "RTL 102.5 Caliente", url: "https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/chunklist_b3256000.m3u8", type: "hls"},
-    {name: "That's 70s", url: "https://rakutenaa-lightning-now70s-rakuten-t8535.amagi.tv/playlist/rakutenAA-lightning-now70s-rakuten/playlist.m3u8?ads_content_livestream=0&ads_pod_type=playerpage_midroll&ads_amagi_channel_id=869&ads_env=prod&ads_ppid=b8c8f661-fa0b-4970-8abd-b6e024ed1dcb&ads_rtvid=271863&ads_content_genre=entertainment&ads_extra_eids=&ads_streaming_id=cf545a2f-cd41-4c88-b12a-a635eb6fed41&ads_amznslots=&ads_device_type=web&ads_inv_partner_domain=rakuten.tv&ads_device_year=1970&ads_device_model=GENERIC&ads_prodq=1&ads_amznbrmid=&ads_gam_correlator=1464208144693268&ads_placement=1&ads_ip=37.47.115.13&ads_ifa_type=sessionid&ads_google_ad_manager_nonce=&ads_app_bundle=com.rakutentv.web&ads_player_width=1920&ads_tivo_devmakedate=&ads_rtv_content_language=en&ads_app_version=&ads_rtv_content_id=5306&ads_market=pl&ads_tivo_mvpd=&ads_tivo_platform=&ads_rtv_channel_name=that-s-70s_pl&ads_tivo_devcountry=&ads_device_make=edge-chromium&ads_app_store_url=rakuten.tv&ads_tivo_uxloc=&ads_network_name=RakutenTV&ads_user_type=registered&ads_rating=7&ads_tivo_usid=&ads_content_categories=IAB1&ads_amznregion=&ads_gdpr_consent=CQn2ZTAQn2ZTAAcABBPLCpFgAAAAAAAAACiQAAAV8gCAA4AGaBWACvgAAAAA.YAAAAAAAAAAA.IMcsRxC5cTWFkeTJ1QLsEeYQX1sAggkAAAACAIiABCDAEIBQA0yEAIASABAACABIAIBBBAQAkCAgEAEAAAIAACABoIACAwBAIIABAABEBAABACAAiAAAAAACIAgAVAAEAkAAEAFKEAEAAAAACAkAgAAAAAAAAAAIABAAIQAIAAFAAgigAAQAAgAAAAAAAARgIEAkAAAAAACAQAAgAAAAQEAAAAAAgABAAACAAgBAEAAAAQiAAAAAEAACAAAAAAAAAAAAAAAAAAAACAAA&ads_os_language=&ads_device_lmt=0&ads_brand_name=&ads_player_height=1080", type: "hls"},
-    {name: "That's 80s", url: "https://rakutenaa-lightning-now80s-rakuten-mkrxt.amagi.tv/playlist/rakutenAA-lightning-now80s-rakuten/playlist.m3u8?ads_content_livestream=0&ads_pod_type=playerpage_midroll&ads_amagi_channel_id=871&ads_env=prod&ads_ppid=f56e445a-2e8b-4c68-9166-b5da36e4c092&ads_rtvid=271863&ads_content_genre=entertainment&ads_extra_eids=&ads_streaming_id=0e3f229d-d333-4999-bae1-56a3941e5362&ads_amznslots=&ads_device_type=web&ads_inv_partner_domain=rakuten.tv&ads_device_year=1970&ads_device_model=GENERIC&ads_prodq=1&ads_amznbrmid=&ads_gam_correlator=1439068033634506&ads_placement=1&ads_ip=37.47.115.13&ads_ifa_type=sessionid&ads_google_ad_manager_nonce=&ads_app_bundle=com.rakutentv.web&ads_player_width=1920&ads_tivo_devmakedate=&ads_rtv_content_language=en&ads_app_version=&ads_rtv_content_id=5340&ads_market=pl&ads_tivo_mvpd=&ads_tivo_platform=&ads_rtv_channel_name=that-s-80s_pl&ads_tivo_devcountry=&ads_device_make=edge-chromium&ads_app_store_url=rakuten.tv&ads_tivo_uxloc=&ads_network_name=RakutenTV&ads_user_type=registered&ads_rating=7&ads_tivo_usid=&ads_content_categories=IAB1&ads_amznregion=&ads_gdpr_consent=CQn2ZTAQn2ZTAAcABBPLCpFgAAAAAAAAACiQAAAV8gCAA4AGaBWACvgAAAAA.YAAAAAAAAAAA.IMcsRxC5cTWFkeTJ1QLsEeYQX1sAggkAAAACAIiABCDAEIBQA0yEAIASABAACABIAIBBBAQAkCAgEAEAAAIAACABoIACAwBAIIABAABEBAABACAAiAAAAAACIAgAVAAEAkAAEAFKEAEAAAAACAkAgAAAAAAAAAAIABAAIQAIAAFAAgigAAQAAgAAAAAAAARgIEAkAAAAAACAQAAgAAAAQEAAAAAAgABAAACAAgBAEAAAAQiAAAAAEAACAAAAAAAAAAAAAAAAAAAACAAA&ads_os_language=&ads_device_lmt=0&ads_brand_name=&ads_player_height=1080", type: "hls"},
-    {name: "that's 90s00s", url: "https://amg01076-amg01076c19-rakuten-gb-8653.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg01076-lightning-now90s00s-rakutengb/cb7c3e4f7b726fd89ecb3563d8f245aad20233805d35d03c39a006917c93150bd4efa2c9e448ed687ed262812b53310d0c78ce07de6c19a08724fc0e733f070afe88b37bc7991919d581512c2eb86a5657fa1705a165137edcde1f0aae34a1365040bf473d0072c59621c90b2ed99056d2247c9bda88326222434fec051fbafd0bbcfee4585bd872a1af1c58f67e13b6c01bd6d11fbc9ed75d8e36d221ee159897ee8bcd109c868377fa5fe0670b5a2425d48429c59e10e78b9c3874c42378125304e7a5cbf84d6ede45420dfea58fd514fe17ddb6268e6e23be0e8c7083358479af7bc88b23a5a3afda505538adca566429b4bffae08b3437ae59e8b6fbd8727190f813474ecd1f9e486f69c5a99d43d49242dbb07a84b724496dc39708c3cfb782a2e9d94ccc7c9392a599681a1a397568e15ca68952de27cb0acea477314e4240f70837aef6d85a235d4882904ceb1014b7c88e8dcb7c86a80aa138cb51d7093f58ed05622edf19d8bb3f4dab043aa9162ddd5f14a163dd990dd486fac60f0a94ffe674a768cc942b86d725a84f0b7821a5f50d7e646d5c9ed7472c1158e264c5f2ebc0564729c1f4deccd8706d040d2074078ed6cd21aaa2d30c182ff06b77735517109d25f748fe23682927e83cf0882851ac24100cb6be1a7c734da5e993a0a6f5eb669c5efaeddf1b0e0a78689e1202034ff697ac78d4196a5d5b7f8f2645609c107863c3bce8c7b8a14cebbe458b1a433742e4f936602873524229b2b16ff668c3b2389890eb7de9ceab3960a419822031bff1ff4df3cc86e66e2eb18b763846b6f20ee4510ce63ee50aa1f351fe917401153b6169f3af75f87e98febbe60abb0d9f482a5bcb739abdc292f74775c6a06b12342874365e63530d2d99fbf445075ace9d06c77ec7ca528b6371121e66ffb3097fa7c9563db9145f438481eaaa8ceb2231eb4fd554e8412287762c0fc0ef19cba2e8b190e86e5013e6b2ae5ab2a28dbec1d7c1230c64065d9ec558503adb2ee2830ae8b81026a9e3f9e4de7da872e3388487b93cf639accaa801bce2ed949523440f0a0ea892aea84082ec5e12e106b1202c1c8fb5f1e760e9e5a81e68ef2f8cef6d7cab39774eddaee901cc71cd8c572be394565dd0623bc2e5c02a11dc56c44a532dab8deb183acbd03090429581f20158b30b1ff042596ebe75ff94cd0f058595322200b74a6dfd7680dbe65d49629181722a380833001bdd3230468e2c6bae0fa6e1ecff7c36d47ce07f3ebb6a90c652b1ab0febccc9fcaae03417ce9d6b31d721c239900094a0e59739a0405eae6d871361a3e0c5fbc9feb5d1a5bb4f034fc61ee963a2779ed5969c7414017fca7d5f204aec11997e633a95c046f5b5597a8fda8f6ba9600612534c669c43c6f67a494130b6e2788bd46967567829f8c674d279d7520e860d25d7726e160c384251ab93bf5db46d8a24e6ac0003b5d7faf220b2fb728acc83b6f74b5f960b6b191bc9b389c8d21766fec3decb7102edea61a62f65362fbdcebb573eb0b14e51e8ae8c6dbeae73861f333562db88bc3dc173d87280275ede28eeed597bf28e133a2f803182f07f40a85af31b0392608a581fd012242a2e5f8679d158147d3fdc7e80fab25e2a11bb0cde270f46cf8ab4c0fe1f4c776a3eb39839087aa62216fc4f4f75ab0b38a7ce9ed99ce6bf3b5eef73d6d8a597c6353ddec1f0bbbf6d72b33af7edb9d584dbc7427f7aa724ec7128b06e41848814987392859d996d46dfec519b4b030aa2725b2781ca72375b6a7ab19e977874928c0ef4ffffcbb482ec556326634cb8e38132ae1ca605733d78df72aef2bf539aa0c10cf401289fd0c8b8d8ed69ccb5fe4692904a33f3bee55480eaad34ed75502d78076260a37ccf246bdf51e55dfb627d194be4029410026ebee68262fffb30585d522c92148a713e5fc94505242f4a92c536afcfc95e717e4b0f51f8c404d4045de9070f06c2c165f6cae411de0388d1dfa007375b7e30e370362332921c1c3864c4ffae97427ca717f12a57e7fe9fdb4d0b3f95b042abba430fefecd33cf437c075e30ea6610546148a1b0e26fc012901243a1736b8493de493bee7b61ee807dc306085778b1a7ce5666cbc392a99bf38d482bb28bf58e57398fc078f5ef9a4/84/1920x1080_4716800/index.m3u8", type: "hls"},
-    {name: "that's ROCK", url: "https://rakutenaa-lightning-now90s-rakuten-2968n.amagi.tv/ts-eu-w1-n2/playlist/rakutenAA-lightning-now90s-rakuten/cb563f19657662909bcb3a78d1f262eda65928d80b6c852a6ab454876da64607d1e3b680fd358b785d9f01de6a1a0a080361cf12ce3407c3c76ad91174204213cfcac9229d86170ab5c60c2c3aab016635837209c0790a79dca93d0d8636ba304530e01b615b37c2ec5ca86852db80148b6f4adafb8c2360625f5c98435ee3b02bf7a8fe5c40dd72a1af1c56953d51b58246cdd74aba85c90f9e458e6bf015cb93ed83d7468a9bc036ff57b3325b5d7278c8d82301ab37c6db9e7a069b7538542156e9ad80fb4028f4fa2136429de88e6bad29faa8148f320d8f21b94ca512a85b862ab7c749818c9afe63601885e578681681c481bca332109c47af83cedc514bb8d5027f66e84cf9036501b1dcea35a5e234b79702a4fa40303bd3a35db8c8b1b7d896864fa80f9bf6d88b184777523c53957ca59d66fa08fc598bef3a287d6f6789bb70eda4e87f607b6aa7a97fe7323998faa8a2fd271ae3423978c951f850264dcb114d59c40cd8b31d4daa07288a1c1cd87922a263d5910dd786fac7231994ffe563dc4ecebc2bf3d723884c1f7023b4d31a7e64695cdbcf4728115fe860c5f6ebc0562821cfd6c6dfc77219261836732daac3c659baace1083427e07a0741523136910dd148fe31682129e83ff28d2855a427132acf821e567b4db7e990a0a4f7fb659478f2eedc181e1e78429c12240769f294ac78dc1b6a5f7d7fa12a45629c266b4bcbb4e8c4b8a54fefbf458b19433542e4d13660287352422bbab149f67fc1b23c98c18d36beee89017a823dae3e1391c2ce69f4ec95c85d7de1c0384c3fc58a7f94247f93468579df812382f43f771d385377c1815aeb5ab7cba5c02e943ea83d6c14877db588e6a1c2675fe99c4f3d2753207d1653723f33aacec36d040984d641b40ab7b303fa182f594e46da913f4e8ae96e198e0a7665aca7c39fdfac69749b3eac25933a69d656093ddedf2cf886b3fef389686b09ddc4ed26fff3dcd89a82997e27466d329ac41201208175bdd405e0fb507fbe8cdbe1833cce22b663badec4448e3da4d88303af8296fbef0573343847f09bb69065dab8197aba6bcb723e0c9398e1cb70e9d6ce6b12804fe18e127aab303049dff1866ea52abcf5063ff4827b66c16d22c492934c76da21a0292169f4df846a618da960924988aaf30a5a850b1bdb4a5f6aa90e95edd26c6be6b95e0359ff040a85628992a8363e73aa815920241b7e7363b5504e23e0642acf62b3e0f18e7a34983e890031ab7ca1d668aba302e9e6c5f4ab975c0fc5f2024ca0658f0abd30f1c99ff13cd6150bee6ec3433aa3dbdea885b59fb397924a034f9509990bc92ed794f9c57455537cdb0e38492ca658a965085787fb54dab7726e93d0f90fc674272f73173fc257ac9d1e5d512687f26bd3ca6f6033285a84c202a42ca44a0fbb436ead1f1d667575424da38ec809ce28db728ef95004f78abbae7c9ec650df9895d9be4c1ecb512371519cb69de3b62b51adcdddc16f10eb8464b1034a3d2e94d3a14204d6dc34268ac7e717acb961dd645c786ed69f9120d969bd31e5514bdf35c5c04469bfeb76506ed668c095332bd05ce2093b941de02678db0841554539827acd750f6c3a911be5908f7a0654de78b0256828b8e3e99cb1245118275b0c226c7469b52a41f7280760962e1af3b086d8f78089313e2ff652bfcdcef4292bc5d987a7b861d178b4c6c5aa94f8dbc85e573cd55a27a779fd001dc2801ade17d1a486e15f1e605e00e52e3300f8384a10fc912f65072d609285fb09a13560e040bdfc80e47bd4d0e770396bbd3406fcc07ec561563d61c364fbbf70f025e99e61bf5a5efefd82fe85b83bc4b2f8449791596adbfab74780f7b632e267244c242002b8269f3d180bbf09c2c1b8bc0d831aef41ed7a422fe6b8d47b88b2096368683a7935ec651855936b0c2b250a8ecb45e795f15a7a35154d17f6ba7ec41b5de7645540f4da62efcbec0688068ad8ba851068062e52a822537a688d3b3a0540a0a0e0db6643807a8c36658cd9a09e5c7c74c6c10288934d0efef1d12ab4608152c473e132591947b61c1c5d802d6253722d1425d90016e49be6a5a12c8252816b3ada15f4124e868f030f87aa3c99cc4cb771439267e0bbbdc272c5523cd7f28ea878513595334ec0fe89da0815c9b85054f0796c83a517ed123e2cb4a36a87a3f47270e529e87f53fbd8cad5680e8f062862835c930ab0bf59b406775c93f20771b087db3d/73/1920x1080_4716800/index.m3u8", type: "hls"},
-    {name: "THE VOICE", url: "https://bss1.neterra.tv/thevoice/stream_1.m3u8", type: "hls"},
-    {name: "V2Beat", url: "https://abr.de1se01.v2beat.live/live/live6/chunks.m3u8", type: "hls"},
-    {name: "--- POLSKA --- Euronews Polska", url: "https://www.youtube.com/watch?v=fG7PjdiKaBY", type: "youtube"},
-    {name: "1. wPolsce24", url: "https://www.youtube.com/watch?v=jkDQs_xNYVQ", type: "youtube"},
-    {name: "2. TVP INFO", url: "https://www.youtube.com/watch?v=3jKb-uThfrg", type: "youtube"},
-    {name: "3. REPUBLIKA", url: "https://www.youtube.com/watch?v=dzntyCTgJMQ", type: "youtube"},
-    {name: "4. REPUBLIKA+", url: "https://www.youtube.com/watch?v=vcQ05GitXUM", type: "youtube"},
-    {name: "BIZNES24", url: "https://m.youtube.com/watch?v=0dL2w6ybTuU&pp=uAQw", type: "youtube"},
-    {name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/720/chunklist.m3u8", type: "hls"},
-    {name: "Lubelska.TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
-    {name: "NatureTime", url: "https://www.youtube.com/watch?v=a7yy5UT7aZg", type: "youtube"},
-    {name: "Radio Czwórka", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
-    {name: "SFERA TV", url: "https://stream.sferatv.pl/sferatvlive/live.m3u8", type: "hls"},
-    {name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
-    {name: "Telewizja Żary", url: "https://www.youtube.com/watch?v=q978woITu3o", type: "youtube"},
-    {name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
-    {name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
-    {name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8?session=gzYWTsvqwWn7hXDneK82Lc", type: "hls"},
-    {name: "TV RELAX", url: "https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8_output_0.m3u8?session=fPef5BBooY4jNnUyPGdBeC", type: "hls"},
-    {name: "--- RADIO --- CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "audio-hls"},
-    {name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "audio-hls"},
-    {name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "audio-hls"},
-    {name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio"},
-    {name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "audio-hls"},
-    {name: "AFGANISTAN - Ariana TV Network", url: "https://d3bq19vx8xhpwy.cloudfront.net/live/myStream/chunklist_w1830167848.m3u8", type: "hls"},
-    {name: "AFGANISTAN - ATN News", url: "https://d10rltuy0iweup.cloudfront.net/ATNNEWS/myStream/chunklist_w316873677.m3u8", type: "hls"},
-    {name: "AFGANISTAN - Dunya-e-Naw TV", url: "https://dunyanhls.wns.live/hls/stream.m3u8", type: "hls"},
-    {name: "AFGANISTAN - Eslah TV", url: "https://eslahtvhls.wns.live/hls/stream.m3u8", type: "hls"},
-    {name: "AFGANISTAN - RTA", videoUrl: "https://rta-tv.akamaized.net/live/SD/RTA-1/RTA/RTA-1-avc1_5800000=10002.m3u8", audioUrl: "https://rta-tv.akamaized.net/live/SD/RTA-1/RTA/RTA-1-mp4a_179600=20000.m3u8", type: "hls-split"},
-    {name: "ALBANIA -  Ora News", url: "https://live1.mediadesk.al/oranews.m3u8", type: "hls"},
-    {name: "ALBANIA - a2news", url: "https://livea2cnn.digicom.al/live/smil:a2cnnweb.stream.smil/chunklist_w382018048_b2128000_slalb.m3u8", type: "hls"},
-    {name: "ALBANIA - Zjarr TV", url: "https://zjarr.future.al/hls/playlist.m3u8", type: "hls"},
-    {name: "ARMENIA - 1TV", url: "https://amtv.tulixcdn.com/amtv3/am3abr/tracks-v1a1/mono.m3u8", type: "hls"},
-    {name: "ARMENIA - 1TV INT", url: "https://amtv.tulixcdn.com/amtv2/am2abr/tracks-v1a1/mono.m3u8", type: "hls"},
-    {name: "AUSTRIA - OE24.TV", url: "https://www.youtube.com/watch?v=RbRSSfXZqh0", type: "youtube"},
-    {name: "BANGLADESZ - Boishakhi TV", url: "https://boishakhi.sonarbanglatv.com/boishakhi/boishakhitv/index.m3u8", type: "hls"},
-    {name: "BANGLADESZ - Channel 1", url: "https://www.youtube.com/watch?v=MLhfEyuUMCQ", type: "youtube"},
-    {name: "BANGLADESZ - Channel 24", url: "https://www.youtube.com/watch?v=WMlDSbd6uB0", type: "youtube"},
-    {name: "BANGLADESZ - Desh TV", url: "https://www.youtube.com/watch?v=a-cWjymPRQc", type: "youtube"},
-    {name: "BANGLADESZ - Ekattor TV", url: "https://www.youtube.com/watch?v=LTaSFtTHhlM", type: "youtube"},
-    {name: "BANGLADESZ - Ekhon TV", url: "https://www.youtube.com/watch?v=VfTpNyBbvEQ", type: "youtube"},
-    {name: "BANGLADESZ - Jamuna TV", url: "https://www.youtube.com/watch?v=8wWAeTKhUdY", type: "youtube"}
+
+
+
+
+
+
+
+    
+    
+{name: "ABC NEWS Australia", url: "https://www.youtube.com/watch?v=vOTiJkg1voo", type: "youtube"},
+{name: "AFGANISTAN - RTA World", videoUrl: "https://rta-tv.akamaized.net/live/SD/RTA-5/RTA/RTA-5-avc1_5800000=10002.m3u8", audioUrl: "https://rta-tv.akamaized.net/live/SD/RTA-5/RTA/RTA-5-mp4a_179600=20000.m3u8", type: "hls-split"},
+{name: "Al Jazeera English", url: "https://www.youtube.com/watch?v=gCNeDWCI0vo", type: "youtube"},
+{name: "Arirang TV World", url: "https://www.youtube.com/watch?v=hvVlyZ5GiE8", type: "youtube"},
+{name: "CHINY - CGTN Documentary", url: "https://english-livebkali.cgtn.com/live/doccgtn_0.m3u8", type: "hls"},
+{name: "CNA Originals", url: "https://www.youtube.com/watch?v=9Y4kOQk_K3Y", type: "youtube"},
+{name: "DW", url: "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/stream04/streamPlaylist.m3u8", type: "hls"},
+{name: "DW English", url: "https://www.youtube.com/watch?v=LuKwFajn37U", type: "youtube"},
+{name: "ERT Cosmos", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTCosmos/default/index.m3u8", type: "hls"},
+{name: "France 24", url: "https://www.youtube.com/watch?v=HvZt-nh9sGg", type: "youtube"},
+{name: "KBS WORLD", url: "https://www.youtube.com/watch?v=-rleEnGt__s", type: "youtube"},
+{name: "med.tv", url: "https://d1f2y296jj795l.cloudfront.net/hls/hls-1280x720p50/playlist.m3u8", type: "hls"},
+{name: "NHK World-Japan", videoUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/45ae6bf6dcf644cfbf5fe0e13dc72d6333bcfdbb60a040d574b3fd4f93c64313/v2.m3u8", audioUrl: "https://media-osa.hls.nhkworld.jp/hls/w/live/1/sig/447d4a8b8bab173949465f755c1df49b12ade29f8820e3378f271e2df9a8df1d/a1.m3u8", type: "hls-split"},
+{name: "PAKISTAN - M Sports", url: "https://cdn.rabta.stream/M-Sports/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "PAKISTAN - Madani Channel English", url: "https://streaming.madanichannel.tv/static/streaming-playlists/hls/c6a600b0-82cb-454a-8953-2bb2bb372edc/3.m3u8", type: "hls"},
+{name: "Persiana Travel", url: "https://ptravelhls.persiana.live/hls/stream.m3u8", type: "hls"},
+{name: "Red Bull TV", url: "https://freqsyndlin.redbull.com/1723/rbtv/hls/master/playlist_1920x1080.m3u8", type: "hls"},
+{name: "Silk Way", videoUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-avc1_4500000=10002.m3u8", audioUrl: "https://hlspackager.akamaized.net/live/DB/SILKWAY/SILKWAY/SILKWAY-mp4a_128000_eng=20003.m3u8", type: "hls-split"},
+{name: "SINGAPUR - CNA Asia", videoUrl: "mediacorp-nca-prod-videos-bclive.akamaized.net/6379472319112/ap-southeast-1/6057994443001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoicGE2ODB1LmVncmVzcy5wcHRpOHciLCJhY2NvdW50X2lkIjoiNjA1Nzk5NDQ0MzAwMSIsImVobiI6Im1lZGlhY29ycC1uY2EtcHJvZC12aWRlb3MtYmNsaXZlLmFrYW1haXplZC5uZXQiLCJpc3MiOiJibGl2ZS1wbGF5YmFjay1zb3VyY2UtYXBpIiwic3ViIjoicGF0aG1hcHRva2VuIiwiYXVkIjpbIjYwNTc5OTQ0NDMwMDEiXSwianRpIjoiNjM3OTQ3MjMxOTExMiJ9.Cw77amOc6efNO32Sw9nD0SOhjQUc5ewKN8ZWJOPt15Y/chunklist_hls1080p.m3u8", audioUrl: "mediacorp-nca-prod-videos-bclive.akamaized.net/6379472319112/ap-southeast-1/6057994443001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoicGE2ODB1LmVncmVzcy5wcHRpOHciLCJhY2NvdW50X2lkIjoiNjA1Nzk5NDQ0MzAwMSIsImVobiI6Im1lZGlhY29ycC1uY2EtcHJvZC12aWRlb3MtYmNsaXZlLmFrYW1haXplZC5uZXQiLCJpc3MiOiJibGl2ZS1wbGF5YmFjay1zb3VyY2UtYXBpIiwic3ViIjoicGF0aG1hcHRva2VuIiwiYXVkIjpbIjYwNTc5OTQ0NDMwMDEiXSwianRpIjoiNjM3OTQ3MjMxOTExMiJ9.Cw77amOc6efNO32Sw9nD0SOhjQUc5ewKN8ZWJOPt15Y/chunklist_audio0.m3u8", type: "hls-split"},
+{name: "TeleSUR English", url: "https://mblenmain01.telesur.ultrabase.net/mblivev3/480p/playlist.m3u8", type: "hls"},
+{name: "TRT World", url: "https://tv-trtworld.medya.trt.com.tr/master_1080.m3u8", type: "hls"},
+{name: "TVRI World", url: "https://ott-balancer.tvri.go.id/live/eds/TVRIWorld/hls/TVRIWorld.m3u8", type: "hls"},
+{name: "Africanews English", url: "https://www.youtube.com/watch?v=NQjabLGdP5g", type: "youtube"},
+{name: "AnewZ", url: "https://www.youtube.com/watch?v=8YaJcaMqRwA", type: "youtube"},
+{name: "BBC News HD", url: "https://www.youtube.com/watch?v=sc21UUjyLaw", type: "youtube"},
+{name: "Bloomberg", url: "https://liveprodeuwest.global.ssl.fastly.net/eu1/Channel-EUTVqvs-AWS-ireland-2/Source-EUTVqvs-10000-1-sknn1p-BP-HD-4-KZVY3t6YToC2_live.m3u8", type: "hls"},
+{name: "Bloomberg Television", url: "https://www.youtube.com/watch?v=QB5BNdBFujE", type: "youtube"},
+{name: "CGTN", url: "https://www.youtube.com/watch?v=0i7n3r01L2U", type: "youtube"},
+{name: "CHANNELS TELEVISION NIGERIA", url: "https://www.youtube.com/watch?v=W8nThq62Vb4", type: "youtube"},
+{name: "CityNews Calgary", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888153001", type: "iframe"},
+{name: "CityNews Toronto", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272888148001", type: "iframe"},
+{name: "CityNews Vancouver", url: "https://players.brightcove.net/593482582001/2XVEIz8dl_default/index.html?videoId=6272887411001", type: "iframe"},
+{name: "DM News", url: "https://www.youtube.com/watch?v=BQpw8_I7gNo", type: "youtube"},
+{name: "EURONEWS", url: "https://www.youtube.com/watch?v=pykpO5kQJ98", type: "youtube"},
+{name: "i24NEWS", url: "https://i24newsenglish-cdn.encoders.immergo.tv/master.m3u8", type: "hls"},
+{name: "NDTV", url: "https://web-ndtv24x7-uk.akamaized.net/hls/live/2109290/ndtv24x7uk/masterp_720p@3.m3u8", type: "hls"},
+{name: "NTD", url: "https://amg17596-amg17596c1-ntdtv-worldwide-3276.playouts.now.amagi.tv/ts-us-e2-n2/playlist/amg17596-newtangdynastytelevision-ntdtv-ntdtvworldwide/cb7f3e4f7b726fd89ecb3563d8f245aad20233805d38d06665fc579026cb1c5083effbcbee42bd4a11e24094385631004262d519ce64669e802ef716776c69108a99b265d992026eeb86092e21a3321855e71e6490650f77eeec18238c29fa2c5644a65a38167aa6953dd00a4ed5dc53d02a39fcf88e3a66644a2cc71f02b8f541a2fae74345c66cbfb10c2bc47914a5db5dccd71ba583d24beb17d169f0119b8cf095d30e8294856aad04e7660a0821309dd92fc3840ce7dccb24619a75290b4803b4f7c5a74c6fdf461404a295a1dc69f207bcea4fe0306dc76afb5a963cf81ec07aaff55ab0bee1900d562eb38a557523eee6af87a14159d773e89df9cf7a6a98f50d0a21a309891b0516ca97a17780cd01e4d549e4e5337652a496418b8fc0e085d1dd78824fb8af44266d322f196632aa1fc4aa62d728d37cdabf7943797834611ec8a6fcbf7b257040968524b97be92b07eaf1b92529cb6b144daa17b199d038be563d2e9f40d59f2f7f8c344ab53a31fa5631ca2a96de7fa4ea8fb45569f6b69533f13b0f622ab8df22d04049b52839667f7f0f2158c5fc691d3536f444f6c0cbf64dae6186eae0f1da5a340b38580742dba2af479280c4260a05817d1220254059c65f965ed60e1f5475890685f84034a4163121e3903a5f71658287e4d2d0989912f537f8e7c9140377196fb438006649d6b58656b478687668528d0a2b12e8511412a4c587b5d9b36fc89d76a3773747348ba341012c56742c5bcec6268710b2dd4dcbeea036fbe683164a922fe35040ecb7f258b8bcd1891f75dfc03e346e94c128d67c2bd365bd0681d162d7a35a0008462e6dc68951bf12f9e893c92f953bbe0d645aef6bb088eca3dc0507b0c7aa52e98586a019d8ba8a590d94d0abfe9a0eea17fbc61c/176/1920x1080_6046040/index.m3u8", type: "hls"},
+{name: "PAKISTAN - Asia One News", url: "https://www.youtube.com/watch?v=rMq8YZBxFkg", type: "youtube"},
+{name: "PAKISTAN - M World", url: "https://cdn.rabta.stream/M-World/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "PAKISTAN - Pakistan TV", url: "https://www.youtube.com/watch?v=wWb0pMdIZzQ", type: "youtube"},
+{name: "PressTV", url: "https://live.presstv.co.uk/hls/presstv.m3u8", type: "hls"},
+{name: "Russia Today", url: "https://hugh.cdn.rumble.cloud/live/hr6yv36f/live-hls/mxtm-wdfe/chunklist_i0_DVR.m3u8", type: "hls"},
+{name: "SkyNews", videoUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream04/streamPlaylist.m3u8", audioUrl: "https://linear901-oo-hls0-prd-gtm.delivery.skycdp.com/v1/master/6404a5d732e04991ed59ac7790b61cc065c9aabd/prod-gb-lin-skynews-hls-25-web/stream08/streamPlaylist.m3u8", type: "hls-split"},
+{name: "TVC News", url: "https://www.youtube.com/watch?v=5qZKM7m1Moc", type: "youtube"},
+{name: "TVP World", url: "https://www.youtube.com/watch?v=tvXWIgsWuK0", type: "youtube"},
+{name: "WION", url: "https://d7x8z4yuq42qn.cloudfront.net/index_7.m3u8", type: "hls"},
+{name: "--- MUZYKA --- 4FUN TV", url: "https://stream.4fun.tv:8888/hd/4fun_hd_med.m3u8", type: "hls"},
+{name: "City TV", url: "https://tv.city.bg/play/tshls/citytv/3.m3u8", type: "hls"},
+{name: "Deejay TV", url: "https://streamcdnf24-4c4b867c89244861ac216426883d1ad0.msvdn.net/live/S85984808/sMO0tz9Sr2Rk/chunklist_b1728000.m3u8", type: "hls"},
+{name: "folxplay ADRIA", url: "https://adriaapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
+{name: "folxplay ONE ADRIA", url: "https://oneadriaapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
+{name: "Globo TV", url: "https://nrvideo1.newradio.it:1936/awrgaebshj/awrgaebshj/chunklist_w1266857982.m3u8", type: "hls"},
+{name: "Kiss TV Romania", url: "https://tv.broadcasting.ro/kisstv/a629c031-2170-4ee9-a36d-87a891aa3131_output_0.m3u8", type: "hls"},
+{name: "Kronehit", url: "https://bitcdn-kronehit.bitmovin.com/v2/hls/chunklist_b3128000.m3u8", type: "hls"},
+{name: "Magic TV Bulgaria", url: "https://bss1.neterra.tv/magictv/stream_1.m3u8", type: "hls"},
+{name: "Magic TV Romania", url: "https://tv.broadcasting.ro/magictv/925f90db-5c88-4190-a53d-5163cdffe6f4_output_0.m3u8", type: "hls"},
+{name: "Óčko", url: "https://ocko-live.ssl.cdn.cra.cz/channels/ocko/playlist/cze/live_lq.m3u8", type: "hls"},
+{name: "Óčko Expres", url: "https://ocko-live.ssl.cdn.cra.cz/channels/ocko_expres/playlist/cze/live_lq.m3u8", type: "hls"},
+{name: "Óčko Star", url: "https://ocko-live.ssl.cdn.cra.cz/channels/ocko_gold/playlist/cze/live_lq.m3u8", type: "hls"},
+{name: "RADIO DISCOunt TV", url: "https://585b674743bbb.streamlock.net/9030/9030/chunklist_w887713057.m3u8", type: "hls"},
+{name: "Radio Kiss Kiss TV", url: "https://kk.fluid.stream/KKMulti/smil:KissKissTV.smil/chunklist_w717255783_b3128000_slita.m3u8", type: "hls"},
+{name: "Radio Norba TV", url: "https://stream12.xdevel.com/video0s975885-2349/stream/chunks_dvr.m3u8", type: "hls"},
+{name: "Radiofreccia HD", url: "https://streamcdnf27-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S3160845/0tuSetc8UFkF/chunklist_b3256000.m3u8", type: "hls"},
+{name: "Retro Music Television", url: "https://newstream.mediawork.cz/retrotv/smil:retrotv_new.smil/chunklist_w1546477181_b3256000.m3u8", type: "hls"},
+{name: "Rock TV Romania", url: "https://tv.broadcasting.ro/rocktv/85c83a80-4f71-4f2d-a8d6-43f676896bcb_output_0.m3u8", type: "hls"},
+{name: "RTL 102.5", url: "https://streamcdnf43-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S97044836/tbbP8T1ZRPBL/chunklist_b3256000.m3u8", type: "hls"},
+{name: "RTL 102.5 Caliente", url: "https://streamcdnf34-dd782ed59e2a4e86aabf6fc508674b59.msvdn.net/live/S8448465/zTYa1Z5Op9ue/chunklist_b3256000.m3u8", type: "hls"},
+{name: "That's 70s", url: "https://rakutenaa-lightning-now70s-rakuten-t8535.amagi.tv/playlist/rakutenAA-lightning-now70s-rakuten/playlist.m3u8?ads_content_livestream=0&ads_pod_type=playerpage_midroll&ads_amagi_channel_id=869&ads_env=prod&ads_ppid=b8c8f661-fa0b-4970-8abd-b6e024ed1dcb&ads_rtvid=271863&ads_content_genre=entertainment&ads_extra_eids=&ads_streaming_id=cf545a2f-cd41-4c88-b12a-a635eb6fed41&ads_amznslots=&ads_device_type=web&ads_inv_partner_domain=rakuten.tv&ads_device_year=1970&ads_device_model=GENERIC&ads_prodq=1&ads_amznbrmid=&ads_gam_correlator=1464208144693268&ads_placement=1&ads_ip=37.47.115.13&ads_ifa_type=sessionid&ads_google_ad_manager_nonce=&ads_app_bundle=com.rakutentv.web&ads_player_width=1920&ads_tivo_devmakedate=&ads_rtv_content_language=en&ads_app_version=&ads_rtv_content_id=5306&ads_market=pl&ads_tivo_mvpd=&ads_tivo_platform=&ads_rtv_channel_name=that-s-70s_pl&ads_tivo_devcountry=&ads_device_make=edge-chromium&ads_app_store_url=rakuten.tv&ads_tivo_uxloc=&ads_network_name=RakutenTV&ads_user_type=registered&ads_rating=7&ads_tivo_usid=&ads_content_categories=IAB1&ads_amznregion=&ads_gdpr_consent=CQn2ZTAQn2ZTAAcABBPLCpFgAAAAAAAAACiQAAAV8gCAA4AGaBWACvgAAAAA.YAAAAAAAAAAA.IMcsRxC5cTWFkeTJ1QLsEeYQX1sAggkAAAACAIiABCDAEIBQA0yEAIASABAACABIAIBBBAQAkCAgEAEAAAIAACABoIACAwBAIIABAABEBAABACAAiAAAAAACIAgAVAAEAkAAEAFKEAEAAAAACAkAgAAAAAAAAAAIABAAIQAIAAFAAgigAAQAAgAAAAAAAARgIEAkAAAAAACAQAAgAAAAQEAAAAAAgABAAACAAgBAEAAAAQiAAAAAEAACAAAAAAAAAAAAAAAAAAAACAAA&ads_os_language=&ads_device_lmt=0&ads_brand_name=&ads_player_height=1080", type: "hls"},
+{name: "That's 80s", url: "https://rakutenaa-lightning-now80s-rakuten-mkrxt.amagi.tv/playlist/rakutenAA-lightning-now80s-rakuten/playlist.m3u8?ads_content_livestream=0&ads_pod_type=playerpage_midroll&ads_amagi_channel_id=871&ads_env=prod&ads_ppid=f56e445a-2e8b-4c68-9166-b5da36e4c092&ads_rtvid=271863&ads_content_genre=entertainment&ads_extra_eids=&ads_streaming_id=0e3f229d-d333-4999-bae1-56a3941e5362&ads_amznslots=&ads_device_type=web&ads_inv_partner_domain=rakuten.tv&ads_device_year=1970&ads_device_model=GENERIC&ads_prodq=1&ads_amznbrmid=&ads_gam_correlator=1439068033634506&ads_placement=1&ads_ip=37.47.115.13&ads_ifa_type=sessionid&ads_google_ad_manager_nonce=&ads_app_bundle=com.rakutentv.web&ads_player_width=1920&ads_tivo_devmakedate=&ads_rtv_content_language=en&ads_app_version=&ads_rtv_content_id=5340&ads_market=pl&ads_tivo_mvpd=&ads_tivo_platform=&ads_rtv_channel_name=that-s-80s_pl&ads_tivo_devcountry=&ads_device_make=edge-chromium&ads_app_store_url=rakuten.tv&ads_tivo_uxloc=&ads_network_name=RakutenTV&ads_user_type=registered&ads_rating=7&ads_tivo_usid=&ads_content_categories=IAB1&ads_amznregion=&ads_gdpr_consent=CQn2ZTAQn2ZTAAcABBPLCpFgAAAAAAAAACiQAAAV8gCAA4AGaBWACvgAAAAA.YAAAAAAAAAAA.IMcsRxC5cTWFkeTJ1QLsEeYQX1sAggkAAAACAIiABCDAEIBQA0yEAIASABAACABIAIBBBAQAkCAgEAEAAAIAACABoIACAwBAIIABAABEBAABACAAiAAAAAACIAgAVAAEAkAAEAFKEAEAAAAACAkAgAAAAAAAAAAIABAAIQAIAAFAAgigAAQAAgAAAAAAAARgIEAkAAAAAACAQAAgAAAAQEAAAAAAgABAAACAAgBAEAAAAQiAAAAAEAACAAAAAAAAAAAAAAAAAAAACAAA&ads_os_language=&ads_device_lmt=0&ads_brand_name=&ads_player_height=1080", type: "hls"},
+{name: "that's 90s00s", url: "https://amg01076-amg01076c19-rakuten-gb-8653.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg01076-lightning-now90s00s-rakutengb/cb7c3e4f7b726fd89ecb3563d8f245aad20233805d35d03c39a006917c93150bd4efa2c9e448ed687ed262812b53310d0c78ce07de6c19a08724fc0e733f070afe88b37bc7991919d581512c2eb86a5657fa1705a165137edcde1f0aae34a1365040bf473d0072c59621c90b2ed99056d2247c9bda88326222434fec051fbafd0bbcfee4585bd872a1af1c58f67e13b6c01bd6d11fbc9ed75d8e36d221ee159897ee8bcd109c868377fa5fe0670b5a2425d48429c59e10e78b9c3874c42378125304e7a5cbf84d6ede45420dfea58fd514fe17ddb6268e6e23be0e8c7083358479af7bc88b23a5a3afda505538adca566429b4bffae08b3437ae59e8b6fbd8727190f813474ecd1f9e486f69c5a99d43d49242dbb07a84b724496dc39708c3cfb782a2e9d94ccc7c9392a599681a1a397568e15ca68952de27cb0acea477314e4240f70837aef6d85a235d4882904ceb1014b7c88e8dcb7c86a80aa138cb51d7093f58ed05622edf19d8bb3f4dab043aa9162ddd5f14a163dd990dd486fac60f0a94ffe674a768cc942b86d725a84f0b7821a5f50d7e646d5c9ed7472c1158e264c5f2ebc0564729c1f4deccd8706d040d2074078ed6cd21aaa2d30c182ff06b77735517109d25f748fe23682927e83cf0882851ac24100cb6be1a7c734da5e993a0a6f5eb669c5efaeddf1b0e0a78689e1202034ff697ac78d4196a5d5b7f8f2645609c107863c3bce8c7b8a14cebbe458b1a433742e4f936602873524229b2b16ff668c3b2389890eb7de9ceab3960a419822031bff1ff4df3cc86e66e2eb18b763846b6f20ee4510ce63ee50aa1f351fe917401153b6169f3af75f87e98febbe60abb0d9f482a5bcb739abdc292f74775c6a06b12342874365e63530d2d99fbf445075ace9d06c77ec7ca528b6371121e66ffb3097fa7c9563db9145f438481eaaa8ceb2231eb4fd554e8412287762c0fc0ef19cba2e8b190e86e5013e6b2ae5ab2a28dbec1d7c1230c64065d9ec558503adb2ee2830ae8b81026a9e3f9e4de7da872e3388487b93cf639accaa801bce2ed949523440f0a0ea892aea84082ec5e12e106b1202c1c8fb5f1e760e9e5a81e68ef2f8cef6d7cab39774eddaee901cc71cd8c572be394565dd0623bc2e5c02a11dc56c44a532dab8deb183acbd03090429581f20158b30b1ff042596ebe75ff94cd0f058595322200b74a6dfd7680dbe65d49629181722a380833001bdd3230468e2c6bae0fa6e1ecff7c36d47ce07f3ebb6a90c652b1ab0febccc9fcaae03417ce9d6b31d721c239900094a0e59739a0405eae6d871361a3e0c5fbc9feb5d1a5bb4f034fc61ee963a2779ed5969c7414017fca7d5f204aec11997e633a95c046f5b5597a8fda8f6ba9600612534c669c43c6f67a494130b6e2788bd46967567829f8c674d279d7520e860d25d7726e160c384251ab93bf5db46d8a24e6ac0003b5d7faf220b2fb728acc83b6f74b5f960b6b191bc9b389c8d21766fec3decb7102edea61a62f65362fbdcebb573eb0b14e51e8ae8c6dbeae73861f333562db88bc3dc173d87280275ede28eeed597bf28e133a2f803182f07f40a85af31b0392608a581fd012242a2e5f8679d158147d3fdc7e80fab25e2a11bb0cde270f46cf8ab4c0fe1f4c776a3eb39839087aa62216fc4f4f75ab0b38a7ce9ed99ce6bf3b5eef73d6d8a597c6353ddec1f0bbbf6d72b33af7edb9d584dbc7427f7aa724ec7128b06e41848814987392859d996d46dfec519b4b030aa2725b2781ca72375b6a7ab19e977874928c0ef4ffffcbb482ec556326634cb8e38132ae1ca605733d78df72aef2bf539aa0c10cf401289fd0c8b8d8ed69ccb5fe4692904a33f3bee55480eaad34ed75502d78076260a37ccf246bdf51e55dfb627d194be4029410026ebee68262fffb30585d522c92148a713e5fc94505242f4a92c536afcfc95e717e4b0f51f8c404d4045de9070f06c2c165f6cae411de0388d1dfa007375b7e30e370362332921c1c3864c4ffae97427ca717f12a57e7fe9fdb4d0b3f95b042abba430fefecd33cf437c075e30ea6610546148a1b0e26fc012901243a1736b8493de493bee7b61ee807dc306085778b1a7ce5666cbc392a99bf38d482bb28bf58e57398fc078f5ef9a4/84/1920x1080_4716800/index.m3u8", type: "hls"},
+{name: "that's ROCK", url: "https://rakutenaa-lightning-now90s-rakuten-2968n.amagi.tv/ts-eu-w1-n2/playlist/rakutenAA-lightning-now90s-rakuten/cb563f19657662909bcb3a78d1f262eda65928d80b6c852a6ab454876da64607d1e3b680fd358b785d9f01de6a1a0a080361cf12ce3407c3c76ad91174204213cfcac9229d86170ab5c60c2c3aab016635837209c0790a79dca93d0d8636ba304530e01b615b37c2ec5ca86852db80148b6f4adafb8c2360625f5c98435ee3b02bf7a8fe5c40dd72a1af1c56953d51b58246cdd74aba85c90f9e458e6bf015cb93ed83d7468a9bc036ff57b3325b5d7278c8d82301ab37c6db9e7a069b7538542156e9ad80fb4028f4fa2136429de88e6bad29faa8148f320d8f21b94ca512a85b862ab7c749818c9afe63601885e578681681c481bca332109c47af83cedc514bb8d5027f66e84cf9036501b1dcea35a5e234b79702a4fa40303bd3a35db8c8b1b7d896864fa80f9bf6d88b184777523c53957ca59d66fa08fc598bef3a287d6f6789bb70eda4e87f607b6aa7a97fe7323998faa8a2fd271ae3423978c951f850264dcb114d59c40cd8b31d4daa07288a1c1cd87922a263d5910dd786fac7231994ffe563dc4ecebc2bf3d723884c1f7023b4d31a7e64695cdbcf4728115fe860c5f6ebc0562821cfd6c6dfc77219261836732daac3c659baace1083427e07a0741523136910dd148fe31682129e83ff28d2855a427132acf821e567b4db7e990a0a4f7fb659478f2eedc181e1e78429c12240769f294ac78dc1b6a5f7d7fa12a45629c266b4bcbb4e8c4b8a54fefbf458b19433542e4d13660287352422bbab149f67fc1b23c98c18d36beee89017a823dae3e1391c2ce69f4ec95c85d7de1c0384c3fc58a7f94247f93468579df812382f43f771d385377c1815aeb5ab7cba5c02e943ea83d6c14877db588e6a1c2675fe99c4f3d2753207d1653723f33aacec36d040984d641b40ab7b303fa182f594e46da913f4e8ae96e198e0a7665aca7c39fdfac69749b3eac25933a69d656093ddedf2cf886b3fef389686b09ddc4ed26fff3dcd89a82997e27466d329ac41201208175bdd405e0fb507fbe8cdbe1833cce22b663badec4448e3da4d88303af8296fbef0573343847f09bb69065dab8197aba6bcb723e0c9398e1cb70e9d6ce6b12804fe18e127aab303049dff1866ea52abcf5063ff4827b66c16d22c492934c76da21a0292169f4df846a618da960924988aaf30a5a850b1bdb4a5f6aa90e95edd26c6be6b95e0359ff040a85628992a8363e73aa815920241b7e7363b5504e23e0642acf62b3e0f18e7a34983e890031ab7ca1d668aba302e9e6c5f4ab975c0fc5f2024ca0658f0abd30f1c99ff13cd6150bee6ec3433aa3dbdea885b59fb397924a034f9509990bc92ed794f9c57455537cdb0e38492ca658a965085787fb54dab7726e93d0f90fc674272f73173fc257ac9d1e5d512687f26bd3ca6f6033285a84c202a42ca44a0fbb436ead1f1d667575424da38ec809ce28db728ef95004f78abbae7c9ec650df9895d9be4c1ecb512371519cb69de3b62b51adcdddc16f10eb8464b1034a3d2e94d3a14204d6dc34268ac7e717acb961dd645c786ed69f9120d969bd31e5514bdf35c5c04469bfeb76506ed668c095332bd05ce2093b941de02678db0841554539827acd750f6c3a911be5908f7a0654de78b0256828b8e3e99cb1245118275b0c226c7469b52a41f7280760962e1af3b086d8f78089313e2ff652bfcdcef4292bc5d987a7b861d178b4c6c5aa94f8dbc85e573cd55a27a779fd001dc2801ade17d1a486e15f1e605e00e52e3300f8384a10fc912f65072d609285fb09a13560e040bdfc80e47bd4d0e770396bbd3406fcc07ec561563d61c364fbbf70f025e99e61bf5a5efefd82fe85b83bc4b2f8449791596adbfab74780f7b632e267244c242002b8269f3d180bbf09c2c1b8bc0d831aef41ed7a422fe6b8d47b88b2096368683a7935ec651855936b0c2b250a8ecb45e795f15a7a35154d17f6ba7ec41b5de7645540f4da62efcbec0688068ad8ba851068062e52a822537a688d3b3a0540a0a0e0db6643807a8c36658cd9a09e5c7c74c6c10288934d0efef1d12ab4608152c473e132591947b61c1c5d802d6253722d1425d90016e49be6a5a12c8252816b3ada15f4124e868f030f87aa3c99cc4cb771439267e0bbbdc272c5523cd7f28ea878513595334ec0fe89da0815c9b85054f0796c83a517ed123e2cb4a36a87a3f47270e529e87f53fbd8cad5680e8f062862835c930ab0bf59b406775c93f20771b087db3d/73/1920x1080_4716800/index.m3u8", type: "hls"},
+{name: "THE VOICE", url: "https://bss1.neterra.tv/thevoice/stream_1.m3u8", type: "hls"},
+{name: "V2Beat", url: "https://abr.de1se01.v2beat.live/live/live6/chunks.m3u8", type: "hls"},
+{name: "--- POLSKA --- Euronews Polska", url: "https://www.youtube.com/watch?v=fG7PjdiKaBY", type: "youtube"},
+{name: "1. wPolsce24", url: "https://www.youtube.com/watch?v=jkDQs_xNYVQ", type: "youtube"},
+{name: "2. TVP INFO", url: "https://www.youtube.com/watch?v=3jKb-uThfrg", type: "youtube"},
+{name: "3. REPUBLIKA", url: "https://www.youtube.com/watch?v=dzntyCTgJMQ", type: "youtube"},
+{name: "4. REPUBLIKA+", url: "https://www.youtube.com/watch?v=vcQ05GitXUM", type: "youtube"},
+{name: "BIZNES24", url: "https://m.youtube.com/watch?v=0dL2w6ybTuU&pp=uAQw", type: "youtube"},
+{name: "EWTN", url: "https://cdn3.wowza.com/1/ZHdrMWt1NjlDSzFu/bzdDVG10/hls/tdjybg8v/720/chunklist.m3u8", type: "hls"},
+{name: "Lubelska.TV", url: "https://1409502578.rsc.cdn77.org/live/stream-1/chunklist.m3u8", type: "hls"},
+{name: "NatureTime", url: "https://www.youtube.com/watch?v=a7yy5UT7aZg", type: "youtube"},
+{name: "Radio Czwórka", url: "https://stream14.polskieradio.pl/pr4_video/video_pr4.stream/playlist.m3u8", type: "hls"},
+{name: "SFERA TV", url: "https://stream.sferatv.pl/sferatvlive/live.m3u8", type: "hls"},
+{name: "Telewizja Jaslo", url: "https://cdn02.aztv.pl/live_tvjaslo/live_tvjaslo.stream/chunklist_w974694538.m3u8?scendtime=1793750011&schash=iDpFb8sL4Ur7Coplo6SSSJ5nZgkV3XT9vLxole9xWlU%3D", type: "hls"},
+{name: "Telewizja Żary", url: "https://www.youtube.com/watch?v=q978woITu3o", type: "youtube"},
+{name: "TV ASTA", url: "https://5cce8c6f0e84c.streamlock.net/LiveCast/smil:PlayStream9.smil/chunklist_w630131867_b5128000.m3u8", type: "hls"},
+{name: "TV Kujawy", url: "https://stream.tvkujawy.pl:8090/live/broadcast.m3u8", type: "hls"},
+{name: "TV REGIONALNA", url: "https://tvregfull.mailfull.pl/tvregfull/memfs/e64b3e05-649c-4939-9ff6-584e79285ccd_output_0.m3u8?session=gzYWTsvqwWn7hXDneK82Lc", type: "hls"},
+{name: "TV RELAX", url: "https://srv1.streamingo.pl/memfs/be50f17e-6579-4bdf-86b1-31207aec85b8_output_0.m3u8?session=fPef5BBooY4jNnUyPGdBeC", type: "hls"},
+{name: "--- RADIO --- CZWORKA PR", url: "https://stream14.polskieradio.pl/pr4/pr4.sdp/playlist.m3u8", type: "audio-hls"},
+{name: "DWÓJKA PR", url: "https://stream12.polskieradio.pl/pr2/pr2.sdp/playlist.m3u8", type: "audio-hls"},
+{name: "JEDYNKA PR", url: "https://stream11.polskieradio.pl/pr1/pr1.sdp/playlist.m3u8", type: "audio-hls"},
+{name: "RADIO KRAKÓW", url: "https://stream3.nadaje.com:9117/radiokrakow", type: "audio"},
+{name: "TRÓJKA PR", url: "https://stream13.polskieradio.pl/pr3/pr3.sdp/playlist.m3u8", type: "audio-hls"},
+{name: "AFGANISTAN - Ariana TV Network", url: "https://d3bq19vx8xhpwy.cloudfront.net/live/myStream/chunklist_w1830167848.m3u8", type: "hls"},
+{name: "AFGANISTAN - ATN News", url: "https://d10rltuy0iweup.cloudfront.net/ATNNEWS/myStream/chunklist_w316873677.m3u8", type: "hls"},
+{name: "AFGANISTAN - Dunya-e-Naw TV", url: "https://dunyanhls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "AFGANISTAN - Eslah TV", url: "https://eslahtvhls.wns.live/hls/stream.m3u8", type: "hls"},
+{name: "AFGANISTAN - RTA", videoUrl: "https://rta-tv.akamaized.net/live/SD/RTA-1/RTA/RTA-1-avc1_5800000=10002.m3u8", audioUrl: "https://rta-tv.akamaized.net/live/SD/RTA-1/RTA/RTA-1-mp4a_179600=20000.m3u8", type: "hls-split"},
+{name: "ALBANIA -  Ora News", url: "https://live1.mediadesk.al/oranews.m3u8", type: "hls"},
+{name: "ALBANIA - a2news", url: "https://livea2cnn.digicom.al/live/smil:a2cnnweb.stream.smil/chunklist_w382018048_b2128000_slalb.m3u8", type: "hls"},
+{name: "ALBANIA - Zjarr TV", url: "https://zjarr.future.al/hls/playlist.m3u8", type: "hls"},
+{name: "ARMENIA - 1TV", url: "https://amtv.tulixcdn.com/amtv3/am3abr/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "ARMENIA - 1TV INT", url: "https://amtv.tulixcdn.com/amtv2/am2abr/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "AUSTRIA - OE24.TV", url: "https://www.youtube.com/watch?v=RbRSSfXZqh0", type: "youtube"},
+{name: "BANGLADESZ - Boishakhi TV", url: "https://boishakhi.sonarbanglatv.com/boishakhi/boishakhitv/index.m3u8", type: "hls"},
+{name: "BANGLADESZ - Channel 1", url: "https://www.youtube.com/watch?v=MLhfEyuUMCQ", type: "youtube"},
+{name: "BANGLADESZ - Channel 24", url: "https://www.youtube.com/watch?v=WMlDSbd6uB0", type: "youtube"},
+{name: "BANGLADESZ - Desh TV", url: "https://www.youtube.com/watch?v=a-cWjymPRQc", type: "youtube"},
+{name: "BANGLADESZ - Ekattor TV", url: "https://www.youtube.com/watch?v=LTaSFtTHhlM", type: "youtube"},
+{name: "BANGLADESZ - Ekhon TV", url: "https://www.youtube.com/watch?v=VfTpNyBbvEQ", type: "youtube"},
+{name: "BANGLADESZ - Jamuna TV", url: "https://www.youtube.com/watch?v=8wWAeTKhUdY", type: "youtube"},
+{name: "BANGLADESZ - Maasranga TV", url: "https://mtv.sunplex.live/MAASRANGA/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "BANGLADESZ - Madani Channel Bangla", videoUrl: "https://streaming.madanichannel.tv/static/streaming-playlists/hls/d3e49b76-ac06-4689-a641-9200445b647f/3.m3u8", audioUrl: "https://streaming.madanichannel.tv/static/streaming-playlists/hls/d3e49b76-ac06-4689-a641-9200445b647f/0.m3u8", type: "hls-split"},
+{name: "BANGLADESZ - NTV", url: "https://www.youtube.com/watch?v=bzkwxuW8Z4k", type: "youtube"},
+{name: "BANGLADESZ - Rajdhani TV", url: "https://stream.shariarsuvo.com/hls6/rajdhaniweb.m3u8", type: "hls"},
+{name: "BANGLADESZ - Somoy News TV", url: "https://www.youtube.com/watch?v=C7h-qdG-mS4", type: "youtube"},
+{name: "BANGLADESZ - Star News", url: "https://www.youtube.com/watch?v=utkNwMV-2bY", type: "youtube"},
+{name: "BIAŁORUŚ - Belarus 24 HD", url: "https://edge52.dc.beltelecom.by/ngtrk/_definst_/smil:belarus24.smil/chunklist_b5160000_sleng.m3u8", type: "hls"},
+{name: "BIAŁORUŚ - CTV", url: "https://edge43.dc.beltelecom.by/ctv/_definst_/ctv.stream/chunklist.m3u8", type: "hls"},
+{name: "BIAŁORUŚ - Perviy Informationniy", url: "https://edge43.dc.beltelecom.by/ngtrk/_definst_/smil:informacionnyy.smil/chunklist_b5160000_sleng.m3u8", type: "hls"},
+{name: "BIRMA - Channel 7", url: "https://live.pyoneplay.com/live/01m2sr3kyn6bztz3xk02w3t7pn/video1_stream.m3u8", type: "hls"},
+{name: "BOSNIA - BN", url: "https://stream2.rtvbn.tv:8080/live_1935/bnstream/index.m3u8", type: "hls"},
+{name: "BULGARIA -  Evrokom", url: "https://ektzarevets.invivo.bg/EVROKOM_HD/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "BULGARIA - Bulgaria 24", url: "https://www.youtube.com/watch?v=dp7KFKQ7-lM", type: "youtube"},
+{name: "BULGARIA - DSTV", url: "https://dstv-bg.com/hls/data.m3u8", type: "hls"},
+{name: "BULGARIA - This is Bulgaria HD", url: "https://streamer103.neterra.tv/thisisbulgaria/thisisbulgaria_HD.m3u8", type: "hls"},
+{name: "BULGARIA - Travel TV", url: "https://streamer103.neterra.tv/travel/travel_SD.m3u8", type: "hls"},
+{name: "BULGARIA - TV 1", url: "https://tv1.cloudcdn.bg/temp/livestream-720p.m3u8", type: "hls"},
+{name: "CHINY - Ando TV", url: "https://live.qhbtv.com.cn/qhzyds/sd/live.m3u8?timestamp=1794910982&encrypt=78a0984f6952ea488ef900e647da0fb1", type: "hls"},
+{name: "CHINY - Hebei Agriculture Channel", url: "https://tv.pull.hebtv.com/jishi/weishipindao.m3u8?t=1794914695&k=915ba4e897c9f1d3e774a954dbf7cac2", type: "hls"},
+{name: "CHORWACJA - HRT 4", url: "https://www.youtube.com/watch?v=phx_frkaL2s", type: "youtube"},
+{name: "COSTA RICA - Canal 8", url: "https://us-b4-p-e-pb13.cdn.mdstrm.com/live-stream/5a7b1e63a8da282c34d65445/publish/media_2000.m3u8?aid=579bd29dc99290cf08362c3b&uid=Fv0ghhodw5kmeRtGPZqIauM15crg2G5Z&sid=mxnvWCNL9Mj5KdMLzhc5OHVvR15uLLcZ&pid=PffWlijD7X4MqHH71PqzDq5lDwncVD7Y&pid_dvr=UxVtKv6CXW76iNDPQkEPc2XURfJwLo2D&ref=https%3A%2F%2Fwww.telediario.cr%2F&without_cookies=false&listenerid=&dnt=true&es=us-b4-p-e-pb13.cdn.mdstrm.com&ote=1794501413368&ot=kIXlLWh4vz_TSShipa7eRA&proto=https&pz=us&CMCD=cid%3D%225a7b1e63a8da282c34d65445%22%2Cmtp%3D12000%2Cot%3Dm%2Csf%3Dh%2Csid%3D%22PffWlijD7X4MqHH71PqzDq5lDwncVD7Y%22", type: "hls"},
+{name: "CZARNOGÓRA - TVCG MNE", videoUrl: "https://rtcg-live-open.morescreens.com/RTCG_1_004/media_3.m3u8", audioUrl: "https://rtcg-live-open.morescreens.com/RTCG_1_004/media_4.m3u8", type: "hls-split"},
+{name: "DANIA - DRTV", url: "https://drlivedrtvahls.akamaized.net/hls/live/2113613/drlivedrtva/5.m3u8", type: "hls"},
+{name: "DOMINIKANA - Canal del Sol", url: "https://stream.canaldelsol.com/sol26/live_1080.m3u8", type: "hls"},
+{name: "DOMINIKANA - La Voz de María", url: "https://live.lavozdemaria.com:3436/live/lavozdemarialive.m3u8", type: "hls"},
+{name: "DOMINIKANA - Telecentro Canal 13", url: "https://72.251.5.171:8443/live/telecentrocast_1080p/playlist.m3u8", type: "hls"},
+{name: "DOMINIKANA - Telemicro 5", url: "https://72.251.5.171:8443/live/telemicrocast_1080p/playlist.m3u8", type: "hls"},
+{name: "DOMINIKANA - Televida", url: "https://cdnfox.hostlagarto.com/televida/index.m3u8", type: "hls"},
+{name: "FILIPINY - ", url: "", type: "iframe"},
+{name: "FILIPINY - ", url: "", type: "iframe"},
+{name: "FILIPINY - DZRH TV", url: "https://www.youtube.com/watch?v=VzS75VuvLxs", type: "youtube"},
+{name: "FILIPINY - INC Radio DZEM 954", videoUrl: "https://stream-243529.castr.net/6842a712b68c56f675d988f1/live_b60a96e056fc11f084c05f5d0649296b/tracks-v1/index.fmp4.m3u8", audioUrl: "stream-243529.castr.net/6842a712b68c56f675d988f1/live_f5ac22b0566511f0805217b960326aaa/tracks-a1/index.fmp4.m3u8", type: "hls-split"},
+{name: "FILIPINY - INC TV", url: "stream-243529.castr.net/6842a712b68c56f675d988f1/live_f5ac22b0566511f0805217b960326aaa/tracks-v1/index.fmp4.m3u8", type: "hls"},
+{name: "FILIPINY - TV 5", url: "https://www.youtube.com/watch?v=ePXS9iSxwcU", type: "youtube"},
+{name: "FILIPINY - TV Maria", url: "https://www.youtube.com/watch?v=cd4T3RoZAAM", type: "youtube"},
+{name: "FILIPINY - UNTV", url: "https://www.youtube.com/watch?v=UxQZ1yOqbQE", type: "youtube"},
+{name: "FRANCJA - BFM", url: "https://live-cdn-stream-euw1.bfmtv.bct.nextradiotv.com/master.m3u8", type: "hls"},
+{name: "FRANCJA - FRANCE 24", url: "https://www.youtube.com/watch?v=a47ckXKZjxI", type: "youtube"},
+{name: "GRECJA - ERT News", url: "https://ert-ucdn.broadpeak-aas.com/bpk-tv/ERTNews/default/index.m3u8", type: "hls"},
+{name: "GRUZJA - 1tv", url: "https://ams01.cdn.xsg.ge/gpb-1tv/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "GRUZJA - 2tv", url: "https://ams01.cdn.xsg.ge/gpb-2tv/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "GRUZJA - imedi", url: "https://tv.cdn.xsg.ge/imedihd/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "GRUZJA - PALITRA NEWS", url: "https://live.palitranews.ge/hls/palitratv/index.m3u8", type: "hls"},
+{name: "HISZPANIA - 24h", url: "https://www.youtube.com/watch?v=b4tE5aKhtlg", type: "youtube"},
+{name: "HISZPANIA - À Punt", videoUrl: "https://fastly.live.brightcove.com/1846756479408303045/eu-central-1/6057955885001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiZWFxNWh4LmVncmVzcy53YzQ3bTEiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTg4NTAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1ODg1MDAxIl0sImp0aSI6IjE4NDY3NTY0Nzk0MDgzMDMwNDUifQ.o6wb_VA-TVxl3ERgr7FKLlaTjY7smErmsf73QAydySE/chunklist-dvr_hls720p.m3u8", audioUrl: "https://fastly.live.brightcove.com/1846756479408303045/eu-central-1/6057955885001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiZWFxNWh4LmVncmVzcy53YzQ3bTEiLCJhY2NvdW50X2lkIjoiNjA1Nzk1NTg4NTAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU3OTU1ODg1MDAxIl0sImp0aSI6IjE4NDY3NTY0Nzk0MDgzMDMwNDUifQ.o6wb_VA-TVxl3ERgr7FKLlaTjY7smErmsf73QAydySE/chunklist-dvr_audio0.m3u8", type: "hls-split"},
+{name: "HISZPANIA - Canal Sur Andalucía", url: "https://www.youtube.com/watch?v=HRGr6hykS14", type: "youtube"},
+{name: "HISZPANIA - Canal Sur Andalucía", url: "https://static.canalsur.es/canalsur/public/content/video/original/2026/1117/08/1298968_1198622/playlist.m3u8", type: "hls"},
+{name: "HISZPANIA - CMM TV", url: "https://cmmlv1ta.cdn.mangomolo.com/cmm/smil:cmm.stream.smil/chunklist_b4000000_t64MTA4MHA=.m3u8", type: "hls"},
+{name: "HISZPANIA - TV 3 Cat", videoUrl: "https://directes3-tv-int.3catdirectes.cat/live-content/tvi-hls/bitrate_3.m3u8", audioUrl: "https://directes3-tv-int.3catdirectes.cat/live-content/tvi-hls/bitrate_7.m3u8", type: "hls-split"},
+{name: "HOLANDIA - Omroep Brabant TV", url: "https://s-6c235771.b.cdn.bluebillywig.com/live/omroepbrabant/tv/1791458508-fast-1920-1080-2750000-index.m3u8", type: "hls"},
+{name: "HOLANDIA - Omrop Fryslân TV", url: "https://s-d15f8b0b.rpo.cdn.bluebillywig.com/live/omropfryslan/f8f68bd5/chunklist_b5628000.m3u8", type: "hls"},
+{name: "HOLANDIA - TV Drenthe", url: "https://s-4f1e89d0.rpo.cdn.bluebillywig.com/live/rtvdrenthe/tv/chunklist_b5628000.m3u8", type: "hls"},
+{name: "HOLANDIA - TV Gelderland", url: "https://s-be3e2a96.rpo.cdn.bluebillywig.com/live/omroepgelderland/tvgelderland-hls/1793572207-fast-1920-1080-3800000-index.m3u8", type: "hls"},
+{name: "HOLANDIA - TV Noord", url: "https://s-dde0caad.rpo.cdn.bluebillywig.com/live/rtvnoord/tv/chunklist_b5628000.m3u8", type: "hls"},
+{name: "HOLANDIA - TV Oost", url: "https://s-5d1a2a32.rpo.cdn.bluebillywig.com/live/rtvoost/tv/1789456869-veryfast-1280-720-3000000-index.m3u8", type: "hls"},
+{name: "HONDURAS - Canal 6", url: "https://video.dataserv.cc:3910/live/canal6honduraslive.m3u8", type: "hls"},
+{name: "HONDURAS - CCI TV", url: "https://livestream.mediacci.com/ccitv/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "HONDURAS - Q'hubo TV", videoUrl: "https://amixtv.com:8081/qhubotv/tracks-v1/index.fmp4.m3u8", audioUrl: "https://amixtv.com:8081/qhubotv/tracks-a1/index.fmp4.m3u8", type: "hls-split"},
+{name: "INDONEZJA - Ahsan TV", url: "https://5bf7b725107e5.streamlock.net/ahsantv/ahsantv/chunklist_w49436674.m3u8", type: "hls"},
+{name: "INDONEZJA - Al-Iman TV", url: "https://live.aliman.id/live/livestream.m3u8?hls_ctx=09405y24", type: "hls"},
+{name: "INDONEZJA - Al-Iman TV", url: "https://5bf7b725107e5.streamlock.net/ashiiltv/ashiiltv/chunklist_w422567809.m3u8", type: "hls"},
+{name: "INDONEZJA - Berita Satu", url: "https://lnd0t3b922.tenbytecdn.com/ta-sg1/e6b57b20-6c4c-4c7d-8fca-5e7bd4b566d8/1080p/index.m3u8", type: "hls"},
+{name: "INDONEZJA - BTV", url: "https://lnd0t3b922.tenbytecdn.com/ta-sg1/90369cf5-6ac2-411d-b3d0-15fae10a2e2c/1080p/index.m3u8", type: "hls"},
+{name: "INDONEZJA - Da Ai TV Indonesia", url: "https://pull.daaiplus.com/live-DAAIPLUS/live-DAAIPLUS_HD.m3u8", type: "hls"},
+{name: "INDONEZJA - Efarina TV", url: "https://live.efarinatv.com/hls/bgtaufikganteng.m3u8", type: "hls"},
+{name: "INDONEZJA - Garuda TV", url: "https://hgmtv.com:2020/hls/garudatvlivestreaming/1080p.m3u8", type: "hls"},
+{name: "INDONEZJA - IDX Channel", url: "https://www.youtube.com/watch?v=hjCkB9XRpkU", type: "youtube"},
+{name: "INDONEZJA - JTV", url: "https://63b2dc7196c38.streamlock.net:1937/JTVSURABAYA/_definst_/myStream/chunklist_w143816246.m3u8", type: "hls"},
+{name: "INDONEZJA - Kompas TV", url: "https://www.youtube.com/watch?v=DOOrIxw5xOw", type: "youtube"},
+{name: "INDONEZJA - Metro TV", url: "https://www.youtube.com/watch?v=d_oEiZjsSnc", type: "youtube"},
+{name: "INDONEZJA - Nusantara TV", url: "https://nusantaratv.siar.us/nusantaratv/live/playlist.m3u8", type: "hls"},
+{name: "INDONEZJA - Rajawali TV", url: "https://rtvstream.rtv.co.id:4555/hls/rtv.m3u8", type: "hls"},
+{name: "INDONEZJA - Trans 7", url: "https://live.eu-north-1a.cf.dmcdn.net/sec2(cWNY9BNOEtmCC5fnGgxt5OCnPwScO4iSw0W27wlpsczNhGLafcFbElpKlzzXzMfCn7Ol01xjFlDsLrodQGlG0msVlMKemNxej3BNhc8XfH-ASPDdVgp6POdh8qEqkPiW)/dm/3/x8qckyq/d/live-720.m3u8", type: "hls"},
+{name: "INDONEZJA - TV 9 Nusantara", url: "https://5bf7b725107e5.streamlock.net/tv9/tv9/chunklist_w1093448409.m3u8", type: "hls"},
+{name: "INDONEZJA - TVOne", url: "https://www.youtube.com/watch?v=rQJoEpzKkNk", type: "youtube"},
+{name: "INDONEZJA - TVRI Aceh", url: "https://ott-balancer.tvri.go.id/live/eds/Aceh/hls/Aceh-avc1_500000=10006-mp4a_64000=20002.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Bali", url: "https://ott-balancer.tvri.go.id/live/eds/Bali/hls/Bali-avc1_500000=10002-mp4a_64000=20002.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Nasional", url: "https://ott-balancer.tvri.go.id/live/eds/Nasional/hls/Nasional-avc1_500000=10003-mp4a_64000_eng=20003.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Nusa Tenggara Timur", url: "https://ott-balancer.tvri.go.id/live/eds/NTT/hls/NTT-avc1_500000=10003-mp4a_64000=20002.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Papua", url: "https://ott-balancer.tvri.go.id/live/eds/Papua/hls/Papua-avc1_500000=10003-mp4a_64000=20002.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Sport", url: "https://ott-balancer.tvri.go.id/live/eds/SportHD/hls/SportHD-avc1_250000=10001-mp4a_64000=20001.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Sumatera Utara", url: "https://ott-balancer.tvri.go.id/live/eds/Sumut/hls/Sumut-avc1_500000=10004-mp4a_64000=20001.m3u8", type: "hls"},
+{name: "INDONEZJA - TVRI Yogyakarta", url: "https://ott-balancer.tvri.go.id/live/eds/Jogjakarta/hls/Jogjakarta-avc1_250000=10008-mp4a_64000=20002.m3u8", type: "hls"},
+{name: "IRAK - Dijlah TV", url: "https://ghaasiflu.online/Dijlah/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "IRAK - i-news", url: "https://live.i-news.tv/hls/1/stream.m3u8", type: "hls"},
+{name: "IRAK - Iraqi Kurdish", url: "https://imn-live.esite-lab.com/hls/iraqia-kurdish.m3u8?sid=nfnxq3utmpb86051", type: "hls"},
+{name: "IRAK - Iraqi News", url: "https://imn-live.esite-lab.com/hls/iraqia-news.m3u8?sid=rdmcy5e6mok2j3ab", type: "hls"},
+{name: "IRAK - Iraqia General", url: "https://imn-live.esite-lab.com/hls/iraqia-general.m3u8?sid=rdmcy5e6mok2j3ab", type: "hls"},
+{name: "JORDANIA - JRTV", url: "https://playlist.fasttvcdn.com/pl/cc0blorawy1ibohhrupraa/Drama/playlist.m3u8?rid=d4205de748252910d51d08c0ce0d13ee", type: "hls"},
+{name: "JORDANIA - JRTV", url: "https://jrtv-live.ercdn.net/jordanhd/jordanhd_1080p.m3u8?rid=ab45cb30f8a7ac5a53703d33eb1b185f", type: "hls"},
+{name: "JORDANIA - JRTV", url: "https://playlist.fasttvcdn.com/pl/cc0blorawy1ibohhrupraa/Song/playlist/3.m3u8?rid=69380bbc7fc06a75348eed804819aecc&sid=k1MIyWRWD0-uMlqua7jslg", type: "hls"},
+{name: "JORDANIA - JRTV", url: "https://playlist.fasttvcdn.com/pl/cc0blorawy1ibohhrupraa/cooking/playlist/3.m3u8?rid=6225f77d507578d3fc3e5608ff0abc9f&sid=zwPAfK8NJke9PZN4RRh8dQ", type: "hls"},
+{name: "JORDANIA - JRTV Tourism", url: "https://playlist.fasttvcdn.com/pl/cc0blorawy1ibohhrupraa/Tourism/playlist/3.m3u8?rid=05446af918cce363d995972360a72fe3&sid=qRh5aFotXUyfKlu4cDbgIg", type: "hls"},
+{name: "KAMBODŻA - Apsara TV", url: "https://live.ams.com.kh/app/stream/playlist.m3u8", type: "hls"},
+{name: "KAMBODŻA - SEA TV", url: "https://seatv.netlinkbroadcaster.com/hls/test.m3u8", type: "hls"},
+{name: "KAMBODŻA - TVK", url: "https://live.kh.malimarcdn.com/live/tvk.stream/chunklist.m3u8", type: "hls"},
+{name: "KAZACHSTAN - 24KZ", url: "https://www.youtube.com/watch?v=Ctfrepsqaao", type: "youtube"},
+{name: "KAZACHSTAN - Abai TV", url: "https://abaitv-stream.qazcdn.com/abaitv/abaitv/tracks-v4a1/mono.ts.m3u8", type: "hls"},
+{name: "KAZACHSTAN - Astana TV", videoUrl: "https://live.arnextech.kz/live/1794948741-Y2hYtsUJ3Typ9NpslenKUQ/astana/chunklist_1_video_6865950094377741532_llhls.m3u8?_HLS_legacy=YES", audioUrl: "https://live.arnextech.kz/live/1794948741-Y2hYtsUJ3Typ9NpslenKUQ/astana/chunklist_5_audio_6865950094377741532_llhls.m3u8?_HLS_legacy=YES", type: "hls-split"},
+{name: "KAZACHSTAN - Atameken Business", url: "https://www.youtube.com/watch?v=L__GbuZLC-g", type: "youtube"},
+{name: "KAZACHSTAN - Jibek Joly", url: "https://stream.qazcdn.net/ex6r514/jjtv/tracks-v3a1/mono.ts.m3u8?ds=ex6r514&ss=jh7SgiwLINC2lp1dS5dHkKmpIS05TOTu2c8nw3Y8", type: "hls"},
+{name: "KAZACHSTAN - NTK", url: "https://live1-ntkkz.cdnvideo.ru/ntkkz-live/_definst_/smil:ntk-live.smil/00c2db448da70c1f283ed8ec368d564e--ntkkz-live--live.hq--tracks-v1a1--mono.m3u8?md5=t3YdhAuLetpDtCJK_OUf3w&e=1794929340&hls_proxy_host=1c234771bd3a06e6ee6e4166a1618d54", type: "hls"},
+{name: "KAZACHSTAN - Qazaqstan", url: "https://qazaqstantv-stream.qazcdn.com/qazaqstantv/qazaqstantv/tracks-v4a1/mono.ts.m3u8", type: "hls"},
+{name: "KAZACHSTAN - Qonaev Media", url: "https://v.qonaevtv.kz/qonaev/main_stream.m3u8?session=2c2e6ddf-29a1-45cc-972c-c795fb3f1a0d", type: "hls"},
+{name: "KOREA PLD. - BBS", url: "bbstv.clouducs.com/bbstv-live/livestream/chunklist_w511033072.m3u8", type: "hls"},
+{name: "KOREA PLD. - BTN", url: "https://btn.nowcdn.co.kr/btn/btnlive2m/chunklist_w1944631000.m3u8", type: "hls"},
+{name: "KOREA PLD. - CBS", url: "https://cbs-live.cbs.co.kr/cbs-live/_definst_/cbs-live.stream/medialist_12347274917124648945_hls.m3u8", type: "hls"},
+{name: "KOREA PLD. - CGN TV", url: "https://dsk1q8myiu3r0.cloudfront.net/out/v1/1e2bf6fbb462491e9f24739c4e0aa28e/index_6.m3u8", type: "hls"},
+{name: "KOREA PLD. - CGN TV Chinese", url: "https://d3e05csss9c272.cloudfront.net/out/v1/f0bf71c57581470fb9379f603e8f5d83/CGNWebLiveCN_1.m3u8", type: "hls"},
+{name: "KOREA PLD. - CGN TV Japan", url: "https://d2p4mrcwl6ly4.cloudfront.net/out/v1/8d50f69fdbbf411a8d302743e4263716/CGNWebLiveJP_1.m3u8", type: "hls"},
+{name: "KOREA PLD. - Channel A", url: "https://channelaid3.ichannela.com/atv3/chunklist.m3u8?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXRoIjoiL2F0djMiLCJleHAiOjE3OTUwNzIyOTJ9.EBIiHLErIkqwJuiNnQ2vP9X4wCzdsCZdZ9QfLspB5CE", type: "hls"},
+{name: "KOREA PLD. - EBS 1", url: "https://liveotu.ebs.co.kr/ebs1/onair.smil/chunklist_b2000000.m3u8?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vbGl2ZW90dS5lYnMuY28ua3IvZWJzMS9vbmFpci5zbWlsLyoiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTUwODY4MDN9LCJJcEFkZHJlc3MiOnsiQVdTOlNvdXJjZUlwIjoiMC4wLjAuMC8wIn19fV19&Signature=GadyxAbJ8SgUhDBfIlRJWPBYqqEUXvOnei0t4f3Gj63DA1ee5KIITOrh~Nk-bAeQDyZIwrz9FbZ0QZ2N00hthLgkbtdF7uQHvH7o9za1G~ue6fGVRNKSI0ESeMtGCXvvTnp1YjtzCuMhYRrX-82bM-ajG1XmoAMr0tnV94drCzs_&Key-Pair-Id=pub_liveotu.ebs.co.kr", type: "hls"},
+{name: "KOREA PLD. - EBS English", url: "https://liveotu.ebs.co.kr/ebse/onair.smil/chunklist_b2000000.m3u8?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vbGl2ZW90dS5lYnMuY28ua3IvZWJzZS9vbmFpci5zbWlsLyoiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTUwODY3ODF9LCJJcEFkZHJlc3MiOnsiQVdTOlNvdXJjZUlwIjoiMC4wLjAuMC8wIn19fV19&Signature=zYv6h2OqZ9LDRjgIcffO-mPo6wzqsrZ-WymDgUcT8fA0lofJiL6FwlcSvZos8v0jAi5oouPDA1ss-3QSKiQopp~V6dw0idirHPpGStrHkqBi9IXUZ3~xFTuEJvwSqiGXRY03-CSvXIUhr0tBmCh5PlBpiYwwCVBLmi4ByJF2JAs_&Key-Pair-Id=pub_liveotu.ebs.co.kr", type: "hls"},
+{name: "KOREA PLD. - Edaily TV", url: "https://www.youtube.com/watch?v=5cFoz90FUMk", type: "youtube"},
+{name: "KOREA PLD. - Good TV", url: "https://stream.goodtv.co.kr:8081/live/goodtv/chunks.m3u8?nimblesessionid=226841", type: "hls"},
+{name: "KOREA PLD. - Korea Economic TV", url: "https://www.youtube.com/watch?v=VlaCnp1fxI8", type: "youtube"},
+{name: "KOREA PLD. - KTV", url: "https://hlive.ktv.go.kr/live/klive_h.stream/chunklist_w1270634920.m3u8", type: "hls"},
+{name: "KOREA PLD. - Mmoney", url: "https://www.youtube.com/watch?v=s9xL1DpBsfQ", type: "youtube"},
+{name: "KOREA PLD. - NBS", url: "https://media.joycorp.co.kr:4443/live/live_360p/chunklist_w219495498.m3u8", type: "hls"},
+{name: "KOREA PLD. - NBS", url: "https://media.joycorp.co.kr:4443/vod/_definst_/mp4:2025/12/29/bc6938e1f4ea6515baa08d1aeea28be7.mp4/chunklist_w1703273886.m3u8", type: "hls"},
+{name: "KOREA PLD. - OBS", url: "https://vod.obs.co.kr:444/live/obsstream1/tv.stream/chunklist_w1638920098.m3u8", type: "hls"},
+{name: "KOREA PLD. - OBS", url: "https://vod.obs.co.kr:444/live/obsstream1/tv.stream/chunklist_w1412507386.m3u8", type: "hls"},
+{name: "KOREA PLD. - OUN", url: "https://live.knou.ac.kr/knou1/live1/chunklist.m3u8?solsessionid=cc88e8777ce044d5637f61e0a1602cf2", type: "hls"},
+{name: "KOREA PLD. - SEN", url: "https://www.youtube.com/watch?v=ciA-0rInLwQ", type: "youtube"},
+{name: "KOREA PLD. - STB", url: "https://606d65214d80f.streamlock.net/live-stb/_definst_/7119b317b270b34630cb6a88797590e553ed98b41c605d75a82415024453ce82/chunklist_w927995714.m3u8", type: "hls"},
+{name: "KOREA PLD. - Tomato TV", url: "https://www.youtube.com/watch?v=w05Ejc0iOVI", type: "youtube"},
+{name: "KOREA PLD. - Yonhap News Economy TV", url: "https://www.youtube.com/watch?v=yhpbioCP6nA", type: "youtube"},
+{name: "KOREA PLD. - Yonhap News TV", url: "https://www.youtube.com/watch?v=6QZ_qc75ihU", type: "youtube"},
+{name: "KOREA PLD. - YTN", url: "https://www.youtube.com/watch?v=aZyD6EPl6KU", type: "youtube"},
+{name: "LIBAN - Al-Manar", url: "https://edge.fastpublish.me/live/tracks-v1a1/mono.m3u8", type: "hls"},
+{name: "LIBAN - teleliban", url: "https://cdn.catiacast.video/abr/ed8f807e2548db4507d2a6f4ba0c4a06/tl/mbs1/chunks.m3u8", type: "hls"},
+{name: "LITWA - Lituanica", videoUrl: "https://stream-live.lrt.lt/lituanica/stream03/streamPlaylist.m3u8", audioUrl: "https://stream-live.lrt.lt/lituanica/stream04/streamPlaylist.m3u8", type: "hls-split"},
+{name: "LITWA - LRT Plius", videoUrl: "https://stream-secure.lrt.lt/plius/stream03/streamPlaylist.m3u8", audioUrl: "https://stream-secure.lrt.lt/plius/stream04/streamPlaylist.m3u8", type: "hls-split"},
+{name: "LUKSEMBURG - RTL", url: "https://stream.rtl.lu/data/live/tele/channel1/1080p.m3u8", type: "hls"},
+{name: "MAKAU - Macau Lotus TV", url: "https://play-sh-qudao.quklive.com/live/1793853943346050.m3u8?token=5e9f7d3d991289e016e2d5caf832b397-999e081030ef43d9674f0c1428c1b53e&auth_key=2109213943-baec122a884d0dc319e3c9ab35376f52-0-8d6175cf97efd15869ff5050daa0d867", type: "hls"},
+{name: "MALEDIWY - MMTV", url: "https://sendlive.online/hls/mmtv.m3u8", type: "hls"},
+{name: "MALEZJA - Astro Awani", url: "https://live2.eu-north-1a.cf.dmcdn.net/sec2(DHsGjWAqLqRfUlzuNHSbj6LuWyjfSUx1-rQWoJT6Lpl8gtbBcnxz2olK0QEAnHuLFzcumWAzFAGpBndZcHrbvjJZfWpYm0EKtDOHkvEHkScf6qVt1EchiYHSWfTuPWRL)/cloud/3/x8dbnq6/s/live-720.m3u8", type: "hls"},
+{name: "MALEZJA - Maah TV", url: "https://hls.maahtv.live/hls/stream.m3u8", type: "hls"},
+{name: "MALEZJA - Sun Music TV", url: "https://hls.sunmusic.live/hls/stream.m3u8", type: "hls"},
+{name: "MARTYNIKA - Zitata", url: "https://live.zitata.tv/direct-hls/playlist.m3u8", type: "hls"},
+{name: "MEKSYK - Aprende+", url: "https://stream.aprende.gob.mx/live/hls/index.m3u8", type: "hls"},
+{name: "MEKSYK - Canal 6 CDMX", url: "https://us-b4-p-e-ja16.cdn.mdstrm.com/live-stream-dai/595d52c49c64420caf090379ecf5b10c/manifest/f624fec49dadc88894ebeff1d974eab019af7757/57b4dbf5dbbfc8f16bb63ce1/52bce21d-9400-4b2c-bfd0-37279a54ed4c/0.m3u8?aid=579bd29dc99290cf08362c3b&uid=Fv0ghhodw5kmeRtGPZqIauM15crg2G5Z&sid=N3ntXuB7S0ivG3hsJRuChEpAf7Cy5oXQ&pid=fLbaIT2cuYIlFcjQqO5awVCzaCmfeByX&pid_dvr=gg6mO7kalGrG8cCz0HlZySy5ab15uowH&ref=https%3A%2F%2Fwww.multimediostv.com%2F&without_cookies=false&listenerid=&dnt=true&CMCD=cid%3D%2257b4dbf5dbbfc8f16bb63ce1%22%2Cmtp%3D11800%2Cot%3Dm%2Csf%3Dh%2Csid%3D%22fLbaIT2cuYIlFcjQqO5awVCzaCmfeByX%22&es=us-b4-p-e-ja16.cdn.mdstrm.com&ote=1794725833687&ot=2NFS1sYpZolt9krXeI0mCQ&proto=https&pz=us", type: "hls"},
+{name: "MEKSYK - Canal 8 Costa Rica", url: "https://us-b4-p-e-zs14.cdn.mdstrm.com/live-stream/5a7b1e63a8da282c34d65445/publish/media_2000.m3u8?aid=579bd29dc99290cf08362c3b&uid=Fv0ghhodw5kmeRtGPZqIauM15crg2G5Z&sid=N3ntXuB7S0ivG3hsJRuChEpAf7Cy5oXQ&pid=xeQWSkvFy18MYjtIvUdxXG8R8i1bUCpE&pid_dvr=xqFvqlEgYzIDCLCinive3J1JnaqYYOx9&ref=https%3A%2F%2Fwww.telediario.cr%2F&without_cookies=false&listenerid=&dnt=true&es=us-b4-p-e-zs14.cdn.mdstrm.com&ote=1794725993006&ot=KBk1MAdIcujVhIE2Z7VhHw&proto=https&pz=us&CMCD=cid%3D%225a7b1e63a8da282c34d65445%22%2Cmtp%3D22000%2Cot%3Dm%2Csf%3Dh%2Csid%3D%22xeQWSkvFy18MYjtIvUdxXG8R8i1bUCpE%22", type: "hls"},
+{name: "MEKSYK - Canal Catorce", url: "https://s5.mexside.net:1936/canal14/canal14/chunklist.m3u8", type: "hls"},
+{name: "MEKSYK - Codere RGTV", url: "https://us-b4-p-e-qg12.cdn.mdstrm.com/live-stream/69b09f1072b1feec10ba7d72/publish/media_2500.m3u8?aid=579bd29dc99290cf08362c3b&uid=Fv0ghhodw5kmeRtGPZqIauM15crg2G5Z&sid=N3ntXuB7S0ivG3hsJRuChEpAf7Cy5oXQ&pid=xgA7k6S6kt3fGG9pEOruzaF87iGzoItk&pid_dvr=Hvjq2ql64K0Eygfptbyt0lJECWdTDnNJ&ref=https%3A%2F%2Fwww.multimediostv.com%2F&without_cookies=false&listenerid=&dnt=true&es=us-b4-p-e-qg12.cdn.mdstrm.com&ote=1794726225546&ot=7j9C12gv-or-gu84hK-q-Q&proto=https&pz=us&CMCD=cid%3D%2269b09f1072b1feec10ba7d72%22%2Cmtp%3D15300%2Cot%3Dm%2Csf%3Dh%2Csid%3D%22xgA7k6S6kt3fGG9pEOruzaF87iGzoItk%22", type: "hls"},
+{name: "MEKSYK - Jalisco TV", url: "https://video0.rogohosting.com:19360/sisjalisciense/sisjalisciense.m3u8", type: "hls"},
+{name: "MEKSYK - Maussan TV", url: "https://www.youtube.com/watch?v=uRYuLh5WiW0", type: "youtube"},
+{name: "MEKSYK - Méxiquense Noticias", url: "https://5e50264bd6766.streamlock.net/mexiquense/videomexiquense/chunklist_w1329833022.m3u8", type: "hls"},
+{name: "MEKSYK - Milenio Noticias", url: "https://www.youtube.com/watch?v=oPy8a-TCjzA", type: "youtube"},
+{name: "MEKSYK - Once", url: "https://vivo.canaloncelive.tv/secureoncedos/oncedigital/chunklist.m3u8", type: "hls"},
+{name: "MEKSYK - RCG TV 1", url: "https://video1.getstreamhosting.com:1936/8172/8172/main_stream.m3u8?s=556eba841c8534e350bc5c02", type: "hls"},
+{name: "MEKSYK - TV Migrante", url: "https://s5.mexside.net:1936/tvmigrante/tvmigrante/chunklist.m3u8", type: "hls"},
+{name: "MEKSYK - Unife México", url: "https://unife.b-cdn.net/unife/tracks-v1a1/mono.ts.m3u8?id=54&ip=2a00%3Af41%3A58b6%3A652%3Abd11%3A9959%3Ac28d%3A651&override_expiration=1500&sign=OJl0SG9VYtyb5hR3q4UZRWqfXpVgOdx4umAAHRDJaeY%3D&timestamp=1794641737", type: "hls"},
+{name: "MOLDAWIA - Moldova 1", url: "https://v1.trm.md/static/streaming-playlists/hls/599da1b2-3575-41b7-808d-64aa66d1172f/0.m3u8", type: "hls"},
+{name: "MOLDAWIA - TVR Moldova", url: "https://tvr-moldova.lg.mncdn.com/tvrmoldova/smil:tvrmoldova.smil/chunklist_b5160000.m3u8", type: "hls"},
+{name: "NIEMCY - folxplay EX FOLX EXTRA", url: "https://extraapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
+{name: "NIEMCY - tagesschau24", url: "https://tagesschau.akamaized.net/hls/live/2020115/tagesschau/tagesschau_1/master-720p-3328.m3u8", type: "hls"},
+{name: "NIKARAGUA - TN8", url: "https://5ca3e84a76d30.streamlock.net/tn8/videotn8/chunklist_w523288368.m3u8", type: "hls"},
+{name: "NORWEGIA - NRK Nyheter", url: "https://nrk-live-world.akamaized.net/nrktv8/sc-gaFEEA/m41_index.m3u8?adap=small", type: "hls"},
+{name: "NOWA ZELANDIA - J2", url: "https://gizmo2.cloudserver.nz/hls/J2.m3u8", type: "hls"},
+{name: "NOWA ZELANDIA - JuiceTV", url: "https://gizmo2.cloudserver.nz/hls/Juice.m3u8", type: "hls"},
+{name: "PAKISTAN - 365 News", url: "https://www.youtube.com/watch?v=mdS3oUW21ag", type: "youtube"},
+{name: "PAKISTAN - 92 News", url: "https://www.youtube.com/watch?v=A6ZQOpoh5mc", type: "youtube"},
+{name: "PAKISTAN - A1 TV", url: "https://www.youtube.com/watch?v=HvX2KM2vNtY", type: "youtube"},
+{name: "PAKISTAN - Aan TV", url: "https://cdn.rabta.stream/AAN-TV/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "PAKISTAN - ABN News", url: "https://video.abnnews.pk/abn/live/chunklist_w14839389.m3u8", type: "hls"},
+{name: "PAKISTAN - Afghan TV", url: "https://cdn5.mjunoon.tv:8087/web/afghantv-154/live/154M/chunks.m3u8?nimblesessionid=751569512&wmsAuthSign=c2VydmVyX3RpbWU9MTEvMTcvMjAyNiA3OjM2OjQ4IFBNJmhhc2hfdmFsdWU9VGJxdUhSSHMyeHRxREJtUFlYZXJ5dz09JnZhbGlkbWludXRlcz0x", type: "hls"},
+{name: "PAKISTAN - AIK News", url: "https://www.youtube.com/watch?v=VQt10yGVfQo", type: "youtube"},
+{name: "PAKISTAN - ARY Digital Asia", url: "", type: "iframe"},
+{name: "PAKISTAN - Bol News", url: "https://www.youtube.com/watch?v=J4HCiNChD6U", type: "youtube"},
+{name: "PAKISTAN - Dawn News", url: "https://www.youtube.com/watch?v=CxtDizYfoQE", type: "youtube"},
+{name: "PAKISTAN - Discover Pakistan", url: "https://livecdn.live247stream.com/discoverpakistan/web/discoverpakistan/stream1/chunks.m3u8", type: "hls"},
+{name: "PAKISTAN - Dunya News", url: "https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/chunklist_w1710625797_b950272.m3u8", type: "hls"},
+{name: "PAKISTAN - Geo News", url: "https://www.youtube.com/watch?v=t3fvgmDDmdc", type: "youtube"},
+{name: "PAKISTAN - Hum News", url: "https://www.youtube.com/watch?v=AHEhtZUMML8", type: "youtube"},
+{name: "PAKISTAN - Hum TV", url: "https://g4wlkwx8l23a-hls-live.5centscdn.com/HUM/271ddf829afeece44d8732757fba1a66.sdp/HUM/TV1/chunks_dvr.m3u7", type: "iframe"},
+{name: "PAKISTAN - Isaac TV", url: "https://livecdn.live247stream.com/isaac/tv/isaac/stream1/chunks.m3u8", type: "hls"},
+{name: "PAKISTAN - Joo Music", url: "https://livecdn.live247stream.com/joomusic/tv/joomusic/stream/chunks.m3u8", type: "hls"},
+{name: "PAKISTAN - Joshua TV", url: "https://livecdn.live247stream.com/joshua/tv/joshua/stream1/chunks.m3u8", type: "hls"},
+{name: "PAKISTAN - K21 News", url: "https://www.youtube.com/watch?v=cFHfikvtU4Q", type: "youtube"},
+{name: "PAKISTAN - KTN News", url: "https://www.youtube.com/watch?v=WAH064tSrrI", type: "youtube"},
+{name: "PAKISTAN - Lahore News", url: "https://vcdn.dunyanews.tv/lahorelive/_definst_/ngrp:lnews_1_all/chunklist_w1433417016_b950272.m3u8", type: "hls"},
+{name: "PAKISTAN - M News", url: "https://cdn.rabta.stream/M-News/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "PAKISTAN - Madani Channel Bangla", url: "https://streaming.madanichannel.tv/static/streaming-playlists/hls/d3e49b76-ac06-4689-a641-9200445b647f/3.m3u8", type: "hls"},
+{name: "PAKISTAN - Public News", url: "https://www.youtube.com/watch?v=RBKz4UiXa1k", type: "youtube"},
+{name: "PAKISTAN - Rohi News", url: "https://www.youtube.com/watch?v=t1uajBgsdKY", type: "youtube"},
+{name: "PAKISTAN - Sachal News Network", url: "https://www.youtube.com/watch?v=clm-vKKL8Bk", type: "youtube"},
+{name: "PAKISTAN - Seen Profit", url: "https://www.youtube.com/watch?v=cqzigv1JEzM", type: "youtube"},
+{name: "PAKISTAN - Such TV", url: "https://video.primexsports.com/suchnews/live/chunklist_w1991184519.m3u8", type: "hls"},
+{name: "PAKISTAN - Sun News", url: "https://www.youtube.com/watch?v=XUiTl9ezEX8", type: "youtube"},
+{name: "PAKISTAN - Suno News HD", url: "https://www.youtube.com/watch?v=F6P-BFV6gWM", type: "youtube"},
+{name: "PAKISTAN - TV Today", videoUrl: "https://sscsott.com/tvtodaynews/live/tracks-v1/index.fmp4.m3u8", audioUrl: "https://sscsott.com/tvtodaynews/live/tracks-a1/index.fmp4.m3u8", type: "hls-split"},
+{name: "PAKISTAN - Zindagi TV", url: "https://5ad386ff92705.streamlock.net/live_transcoder/ngrp:zindagitv.stream_all/chunklist_w1241256660_b2113536.m3u8", type: "hls"},
+{name: "PANAMA - Hosanna Visión", url: "https://1206618505.rsc.cdn77.org/LS-ATL-59020-1/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "PUERTO RICO - WIPR-TV", url: "https://streamwipr.pr/hls/stream/1_2/index.m3u8?tkn=484641166", type: "hls"},
+{name: "RUMUNIA - A7 TV", url: "https://a7tvlive.ro/A7TV/A7TV/chunklist_w948694439.m3u8", type: "hls"},
+{name: "RUMUNIA - ANTENA 3 CNN", url: "https://live3vox.antenaplay.ro/a3free/a3free_250.m3u8?version=1&session=5927187828f6bafc7b01&starttime=1794069231&endtime=1794083661&source=a3web&token=RoF5ysDflR4VoLSoUyb1Q6spNlc=", type: "hls"},
+{name: "RUMUNIA - Realitatea Plus", url: "https://www.youtube.com/watch?v=Q1ZodRj6WE4", type: "youtube"},
+{name: "SERBIA - ATV", url: "https://gjirafa-video-live.gjirafa.net/gjvideo-live/0nj-g63-92x-few/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "SERBIA - Kurir TV", url: "https://static.am.mediaoutcast.com/storage/nQJnjJkO/nQJnjJkO/stream/O68x4o8g/720p/720p.m3u8", type: "hls"},
+{name: "SERBIA - RTK 1 Sat", url: "https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/rtk-sat/tracks-v4a1/mono.ts.m3u8", type: "hls"},
+{name: "SERBIA - RTK 3", url: "https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/rtk3/tracks-v2a1/mono.ts.m3u8", type: "hls"},
+{name: "SERBIA - SOS Kanal Plus", url: "https://edge-de-04.maksnet.tv/soskanalplus/soskanalplus.stream/chunklist_w1844649535.m3u8", type: "hls"},
+{name: "SERBIA - T7", url: "https://gjirafa-video-live.gjirafa.net/gjvideo-livestream-specific/1z8-byc-4ee-lc9/tracks-v3a1/mono.ts.m3u8", type: "hls"},
+{name: "SERBIA - TV Novi Pazar", url: "https://tv.rtvnp.rs/stream.m3u8", type: "hls"},
+{name: "SERBIA - Zico TV", url: "https://gjirafa-video-live.gjirafa.net/gjvideo-live/j3a-n14-2pf-g3s/tracks-v1a1/mono.ts.m3u8", type: "hls"},
+{name: "SŁOWACJA - TV Lux", url: "https://stream.tvlux.sk/luxtv/luxtv-livestream/chunklist_w507741180_DVR.m3u8", type: "hls"},
+{name: "SŁOWENIA - folxplay FOLX SLOVENIJA", url: "https://folxsloapp.b-cdn.net/1080p/index.m3u8", type: "hls"},
+{name: "SRI LANKA - Athavan TV", url: "https://oj7lnxonyg82-hls-live.5centscdn.com/uks/24263a839810d2041a349baaeef36a79.sdp/chunks.m3u8", type: "hls"},
+{name: "SRI LANKA - ITN", url: "https://play.comcities.net/t/-yE1r9Soi0crEz8uCwVX3w/1795046131/dvr/itn/delay-16200.m3u8", type: "hls"},
+{name: "SRI LANKA - Jaya TV", url: "https://live.jayatv.lk/hls/0/stream.m3u8", type: "hls"},
+{name: "SRI LANKA - Rupavahini", url: "https://rpn.tulixcdn.com/slrclive/slrc/slrclive/tracks-v1a1/mono.m3u8?nimblesessionid=1998562467", type: "hls"},
+{name: "SRI LANKA - Shraddha TV", url: "https://www.youtube.com/watch?v=8icH-Z6NxZo", type: "youtube"},
+{name: "SRI LANKA - The Buddhist TV", url: "https://www.youtube.com/watch?v=-JwrJ5wmGo0", type: "youtube"},
+{name: "SYRIA - Syria TV", url: "https://www.youtube.com/watch?v=h6cB5IUmVF0", type: "youtube"},
+{name: "SZWAJCARIA - CARAC 1", url: "https://edge19.vedge.infomaniak.com/livecast/ik:rougetv/chunklist_w1089519301_b1600000.m3u8", type: "hls"},
+{name: "SZWAJCARIA - CARAC 2", url: "https://edge15.vedge.infomaniak.com/livecast/ik:onefmmd/chunklist_w2074375961_b3000720.m3u8?spark=11e34f31-8e7d-42e7-8771-ba867d5418c8&token=", type: "hls"},
+{name: "SZWAJCARIA - CARAC 3", url: "https://edge19.vedge.infomaniak.com/livecast/ik:lfmmd/chunklist_w184561285_b3000000.m3u8?spark=03dc22a1-eb2a-491f-9708-18fdffc844b9&token=", type: "hls"},
+{name: "SZWAJCARIA - CARAC 4", url: "https://edge20.vedge.infomaniak.com/livecast/ik:compack_media_1/chunklist_w1183952166_b3000000.m3u8?spark=d7f3a62f-d159-42dc-b21d-f2aa22ffa232&token=", type: "hls"},
+{name: "SZWAJCARIA - CARAC 5", url: "https://edge11.vedge.infomaniak.com/livecast/ik:carac5/chunklist_w312384412_b3001080.m3u8?spark=1d9500da-c3b3-4960-9c5b-79ca516b0a3c&token=", type: "hls"},
+{name: "SZWAJCARIA - TeleBasel", url: "https://tb-simplex-cdn-live.akamaized.net/smsla-o-1080-720-360/ngrp:simplex-live-srt-49166.stream_all/chunklist_b2744000.m3u8", type: "hls"},
+{name: "TURCJA - Habertürk TV", url: "https://www.youtube.com/watch?v=s4KIyYkwiM0", type: "youtube"},
+{name: "TURCJA - NTV", url: "https://www.youtube.com/watch?v=pqq5c6k70kk", type: "youtube"},
+{name: "TURCJA - TGRT Haber", url: "https://www.youtube.com/watch?v=WX29nlgdqho", type: "youtube"},
+{name: "TURCJA - TRT HABER", url: "https://tv-trthaber.medya.trt.com.tr/master_1080.m3u8", type: "hls"},
+{name: "UKRAINA - 24 Kanal", url: "https://streamvideo.luxnet.ua/news24/livenews_1080p/index.m3u8", type: "hls"},
+{name: "UKRAINA - Dim", videoUrl: "https://public.cdn-03.cosmonova.net.ua/mobile-app/main/KanalDim/KanalDim__vhi.m3u8", audioUrl: "https://public.cdn-03.cosmonova.net.ua/mobile-app/main/KanalDim/KanalDim__ahi_ukr.m3u8", type: "hls-split"},
+{name: "UKRAINA - Espreso.TV", url: "https://www.youtube.com/watch?v=ScdUZNkwcYc", type: "youtube"},
+{name: "UKRAINA - Freedom", videoUrl: "https://public.cdn-03.cosmonova.net.ua/mobile-app/main/FreeDom/FreeDom__vhi.m3u8", audioUrl: "https://public.cdn-03.cosmonova.net.ua/mobile-app/main/FreeDom/FreeDom__ahi_ukr.m3u8", type: "hls-split"},
+{name: "UKRAINA - ICTV", url: "https://www.youtube.com/watch?v=v_hgVy3tUZM", type: "youtube"},
+{name: "UKRAINA - Pryamyy", url: "https://www.youtube.com/watch?v=-9FO57Sk_oY", type: "youtube"},
+{name: "UKRAINA - Suspilne News", url: "https://www.youtube.com/watch?v=EHiuKvFUr2w", type: "youtube"},
+{name: "USA - Bloomberg Originals", url: "https://live-global-originals-primary.global.ssl.fastly.net/bosfgeo922/Channel-TX-BO-Safe-Geo-Global-virginia-1/Channel-TX-BO-Safe-Geo-Global-virginia-1-BP-07-02-xJABTDr_live.m3u8", type: "hls"},
+{name: "USA - CNBC TV 18", url: "https://n18syndication.akamaized.net/bpk-tv/CNBC_TV18_NW18_MOB/output01/CNBC_TV18_NW18_MOB-audio_98835_hin=98800-video=2293600.m3u8", type: "hls"},
+{name: "USA - CNBC TV 18", url: "https://www.youtube.com/watch?v=1_Ih0JYmkjI&list=PLjq9mRS1PfGAnPPRsq8jPZxCzHmBKKXdn&index=1", type: "youtube"},
+{name: "USA - Comet", url: "https://fast-channels.sinclairstoryline.com/COMET/index_1.m3u8", type: "hls"},
+{name: "USA - KTOO 360 TV", url: "https://live-linear.global.ssl.fastly.net/persis/2147483647_KTOO360TV.stream_247/chunklist.m3u8", type: "hls"},
+{name: "USA - LLBN His Word", url: "https://brightstar-hisword-pull-secure.akamaized.net/brightstarhisword/stream_2250_20260619T100314.m3u8", type: "hls"},
+{name: "USA - NTD TV China", url: "https://ntd02.akamaized.net/HD-NY/tracks-v4a1/mono.m3u8", type: "hls"},
+{name: "USA - Scientology Network", url: "https://stream6.scientology.org/stream/hls_1920x1080_6000k.m3u8?offset=64830", type: "hls"},
+{name: "USA - TCT", url: "https://livecdn.use1-0004.jwplive.com/live/sites/LXqYX6Kr/media/frRD2nUK/live.isml/.m3u8", type: "hls"},
+{name: "USA - The Florida Channel", url: "https://cflive.kaltura.com/env/d.live.nvp1/live/hls/p/2593311/e/1_w90jitt8/tl/viewer/st/0/t/Y9yCjvRNmTOtnymucjdTDQ/index-s32.m3u8", type: "hls"},
+{name: "USA - Veteran News Network", url: "https://www.youtube.com/watch?v=F_YziAx7AzQ", type: "youtube"},
+{name: "USA - World Harvest TV", url: "https://597865f6e4114.streamlock.net/live/leseaorigin.stream/chunklist_w400215886.m3u8", type: "hls"},
+{name: "WŁOCHY - A3", url: "https://streamcdnf48-ca804651a2cc4ce8a6b28c4313977a9b.msvdn.net/live/S26494873/3lKU4Ih4QCQ5/chunklist.m3u8", type: "hls"},
+{name: "WŁOCHY - Canale 122", url: "https://stream9.xdevel.com/video0s975363-69/stream/chunks.m3u8", type: "hls"},
+{name: "WŁOCHY - Canale 7", url: "https://59d7d6f47d7fc.streamlock.net/canale7/canale7/chunklist_w848780065.m3u8", type: "hls"},
+{name: "WŁOCHY - Canale Dieci", url: "https://nrvideo1.newradio.it:1936/desxcerbht/desxcerbht/chunklist_w280645020.m3u8", type: "hls"},
+{name: "WŁOCHY - Club TV", url: "https://5a1178b42cc03.streamlock.net/travel/travel/chunklist_w11472684.m3u8", type: "hls"},
+{name: "WŁOCHY - Esperia TV", url: "https://59d7d6f47d7fc.streamlock.net/esperiatv/esperiatv/chunklist_w735400041.m3u8", type: "hls"},
+{name: "WŁOCHY - Fano TV 19", url: "https://diretta.arcapuglia.it:8080/live/fanotv/index.m3u8", type: "hls"},
+{name: "WŁOCHY - Go-TV Channel", url: "https://64b16f23efbee.streamlock.net/gooo/gooo/chunklist_w1772808430.m3u8", type: "hls"},
+{name: "WŁOCHY - GRP Vera TV", url: "https://webstream.multistream.it/memfs/a3195c96-f884-4c74-924f-2648814fc0b5_output_0.m3u8?session=mqSb6BdARrsxvSHJv3SJYt", type: "hls"},
+{name: "WŁOCHY - GS Channel", url: "https://rst1.saiuzwebnetwork.it:2020/hls/tvgschannel/tvgschannel.m3u8", type: "hls"},
+{name: "WŁOCHY - Kiss Kiss Napoli TV", url: "https://kk.fluid.stream/KKTVNapoli/smil:KKTVNapoli.smil/chunklist_w681659241_b2128000_slita.m3u8?FLID=1", type: "hls"},
+{name: "WŁOCHY - La C OnAir", url: "https://streamcdnf45-f5842579ff984c1c98d63b8d789673eb.msvdn.net/live/100197/SOrBDPy/chunklist.m3u8", type: "hls"},
+{name: "WŁOCHY - L'altro Corriere TV", url: "https://streamcdnf25-52ee6512fee4427889eba89957975fa0.msvdn.net/live/S24350460/BEj8ZmQiQ9UG/chunklist_b1128000.m3u8", type: "hls"},
+{name: "WŁOCHY - Lazio TV 13", url: "https://5f11919dca3bd.streamlock.net/laziotv/_definst_/laziotv/chunklist_w1185424454.m3u8", type: "hls"},
+{name: "WŁOCHY - Lira TV", url: "https://streamcdnf26-a928c0678d284da5b383f29ecc5dfeec.msvdn.net/live/S57315730/8kTBWibNteJA/chunklist_b3828000.m3u8", type: "hls"},
+{name: "WŁOCHY - MarcoPolo Travel TV", url: "https://5f11919dca3bd.streamlock.net/marcopolotravel/_definst_/marcopolotravel/chunklist_w769659958.m3u8", type: "hls"},
+{name: "WŁOCHY - Motori TV", url: "https://64b16f23efbee.streamlock.net/servizio01/servizio01/chunklist_w836298318.m3u8", type: "hls"},
+{name: "WŁOCHY - Orler TV", url: "https://w1.mediastreaming.it/orlertv/livestream/chunklist_w896545507.m3u8", type: "hls"},
+{name: "WŁOCHY - Padre Pio TV", url: "https://ppiotv.fluid.stream/PadrePioTV/livestream/chunklist_w2118394736.m3u8", type: "hls"},
+{name: "WŁOCHY - Parole di Vita", videoUrl: "https://stream.paroledivita.org/pdv/live/stream_1.m3u8", audioUrl: "https://stream.paroledivita.org/pdv/subs/eng/playlist.m3u8", type: "hls-split"},
+{name: "WŁOCHY - Primantenna", url: "https://64b16f23efbee.streamlock.net/primantenna14/primantenna14/chunklist_w1960106896.m3u8", type: "hls"},
+{name: "WŁOCHY - Radio Marte TV", url: "https://stream3.xdevel.com/video0s975753-772/stream/chunks.m3u8", type: "hls"},
+{name: "WŁOCHY - Rai Südtirol", url: "https://wzstreaming.rai.it/TVlive/smil:liveStream.smil/chunklist_w1823893461_b1428000_slita.m3u8", type: "hls"},
+{name: "WŁOCHY - Rete 8", url: "https://64b16f23efbee.streamlock.net/rete8/rete8/chunklist_w700839393.m3u8", type: "hls"},
+{name: "WŁOCHY - Rete 8 Sport", url: "https://64b16f23efbee.streamlock.net/rete8sport/rete8sport/chunklist_w914067668.m3u8", type: "hls"},
+{name: "WŁOCHY - RTI Canale 14", url: "https://stream.ets-sistemi.it:2020/hls/rticalabria/rticalabria.m3u8", type: "hls"},
+{name: "WŁOCHY - RTTR", url: "https://rttr.fluid.stream/RTTRlive/livestream/chunklist_w174326208.m3u8", type: "hls"},
+{name: "WŁOCHY - Sicilia 242", url: "https://5f22d76e220e1.streamlock.net/sicilia24/sicilia24/chunklist_w499925621.m3u8", type: "hls"},
+{name: "WŁOCHY - Tele Chiara", url: "https://fms.telemar.it:1936/telechiara/diretta/chunklist_w2017807762.m3u8", type: "hls"},
+{name: "WŁOCHY - Tele Dehon", url: "https://64b16f23efbee.streamlock.net/teledehonapp/ngrp:teledehonapp_all/chunklist_w635386473_b3131072.m3u8", type: "hls"},
+{name: "WŁOCHY - Telebari", url: "https://w1.mediastreaming.it/telebari/livestream/chunklist_w1471743426.m3u8", type: "hls"},
+{name: "WŁOCHY - Telecity Liguria", url: "https://64b16f23efbee.streamlock.net/telecitylombardia/telecitylombardia/chunklist_w1748771632.m3u8", type: "hls"},
+{name: "WŁOCHY - TeleClub", url: "https://teleclubitalia.iostream.it/tci1080.m3u8", type: "hls"}
+
+
+
+
+
+
+
+
+
+    
 ];
 
-// Główna logika odtwarzacza (inicjalizacja interfejsu listy kanałów)
-const channelsUl = document.getElementById('channels-ul');
-channels.forEach((channel, index) => {
-    const li = document.createElement('li');
-    li.className = 'channel-item';
-    if (index === 0) li.classList.add('active');
-    
-    li.innerHTML = `
-        <span class="channel-number">${index + 1}</span>
-        <span class="channel-name">${channel.name}</span>
-    `;
-    
-    li.addEventListener('click', () => {
-        document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
-        li.classList.add('active');
-        // Tutaj następuje obsługa wyboru streama w Twojej aplikacji
+let currentIndex = 0;
+let hlsInstance = null;
+let hlsAudioInstance = null;
+let dashInstance = null;
+let displayTimeout = null;
+let statusTimeout = null;
+let audioRetryTimeout = null;
+
+function getYouTubeEmbedUrl(url) {
+    let videoId = url;
+    if (url.includes('youtube.com/watch?v=')) {
+        videoId = url.split('watch?v=')[1].split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+    } else if (url.includes('youtube.com/embed/')) {
+        videoId = url.split('embed/')[1].split('?')[0];
+    }
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&rel=0`;
+}
+
+function initSidebar() {
+    const ul = document.getElementById('channels-ul');
+    ul.innerHTML = '';
+    channels.forEach((ch, idx) => {
+        const li = document.createElement('li');
+        li.className = 'channel-item' + (idx === currentIndex ? ' active' : '');
+        li.innerHTML = `<span class="channel-number">${idx + 1}.</span><span>${ch.name}</span>`;
+        li.onclick = () => playChannel(idx);
+        ul.appendChild(li);
     });
-    
-    channelsUl.appendChild(li);
+}
+
+function updateActiveSidebarItem() {
+    const items = document.querySelectorAll('.channel-item');
+    items.forEach((item, idx) => {
+        if (idx === currentIndex) {
+            item.classList.add('active');
+            item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+function showChannelName(name) {
+    const display = document.getElementById('channel-display');
+    display.innerText = `${currentIndex + 1}. ${name}`;
+    display.classList.add('show');
+    clearTimeout(displayTimeout);
+    displayTimeout = setTimeout(() => display.classList.remove('show'), 3000);
+}
+
+function showStatus(msg, isError = false) {
+    const status = document.getElementById('stream-status');
+    status.innerText = msg;
+    status.className = 'show ' + (isError ? 'error' : 'ok');
+    clearTimeout(statusTimeout);
+    statusTimeout = setTimeout(() => status.classList.remove('show'), 4000);
+}
+
+function cleanupPlayer() {
+    if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+    }
+    if (hlsAudioInstance) {
+        hlsAudioInstance.destroy();
+        hlsAudioInstance = null;
+    }
+    if (dashInstance) {
+        dashInstance.reset();
+        dashInstance = null;
+    }
+    if (audioRetryTimeout) {
+        clearTimeout(audioRetryTimeout);
+        audioRetryTimeout = null;
+    }
+    const container = document.getElementById('video-target');
+    container.innerHTML = '';
+    document.body.classList.remove('radio-mode');
+}
+
+function getHlsConfig() {
+    return {
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 30
+    };
+}
+
+function playChannel(index) {
+    if (index < 0) index = channels.length - 1;
+    if (index >= channels.length) index = 0;
+
+    currentIndex = index;
+    const channel = channels[currentIndex];
+
+    cleanupPlayer();
+    updateActiveSidebarItem();
+    showChannelName(channel.name);
+    showStatus(`Ładowanie: ${channel.name}...`);
+
+    const container = document.getElementById('video-target');
+
+    // Włączenie czarnego ekranu (trybu radiowego) dla każdego typu audio
+    if (channel.type === 'audio' || channel.type === 'audio-hls') {
+        document.body.classList.add('radio-mode');
+    }
+
+    if (channel.type === 'hls') {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        container.appendChild(video);
+
+        if (Hls.isSupported()) {
+            hlsInstance = new Hls(getHlsConfig());
+            hlsInstance.loadSource(channel.url);
+            hlsInstance.attachMedia(video);
+            hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+            hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) showStatus(`Błąd ładowania HLS: ${channel.name}`, true);
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = channel.url;
+            video.play().catch(() => {});
+        }
+    } 
+    else if (channel.type === 'hls-split') {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        container.appendChild(video);
+
+        const audio = document.createElement('audio');
+        audio.autoplay = true;
+        audio.preload = "auto";
+        audio.className = 'split-audio';
+        container.appendChild(audio);
+
+        if (Hls.isSupported()) {
+            hlsInstance = new Hls(getHlsConfig());
+            hlsInstance.loadSource(channel.videoUrl);
+            hlsInstance.attachMedia(video);
+            hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+
+            hlsAudioInstance = new Hls(getHlsConfig());
+            hlsAudioInstance.loadSource(channel.audioUrl);
+            hlsAudioInstance.attachMedia(audio);
+            hlsAudioInstance.on(Hls.Events.MANIFEST_PARSED, () => audio.play().catch(() => {}));
+
+            video.onplay = () => audio.play().catch(() => {});
+            video.onpause = () => {
+                if (!document.hidden) {
+                    audio.pause();
+                }
+            };
+        }
+    }
+    else if (channel.type === 'audio-hls') {
+        // Obsługa stacji radiowych w formacie HLS (.m3u8) puszczanych przez tag audio
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.autoplay = true;
+        audio.preload = "auto";
+        container.appendChild(audio);
+
+        if (Hls.isSupported()) {
+            hlsAudioInstance = new Hls(getHlsConfig());
+            hlsAudioInstance.loadSource(channel.url);
+            hlsAudioInstance.attachMedia(audio);
+            hlsAudioInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                audio.play().then(() => {
+                    showStatus(`Odtwarzanie: ${channel.name}`, false);
+                }).catch(() => {});
+            });
+            hlsAudioInstance.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    showStatus(`Błąd ładowania radia HLS: ${channel.name}`, true);
+                }
+            });
+        } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+            audio.src = channel.url;
+            audio.play().catch(() => {});
+        }
+    }
+    else if (channel.type === 'dash') {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.autoplay = true;
+        container.appendChild(video);
+
+        dashInstance = dashjs.MediaPlayer().create();
+        dashInstance.initialize(video, channel.url, true);
+    } 
+    else if (channel.type === 'audio') {
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.autoplay = true;
+        audio.preload = "auto";
+        audio.src = channel.url;
+        container.appendChild(audio);
+
+        const playAudioStream = () => {
+            audio.play().then(() => {
+                showStatus(`Odtwarzanie: ${channel.name}`, false);
+            }).catch(() => {
+                audioRetryTimeout = setTimeout(() => {
+                    audio.load();
+                    audio.play().catch(() => {
+                        showStatus(`Błąd ładowania stacji: ${channel.name}`, true);
+                    });
+                }, 2000);
+            });
+        };
+
+        audio.addEventListener('canplay', playAudioStream, { once: true });
+        audio.addEventListener('error', () => {
+            showStatus(`Błąd strumienia audio: ${channel.name}`, true);
+        });
+
+        setTimeout(playAudioStream, 500);
+    } 
+    else if (channel.type === 'iframe' || channel.type === 'youtube') {
+        const iframe = document.createElement('iframe');
+        iframe.src = channel.type === 'youtube' ? getYouTubeEmbedUrl(channel.url) : channel.url;
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; web-share";
+        iframe.allowFullscreen = true;
+        container.appendChild(iframe);
+    }
+}
+
+function nextStream() {
+    playChannel(currentIndex + 1);
+}
+
+function prevStream() {
+    playChannel(currentIndex - 1);
+}
+
+window.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('#sidebar')) return;
+    e.preventDefault();
+    nextStream();
 });
+
+window.addEventListener('auxclick', (e) => {
+    if (e.button === 1) {
+        e.preventDefault();
+        prevStream();
+    }
+});
+
+function toggleYTControls() {
+    const overlay = document.getElementById('click-overlay');
+    const btn = document.getElementById('toggle-yt-controls-btn');
+    overlay.classList.toggle('disabled');
+    btn.classList.toggle('active-control');
+}
+
+async function togglePictureInPicture() {
+    try {
+        const channel = channels[currentIndex];
+        if (channel.type === 'youtube' || channel.type === 'iframe' || channel.type === 'audio' || channel.type === 'audio-hls') {
+            showStatus("Tryb Picture-in-Picture jest niedostępny dla tego typu strumienia.", true);
+            return;
+        }
+
+        const video = document.querySelector('video');
+        if (video) {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                await video.requestPictureInPicture();
+            }
+            return;
+        }
+
+        showStatus("Picture-in-Picture niedostępne dla bieżącego odtwarzacza.", true);
+    } catch (err) {
+        showStatus("Błąd trybu Obraz w obrazie: " + err.message, true);
+    }
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        }
+    }
+}
+
+window.onload = () => {
+    initSidebar();
+    playChannel(0);
+};
 </script>
 
 </body>
